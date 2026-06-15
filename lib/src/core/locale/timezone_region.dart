@@ -6,8 +6,18 @@ import 'package:abigotado_dev/src/core/locale/supported_locale.dart';
 ///
 /// Examples:
 /// - `'Europe/Moscow'` → [SupportedLocale.ru]
-/// - `'America/Bogota'` → [SupportedLocale.es]
+/// - `'America/Argentina/Buenos_Aires'` → [SupportedLocale.es]
 /// - `'America/New_York'` → `null` (no single supported locale dominates)
 ///
-/// Stub — implemented in the GREEN phase.
-SupportedLocale? localeForTimeZone(String? id) => throw UnimplementedError();
+/// The mapping is intentionally minimal and provisional; the live timezone
+/// source (flutter_timezone / js interop) is deferred to a later feature.
+SupportedLocale? localeForTimeZone(String? id) {
+  if (id == null || id.isEmpty) return null;
+  if (id.startsWith('America/Argentina/')) return SupportedLocale.es;
+  return switch (id) {
+    'America/Mexico_City' => SupportedLocale.es,
+    'Europe/Moscow' => SupportedLocale.ru,
+    'Asia/Yekaterinburg' => SupportedLocale.ru,
+    _ => null,
+  };
+}
