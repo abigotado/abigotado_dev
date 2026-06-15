@@ -15,8 +15,7 @@ enum SupportedLocale {
   en,
 
   /// Spanish.
-  es
-  ;
+  es;
 
   /// Converts this domain value to the corresponding Flutter [Locale].
   Locale toLocale() => switch (this) {
@@ -32,9 +31,17 @@ enum SupportedLocale {
     SupportedLocale.es => 'ES',
   };
 
-  /// Returns the [SupportedLocale] matching [code] (e.g. `'ru'`, `'en'`,
-  /// `'es'`), or `null` if [code] is unrecognised or `null`.
-  ///
-  /// Stub — implemented in the GREEN phase.
-  static SupportedLocale? fromCode(String? code) => throw UnimplementedError();
+  /// Returns the [SupportedLocale] matching the bare language [code]
+  /// (`'ru'`, `'en'`, or `'es'`, case-insensitive), or `null` if [code] is
+  /// unrecognised or `null`. The caller must supply a bare language code —
+  /// region subtags (e.g. `'en-US'`) are not stripped and will return `null`.
+  static SupportedLocale? fromCode(String? code) {
+    if (code == null || code.isEmpty) return null;
+    return switch (code.toLowerCase()) {
+      'ru' => SupportedLocale.ru,
+      'en' => SupportedLocale.en,
+      'es' => SupportedLocale.es,
+      _ => null,
+    };
+  }
 }

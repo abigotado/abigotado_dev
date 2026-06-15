@@ -15,7 +15,8 @@ class AbigotadoApp extends ConsumerWidget {
     final locale = ref.watch(localeProvider).locale;
 
     return MaterialApp(
-      title: 'Nikita Kovalenko — abigotado.dev',
+      onGenerateTitle: (context) =>
+          '${AppLocalizations.of(context).name} — abigotado.dev',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark(),
       localizationsDelegates: AppLocalizations.localizationsDelegates,

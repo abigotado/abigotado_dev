@@ -126,34 +126,28 @@ String _$platformReaderHash() => r'fa755b57c00704dd2fff2a08e03943c935a69065';
 
 /// Manages the locale state machine for abigotado.dev.
 ///
-/// Reads the initial locale from the [LocaleStore] and [PlatformLocaleReader],
-/// applies user choices immediately (in-memory), and persists them
-/// asynchronously. Persist failures are surfaced via [LocaleState.persistFailed]
-/// rather than thrown to the UI.
-///
-/// Stub — logic implemented in the GREEN phase.
+/// Reads the initial locale from the [LocaleStore] and
+/// [PlatformLocaleReader], applies user choices immediately (in-memory),
+/// and persists them asynchronously. Persist failures are surfaced via
+/// [LocaleState.persistFailed] rather than thrown to the UI.
 
 @ProviderFor(LocaleNotifier)
 final localeProvider = LocaleNotifierProvider._();
 
 /// Manages the locale state machine for abigotado.dev.
 ///
-/// Reads the initial locale from the [LocaleStore] and [PlatformLocaleReader],
-/// applies user choices immediately (in-memory), and persists them
-/// asynchronously. Persist failures are surfaced via [LocaleState.persistFailed]
-/// rather than thrown to the UI.
-///
-/// Stub — logic implemented in the GREEN phase.
+/// Reads the initial locale from the [LocaleStore] and
+/// [PlatformLocaleReader], applies user choices immediately (in-memory),
+/// and persists them asynchronously. Persist failures are surfaced via
+/// [LocaleState.persistFailed] rather than thrown to the UI.
 final class LocaleNotifierProvider
     extends $NotifierProvider<LocaleNotifier, LocaleState> {
   /// Manages the locale state machine for abigotado.dev.
   ///
-  /// Reads the initial locale from the [LocaleStore] and [PlatformLocaleReader],
-  /// applies user choices immediately (in-memory), and persists them
-  /// asynchronously. Persist failures are surfaced via [LocaleState.persistFailed]
-  /// rather than thrown to the UI.
-  ///
-  /// Stub — logic implemented in the GREEN phase.
+  /// Reads the initial locale from the [LocaleStore] and
+  /// [PlatformLocaleReader], applies user choices immediately (in-memory),
+  /// and persists them asynchronously. Persist failures are surfaced via
+  /// [LocaleState.persistFailed] rather than thrown to the UI.
   LocaleNotifierProvider._()
     : super(
         from: null,
@@ -181,16 +175,14 @@ final class LocaleNotifierProvider
   }
 }
 
-String _$localeNotifierHash() => r'dc0ae46dc8ad5ff2838f5160c2069e9d09bcc2a1';
+String _$localeNotifierHash() => r'306d94f066242d380db727c9bbc3ecebe88574d6';
 
 /// Manages the locale state machine for abigotado.dev.
 ///
-/// Reads the initial locale from the [LocaleStore] and [PlatformLocaleReader],
-/// applies user choices immediately (in-memory), and persists them
-/// asynchronously. Persist failures are surfaced via [LocaleState.persistFailed]
-/// rather than thrown to the UI.
-///
-/// Stub — logic implemented in the GREEN phase.
+/// Reads the initial locale from the [LocaleStore] and
+/// [PlatformLocaleReader], applies user choices immediately (in-memory),
+/// and persists them asynchronously. Persist failures are surfaced via
+/// [LocaleState.persistFailed] rather than thrown to the UI.
 
 abstract class _$LocaleNotifier extends $Notifier<LocaleState> {
   LocaleState build();

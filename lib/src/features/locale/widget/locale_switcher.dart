@@ -4,20 +4,17 @@ import 'package:abigotado_dev/src/features/locale/state/locale_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// A compact row of locale toggle buttons (RU / EN / ES).
+/// A compact row of locale toggle segments (RU / EN / ES) that reflects the
+/// current locale state and delegates taps to the locale notifier.
 ///
-/// The active segment is highlighted with [AppColors.accentTeal]. Tapping
-/// calls [LocaleNotifier.setLocale] — throws at runtime until the notifier
-/// is implemented in the GREEN phase (intentional TDD red cycle).
-class LocaleSwitcher extends ConsumerWidget {
+/// The shell is a plain [StatelessWidget]; each [_LocaleSegment] watches
+/// [localeProvider] independently so only the active segment rebuilds.
+class LocaleSwitcher extends StatelessWidget {
   /// Creates the locale switcher.
   const LocaleSwitcher({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Watch here so the Wrap rebuilds when locale changes.
-    ref.watch(localeProvider);
-
+  Widget build(BuildContext context) {
     return Wrap(
       spacing: 4,
       children: SupportedLocale.values
@@ -40,10 +37,13 @@ class _LocaleSegment extends ConsumerWidget {
         state.manualChoice == loc ||
         (state.manualChoice == null && state.locale == loc.toLocale());
 
-    return GestureDetector(
+    return InkWell(
       onTap: () => ref.read(localeProvider.notifier).setLocale(loc),
+      borderRadius: BorderRadius.circular(4),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
+        // Ensure a minimum ~44 px tall tap target for mobile-first UX.
+        constraints: const BoxConstraints(minHeight: 44),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
           color: isActive ? AppColors.accentTeal.withValues(alpha: 0.15) : null,
@@ -52,12 +52,15 @@ class _LocaleSegment extends ConsumerWidget {
           ),
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Text(
-          loc.label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: isActive ? AppColors.accentTeal : AppColors.textMuted,
+        child: Center(
+          widthFactor: 1,
+          child: Text(
+            loc.label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: isActive ? AppColors.accentTeal : AppColors.textMuted,
+            ),
           ),
         ),
       ),

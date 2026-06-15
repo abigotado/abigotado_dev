@@ -32,9 +32,13 @@ final class LocaleState extends Equatable {
   final bool persistFailed;
 
   /// Returns a copy of this state with the provided fields overridden.
+  ///
+  /// Pass `manualChoice: null` explicitly to clear the manual choice; omitting
+  /// the parameter preserves the current value. This is the single state-update
+  /// path — direct construction is reserved for the notifier's `build` method.
   LocaleState copyWith({
     Locale? locale,
-    // Use a sentinel to distinguish "pass null explicitly" from "omit".
+    // Sentinel distinguishes "pass null explicitly" from "omit the parameter".
     Object? manualChoice = _omit,
     bool? persistFailed,
   }) {

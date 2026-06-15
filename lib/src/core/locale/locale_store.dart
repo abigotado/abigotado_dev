@@ -17,22 +17,21 @@ abstract interface class LocaleStore {
 }
 
 /// [SharedPreferences]-backed implementation of [LocaleStore].
-///
-/// Method bodies are stubs — implemented in the GREEN phase.
 final class SharedPreferencesLocaleStore implements LocaleStore {
   /// Creates the store backed by the provided [SharedPreferences] instance.
   const SharedPreferencesLocaleStore(this._prefs);
 
-  // Stored for use in the GREEN phase when the stub methods are implemented.
-  // ignore: unused_field
   final SharedPreferences _prefs;
 
-  @override
-  SupportedLocale? read() => throw UnimplementedError();
+  static const String _key = 'locale.choice';
 
   @override
-  Future<void> write(SupportedLocale locale) => throw UnimplementedError();
+  SupportedLocale? read() => SupportedLocale.fromCode(_prefs.getString(_key));
 
   @override
-  Future<void> clear() => throw UnimplementedError();
+  Future<void> write(SupportedLocale locale) =>
+      _prefs.setString(_key, locale.name);
+
+  @override
+  Future<void> clear() => _prefs.remove(_key);
 }
