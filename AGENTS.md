@@ -16,8 +16,9 @@ portfolio artifact. Concept: a multi-agent pipeline "builds" the page live.
   for widget variants, never enums.
 - `const`/`final` by default; `switch` expressions over ternaries; `Row/Column
   (spacing:)` over manual `SizedBox`.
-- Errors caught at the Cubit/BLoC boundary with `catch (e, s)` + log; never
-  `catch (_)`.
+- State: **Riverpod, no codegen** (hand-written `Notifier`/`Provider`);
+  `Equatable` state classes. Errors caught inside the `Notifier` with
+  `catch (e, s)` + log; never `catch (_)`.
 - All user-visible strings are arb keys in ru/en/es. The name is localized too.
 - Every animation has a lite-mode / reduced-motion fallback.
 - Never edit generated files.
@@ -25,9 +26,9 @@ portfolio artifact. Concept: a multi-agent pipeline "builds" the page live.
 ## Verify before done
 
 ```bash
-flutter analyze    # must be clean, zero infos
-flutter test       # widget + golden, all green
 dart format --set-exit-if-changed .
+flutter analyze --fatal-infos --fatal-warnings   # any lint fails the build
+flutter test                                      # widget + golden, all green
 ```
 
 ## Git

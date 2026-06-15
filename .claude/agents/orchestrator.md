@@ -49,7 +49,7 @@ After `reviewer`, the main session also runs a **Codex second-opinion**
 
 ## Non-negotiable gates
 
-- `flutter analyze` clean (zero infos) and `flutter test` green before any step
-  is considered done.
+- `flutter analyze --fatal-infos --fatal-warnings` clean and `flutter test`
+  green before any step is considered done.
 - Rules in `CLAUDE.md` (NEVER/ALWAYS) are review blockers.
 - Local-first: never plan a push/remote step unless the owner explicitly asked.

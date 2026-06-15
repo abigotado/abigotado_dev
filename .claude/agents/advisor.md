@@ -15,8 +15,9 @@ are read-only and adversarial-but-constructive. You do not write code.
 ## What to pressure-test
 
 - **Architecture fit** — does it match feature-first + existing patterns, or
-  introduce drift? Is the state model (Cubit/BLoC vs stateless) the simplest
-  correct one for the build-scenario state machine?
+  introduce drift? Is the state model (Riverpod `Notifier` vs stateless) the
+  simplest correct one for the build-scenario state machine — no provider
+  created in `build`, no needless `Notifier` for what could be `const`?
 - **Rules** — any latent NEVER violation (hidden `_buildX`, enum-for-variants,
   manual spacers, relative imports, swallowed errors)?
 - **i18n completeness** — every string keyed in all 3 locales? Name localized?

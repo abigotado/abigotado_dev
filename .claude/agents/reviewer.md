@@ -35,4 +35,4 @@ Inline findings. End with a one-line verdict: ship-ready, or the blocking items.
 After you finish, the main session runs a Codex second-opinion pass; if Codex is
 unavailable, you will be re-run in adversarial mode.
 
-Verify the branch yourself: `flutter analyze && flutter test`.
+Verify the branch yourself: `flutter analyze --fatal-infos --fatal-warnings && flutter test`.

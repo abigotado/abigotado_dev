@@ -28,7 +28,9 @@ public and the code is the portfolio — write it accordingly.
   `MediaQuery.sizeOf/paddingOf`.
 - `package:abigotado_dev/...` imports, sorted (own package before flutter).
 - Every user-visible string → arb key in ru/en/es. Name is a localized key.
-- Errors caught at the Cubit/BLoC boundary: `catch (e, s)` + log. Never `catch (_)`.
+- State via Riverpod, no codegen: hand-written `Notifier` + `Equatable` state;
+  `ConsumerWidget`/`Consumer` to read; never create a provider in `build`.
+- Errors caught inside the `Notifier`: `catch (e, s)` + log. Never `catch (_)`.
 - Dispose controllers/tickers/streams; check `mounted` across async gaps.
 - Animations ship with their lite-mode / reduced-motion fallback in the same change.
 - Never touch generated files.
@@ -39,8 +41,8 @@ Run and report:
 
 ```bash
 dart format .
-flutter analyze    # must be clean
-flutter test       # must be green
+flutter analyze --fatal-infos --fatal-warnings   # any lint fails
+flutter test
 ```
 
 Report what you changed, any deviations from the plan (with reason), and the

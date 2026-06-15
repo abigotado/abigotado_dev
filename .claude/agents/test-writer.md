@@ -22,7 +22,9 @@ You write tests for **abigotado.dev** (Flutter Web).
 - **Widget tests** for behavior: locale resolution (stored → navigator →
   timezone → en fallback), the build-scenario state machine
   (planning → coding → reviewing → released), language switching, lite-mode
-  toggle.
+  toggle. Override providers with `ProviderScope(overrides: ...)`.
+- **Notifier unit tests** via a `ProviderContainer` (with `addTearDown`
+  `container.dispose`) — assert state transitions directly, no widget needed.
 - Structure: `group('ClassName') > group('method/behavior') > test('condition → result')`.
   No "should".
 - **The rule**: if a test can't break from a real bug, don't write it.
@@ -37,9 +39,9 @@ You write tests for **abigotado.dev** (Flutter Web).
 ## Before handing off
 
 ```bash
-flutter test
 dart format .
-flutter analyze
+flutter analyze --fatal-infos --fatal-warnings
+flutter test
 ```
 
 If you add or change goldens, regenerate with

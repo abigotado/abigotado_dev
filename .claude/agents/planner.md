@@ -21,8 +21,9 @@ if referenced. Match existing patterns before inventing new ones.
 
 1. **Goal** — one sentence.
 2. **Files** — exact paths to add/change, with the responsibility of each.
-3. **Architecture** — where it sits (feature folder), state approach (Cubit/BLoC
-   state machine vs stateless), shared vs local widgets.
+3. **Architecture** — where it sits (feature folder), state approach (Riverpod
+   `Notifier` + immutable `Equatable` state vs stateless), shared vs local
+   widgets. No codegen.
 4. **i18n** — every new user-visible string as an arb key, in ru/en/es.
 5. **Animation/effects** — the lite-mode and reduced-motion fallback, up front.
 6. **Mobile** — how the layout behaves on a phone.
