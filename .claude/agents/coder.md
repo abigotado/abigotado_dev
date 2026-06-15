@@ -28,8 +28,9 @@ public and the code is the portfolio — write it accordingly.
   `MediaQuery.sizeOf/paddingOf`.
 - `package:abigotado_dev/...` imports, sorted (own package before flutter).
 - Every user-visible string → arb key in ru/en/es. Name is a localized key.
-- State via Riverpod, no codegen: hand-written `Notifier` + `Equatable` state;
-  `ConsumerWidget`/`Consumer` to read; never create a provider in `build`.
+- State via Riverpod with codegen: `@riverpod` `Notifier` + `Equatable` state
+  (`part '<file>.g.dart';`); `ConsumerWidget`/`Consumer` to read; never create a
+  provider in `build`. Run `build_runner` and commit the generated `*.g.dart`.
 - Errors caught inside the `Notifier`: `catch (e, s)` + log. Never `catch (_)`.
 - Dispose controllers/tickers/streams; check `mounted` across async gaps.
 - Animations ship with their lite-mode / reduced-motion fallback in the same change.
@@ -40,6 +41,7 @@ public and the code is the portfolio — write it accordingly.
 Run and report:
 
 ```bash
+dart run build_runner build --delete-conflicting-outputs
 dart format .
 flutter analyze --fatal-infos --fatal-warnings   # any lint fails
 flutter test

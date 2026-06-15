@@ -18,15 +18,18 @@ Trilingual (ru/en/es), mobile-first, heavy on tasteful animation — always with
 - **Feature-first** under `lib/src/`. Each feature owns its `view/`, state, and
   any local widgets. Shared cross-feature code lives in `lib/src/app/` (theme,
   bootstrap) and `lib/src/core/` (utilities, locale resolution).
-- State: **Riverpod**, minimal and explicit. The build scenario is a small
-  state machine (planning → coding → reviewing → released) — model it with a
-  `Notifier` exposing an immutable state, not ad-hoc setState scattered across
-  widgets. Derived values use `Provider`. **No codegen** — hand-written
-  providers only (keeps the public repo build_runner-free and clone-and-run).
-- State classes are immutable and extend `Equatable` (no freezed — codegen-free).
+- State: **Riverpod with codegen** (`@riverpod` + `build_runner`), minimal and
+  explicit. The build scenario is a small state machine (planning → coding →
+  reviewing → released) — model it with a `@riverpod` `Notifier` exposing an
+  immutable state, not ad-hoc setState scattered across widgets. Derived values
+  use `@riverpod` functions. Generated `*.g.dart` is **committed** so the repo
+  still clones and runs with `pub get` alone. No `riverpod_lint`/`custom_lint`.
+- State classes are immutable and extend `Equatable` (freezed is not used).
 - i18n: `flutter_localizations` + arb files (`ru`/`en`/`es`). The name is a
   localized key (Никита Коваленко ↔ Nikita Kovalenko), not a hardcoded string.
-- Generated output (`*.g.dart`, l10n gen) is git-ignored — never edit by hand.
+- Generated build_runner output (`*.g.dart`, `*.mocks.dart`) is **committed**;
+  l10n gen output stays git-ignored (Flutter regenerates it on build). Never
+  edit generated files by hand — regenerate via `build_runner`.
 
 Full layering and conventions: see [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
@@ -40,7 +43,8 @@ Full layering and conventions: see [`ARCHITECTURE.md`](ARCHITECTURE.md).
 - `DecoratedBox` + `Padding` separately — use `Container` when you need both.
 - Manual `SizedBox` spacers between children — use `Row/Column(spacing:)`.
 - `MediaQuery.of(context).size/padding` — use `MediaQuery.sizeOf/paddingOf`.
-- Editing generated files (`*.g.dart`, `*.freezed.dart`, `*.gr.dart`, l10n gen).
+- Editing generated files (`*.g.dart`, `*.mocks.dart`, l10n gen) by hand —
+  regenerate them with `build_runner` instead.
 - Relative imports — `package:abigotado_dev/...` everywhere (enforced by lint).
 - Nested ternaries — `switch` expression or `if-case`.
 - `catch (_)` / silent swallow — `catch (e, s)` and log; handle inside the
@@ -53,7 +57,7 @@ Full layering and conventions: see [`ARCHITECTURE.md`](ARCHITECTURE.md).
 - `const` constructors and `final` fields wherever possible.
 - `switch` expressions over ternaries for conditional values; `if-case` for
   pattern-matched control flow.
-- `Equatable` for state and model classes (codegen-free).
+- `Equatable` for state and model classes (freezed is not used).
 - `ConsumerWidget` / `Consumer` to read providers; never create providers
   inside `build`. Watch in `build`, read in callbacks.
 - `dispose()` controllers, tickers, streams, subscriptions in StatefulWidgets.
@@ -70,12 +74,14 @@ Full layering and conventions: see [`ARCHITECTURE.md`](ARCHITECTURE.md).
   scenario state machine. Notifier logic: unit-test with a `ProviderContainer`.
 - **Run before declaring done** (the strict gate):
   ```
+  dart run build_runner build --delete-conflicting-outputs   # regen committed codegen
   dart format --set-exit-if-changed .
   flutter analyze --fatal-infos --fatal-warnings   # ANY lint fails the build
   flutter test
   ```
   Analyzer must be 100% clean — there is no "info" tier here; everything is a
-  blocker.
+  blocker. After changing any `@riverpod` provider, regenerate and commit the
+  `*.g.dart` so the tracked output never drifts.
 
 ## Agent workflow
 
@@ -90,7 +96,7 @@ produces. Single-file mechanical fixes may skip the pipeline.
 
 ## Verification & git
 
-- Verify locally before every commit: `dart format --set-exit-if-changed . && flutter analyze --fatal-infos --fatal-warnings && flutter test`
+- Verify locally before every commit: `dart run build_runner build --delete-conflicting-outputs && dart format --set-exit-if-changed . && flutter analyze --fatal-infos --fatal-warnings && flutter test`
 - **Local-first**: no remote, no push until the owner explicitly says so.
 - Commit messages are public and part of the showcase — write them well.
 - Before the first push: audit `git ls-files` by hand; the repo must contain

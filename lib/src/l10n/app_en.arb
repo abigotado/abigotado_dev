@@ -1,0 +1,15 @@
+{
+  "@@locale": "en",
+  "name": "Nikita Kovalenko",
+  "@name": {
+    "description": "The author's full name."
+  },
+  "sub": "Senior Flutter engineer · fintech & crypto · building AI-first development workflows",
+  "@sub": {
+    "description": "One-line professional subtitle shown below the name on the landing page."
+  },
+  "langhint": "locale switches via hot reload, no page reload",
+  "@langhint": {
+    "description": "Caption near the locale switcher explaining how locale changes work."
+  }
+}

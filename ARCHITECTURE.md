@@ -34,20 +34,25 @@ Rules:
 - `theme/` is the only home for colors/sizing tokens. No raw hex in widgets —
   reference `AppColors`.
 
-## 2. State: Riverpod, no codegen
+## 2. State: Riverpod (codegen)
 
-- **Mutable state** → a `Notifier<TState>` whose `TState` is an immutable class
-  extending `Equatable`. One notifier per coherent concern (locale, lite-mode,
-  build-scenario).
-- **Derived/static values** → `Provider`. **Async** → `AsyncNotifier`.
-- Providers are **top-level finals** in the feature's `state/` folder. Never
-  declare a provider inside `build`.
+- **Mutable state** → a `@riverpod`-annotated `Notifier` whose state is an
+  immutable class extending `Equatable`. One notifier per coherent concern
+  (locale, lite-mode, build-scenario).
+- **Derived/static values** → a `@riverpod` function. **Async** → an async
+  `@riverpod` function / `AsyncNotifier`.
+- Generated providers live beside their definition in the feature's `state/`
+  folder (`part '<file>.g.dart';`). Never declare a provider inside `build`.
 - Widgets read state with `ConsumerWidget` / `Consumer`: `ref.watch` in `build`,
   `ref.read` in callbacks. Side effects via `ref.listen`, never in `build`.
 - Errors are handled **inside the notifier** (`catch (e, s)` + log) and surfaced
   as state; they never escape raw to the UI.
-- **No codegen.** No `riverpod_generator`, no `freezed`, no `build_runner`. The
-  repo clones and runs with `pub get` alone.
+- **Codegen via `riverpod_generator` + `build_runner`.** The generated
+  `*.g.dart` is **committed**, so the repo still clones and runs with `pub get`
+  alone — no generation step to compile. `freezed` is *not* used (state is
+  hand-written `Equatable`); no `riverpod_lint`/`custom_lint` (structural rules
+  are the reviewer agent's job). Regenerate: `dart run build_runner build
+  --delete-conflicting-outputs`.
 
 ## 3. Widgets
 
@@ -89,6 +94,7 @@ Rules:
 Nothing is "done" until all three pass — locally and in CI:
 
 ```bash
+dart run build_runner build --delete-conflicting-outputs   # regen committed codegen
 dart format --set-exit-if-changed .
 flutter analyze --fatal-infos --fatal-warnings   # zero tolerance: any lint fails
 flutter test

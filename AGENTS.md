@@ -16,7 +16,7 @@ portfolio artifact. Concept: a multi-agent pipeline "builds" the page live.
   for widget variants, never enums.
 - `const`/`final` by default; `switch` expressions over ternaries; `Row/Column
   (spacing:)` over manual `SizedBox`.
-- State: **Riverpod, no codegen** (hand-written `Notifier`/`Provider`);
+- State: **Riverpod with codegen** (`@riverpod`; committed `*.g.dart`);
   `Equatable` state classes. Errors caught inside the `Notifier` with
   `catch (e, s)` + log; never `catch (_)`.
 - All user-visible strings are arb keys in ru/en/es. The name is localized too.
@@ -26,6 +26,7 @@ portfolio artifact. Concept: a multi-agent pipeline "builds" the page live.
 ## Verify before done
 
 ```bash
+dart run build_runner build --delete-conflicting-outputs   # regen committed codegen
 dart format --set-exit-if-changed .
 flutter analyze --fatal-infos --fatal-warnings   # any lint fails the build
 flutter test                                      # widget + golden, all green
