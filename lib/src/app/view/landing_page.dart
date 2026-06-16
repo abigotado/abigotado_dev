@@ -1,4 +1,5 @@
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
+import 'package:abigotado_dev/src/features/effects/widget/effects_toggle.dart';
 import 'package:abigotado_dev/src/features/locale/widget/locale_switcher.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -49,7 +50,11 @@ class LandingPage extends StatelessWidget {
               Column(
                 spacing: 8,
                 children: [
-                  const LocaleSwitcher(),
+                  const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 8,
+                    children: [LocaleSwitcher(), EffectsToggle()],
+                  ),
                   Text(
                     l10n.langhint,
                     style: const TextStyle(

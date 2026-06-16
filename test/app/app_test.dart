@@ -1,7 +1,10 @@
 import 'package:abigotado_dev/src/app/app.dart';
+import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
+import 'package:abigotado_dev/src/core/effects/effects_store.dart';
 import 'package:abigotado_dev/src/core/locale/locale_store.dart';
 import 'package:abigotado_dev/src/core/locale/platform_locale_reader.dart';
 import 'package:abigotado_dev/src/core/locale/supported_locale.dart';
+import 'package:abigotado_dev/src/features/effects/state/effects_notifier.dart';
 import 'package:abigotado_dev/src/features/locale/state/locale_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +13,19 @@ import 'package:flutter_test/flutter_test.dart';
 // ---------------------------------------------------------------------------
 // Fakes — deterministic, no real platform / storage.
 // ---------------------------------------------------------------------------
+
+final class _FakeEffectsStore implements EffectsStore {
+  const _FakeEffectsStore();
+
+  @override
+  EffectsMode? read() => null;
+
+  @override
+  Future<void> write(EffectsMode mode) async {}
+
+  @override
+  Future<void> clear() async {}
+}
 
 final class _FakeLocaleStore implements LocaleStore {
   _FakeLocaleStore({this.stored});
@@ -62,6 +78,7 @@ Future<void> _pumpApp(
       overrides: [
         localeStoreProvider.overrideWithValue(store),
         platformReaderProvider.overrideWithValue(reader),
+        effectsStoreProvider.overrideWithValue(const _FakeEffectsStore()),
       ],
       child: const AbigotadoApp(),
     ),
