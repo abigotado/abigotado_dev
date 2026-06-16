@@ -2,5 +2,8 @@
   "@@locale": "es",
   "name": "Nikita Kovalenko",
   "sub": "Senior Flutter engineer · arquitectura desde cero, formo y lidero el equipo · procesos AI-first",
-  "langhint": "el locale cambia con hot reload, sin recargar"
+  "langhint": "el locale cambia con hot reload, sin recargar",
+  "effects_on": "Efectos activados",
+  "effects_off": "Efectos desactivados",
+  "effects_hint": "Animaciones pesadas — desactivadas por defecto en móvil y con reduce-motion"
 }

@@ -11,5 +11,17 @@
   "langhint": "locale switches via hot reload, no page reload",
   "@langhint": {
     "description": "Caption near the locale switcher explaining how locale changes work."
+  },
+  "effects_on": "Effects on",
+  "@effects_on": {
+    "description": "Label on the effects toggle when heavy animations are enabled."
+  },
+  "effects_off": "Effects off",
+  "@effects_off": {
+    "description": "Label on the effects toggle when heavy animations are disabled."
+  },
+  "effects_hint": "Heavy animations — off by default on mobile and with reduced motion",
+  "@effects_hint": {
+    "description": "Tooltip on the effects toggle explaining the lite-mode auto-conditions."
   }
 }
