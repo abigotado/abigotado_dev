@@ -1,5 +1,10 @@
 # abigotado.dev
 
+<!-- CI/CD badges — uncomment and replace OWNER/REPO once the GitHub remote is set up:
+[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
+[![CD](https://github.com/OWNER/REPO/actions/workflows/cd.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/cd.yml)
+-->
+
 Personal site of **Nikita Kovalenko** — Senior Flutter engineer (fintech & crypto), building AI-first development workflows.
 
 The concept: **the page builds itself in front of you.** A multi-agent pipeline

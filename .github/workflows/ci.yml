@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, "feat/**", "fix/**", "chore/**", "docs/**"]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: Quality gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      # Pub-cache: one mechanism only — this SHA-pinned step, keyed on pubspec.lock.
+      # flutter-action's pub-cache side is disabled via `pub-cache: "false"` below
+      # to prevent a duplicate entry with a different (Flutter-version-based) key.
+      - name: Cache pub packages
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      # `cache: true` caches only the Flutter SDK (large download; worth it).
+      # `pub-cache: "false"` disables flutter-action's built-in pub caching so the
+      # explicit SHA-pinned step above is the sole pub-cache mechanism.
+      # NOTE: flutter-action's internal SDK cache uses `actions/cache@v5` by tag
+      # (a composite action's internals cannot be SHA-pinned without forking).
+      # This is a scoped, accepted exception; dependabot (github-actions) keeps
+      # flutter-action itself current so the transitive tag is rotated on updates.
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: "3.44.0"
+          channel: stable
+          cache: true
+          pub-cache: "false"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # l10n gen output is git-ignored (arb is source of truth); regenerate it
+      # explicitly so that 'flutter analyze' below can resolve AppLocalizations.
+      # NOTE: empirically, 'flutter pub get' alone also triggers gen-l10n when
+      # 'flutter: generate: true' is set in pubspec.yaml. The explicit step is
+      # kept for determinism and to make the intent self-evident to reviewers.
+      - name: Generate l10n
+        run: flutter gen-l10n
+
+      - name: Generate Riverpod providers (build_runner)
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # Committed *.g.dart must not drift from the source. If build_runner
+      # produced a diff, the author forgot to regenerate and commit. This guard
+      # catches both modified tracked files and newly untracked *.g.dart files.
+      # l10n gen is git-ignored so --porcelain will not list it — safe to use.
+      - name: Drift guard — committed *.g.dart must not be stale
+        run: |
+          if [ -n "$(git status --porcelain -- '*.g.dart')" ]; then
+            echo "::error::Stale or uncommitted *.g.dart — run build_runner and commit the result."
+            git status --porcelain -- '*.g.dart'
+            exit 1
+          fi
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze
+        run: flutter analyze --fatal-infos --fatal-warnings
+
+      # NOTE: Golden tests, when added later, MUST be authored on ubuntu-latest
+      # (Linux font rendering differs from macOS/Windows). Generate or update
+      # goldens with --update-goldens on a Linux runner, never on a local Mac.
+      - name: Test
+        run: flutter test
