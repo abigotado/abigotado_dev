@@ -1,15 +1,16 @@
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
 import 'package:abigotado_dev/src/features/effects/widget/effects_toggle.dart';
+import 'package:abigotado_dev/src/features/hero/view/terminal_hero.dart';
 import 'package:abigotado_dev/src/features/locale/widget/locale_switcher.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 
-/// Placeholder landing scaffold.
+/// The landing scaffold.
 ///
-/// The full "agents build the page" experience (build-scenario state machine,
-/// pubspec/changelog sections, hot-reload effect, lite mode) is delivered
-/// feature-by-feature through the orchestration pipeline. This is the clean
-/// foundation it slots into.
+/// The "agents build the page" hero ([TerminalHero]) opens the page; the
+/// name/subtitle and the locale / effects switchers sit below it. Further
+/// sections (pubspec/changelog, hot-reload effect) slot in beneath as they
+/// are delivered through the orchestration pipeline.
 class LandingPage extends StatelessWidget {
   /// Creates the landing scaffold.
   const LandingPage({super.key});
@@ -19,35 +20,36 @@ class LandingPage extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 24,
-            children: [
-              Column(
-                spacing: 8,
-                children: [
-                  Text(
-                    l10n.name,
-                    style: const TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 24,
+          children: [
+            const TerminalHero(),
+            Column(
+              spacing: 8,
+              children: [
+                Text(
+                  l10n.name,
+                  style: const TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
                   ),
-                  Text(
-                    l10n.sub,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: AppColors.textMuted,
-                    ),
+                ),
+                Text(
+                  l10n.sub,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textMuted,
                   ),
-                ],
-              ),
-              Column(
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 32),
+              child: Column(
                 spacing: 8,
                 children: [
                   const Row(
@@ -65,8 +67,8 @@ class LandingPage extends StatelessWidget {
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

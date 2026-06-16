@@ -14,11 +14,16 @@ import 'package:flutter_test/flutter_test.dart';
 // Fakes — deterministic, no real platform / storage.
 // ---------------------------------------------------------------------------
 
+/// Returns [EffectsMode.lite] so the hero calls `skip()` (not `start()`) and
+/// allocates no [AnimationController]s — making `pumpAndSettle` safe.
+///
+/// Without this override the hero's perpetual spinner/cursor [AnimationController]s
+/// repeat forever and `pumpAndSettle` would time out.
 final class _FakeEffectsStore implements EffectsStore {
   const _FakeEffectsStore();
 
   @override
-  EffectsMode? read() => null;
+  EffectsMode? read() => EffectsMode.lite;
 
   @override
   Future<void> write(EffectsMode mode) async {}

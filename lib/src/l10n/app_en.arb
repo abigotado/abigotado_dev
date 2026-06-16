@@ -23,5 +23,37 @@
   "effects_hint": "Heavy animations — off by default on mobile and with reduced motion",
   "@effects_hint": {
     "description": "Tooltip on the effects toggle explaining the lite-mode auto-conditions."
+  },
+  "t1": "page structure ready",
+  "@t1": {
+    "description": "Terminal-hero status text for the planner agent's task (page structure)."
+  },
+  "t2": "sections built",
+  "@t2": {
+    "description": "Terminal-hero status text for the coder agent's task (sections built)."
+  },
+  "rev_run": "nitpicking",
+  "@rev_run": {
+    "description": "Terminal-hero status text for the reviewer agent while requesting changes."
+  },
+  "rev_done": "approved: human-grade quality",
+  "@rev_done": {
+    "description": "Terminal-hero status text for the reviewer agent after approval."
+  },
+  "rev_hdr": "commented on the hero section",
+  "@rev_hdr": {
+    "description": "Header line of the reviewer comment card (what the reviewer commented on)."
+  },
+  "revtext_run": "“Too modest. The guy has a 100+ package monorepo and a UI made 3–5× faster. Requesting changes.”",
+  "@revtext_run": {
+    "description": "Body of the reviewer comment card while nitpicking (requesting changes)."
+  },
+  "revtext_done": "“Honest now. Approved — shipping to RELEASE.”",
+  "@revtext_done": {
+    "description": "Body of the reviewer comment card after approval."
+  },
+  "skip": "Skip",
+  "@skip": {
+    "description": "Label on the button that skips the build-scenario animation."
   }
 }
