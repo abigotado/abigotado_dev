@@ -1,0 +1,8 @@
+{
+  "editor.formatOnSave": true,
+  "editor.rulers": [80],
+  "dart.lineLength": 80,
+  "search.exclude": {
+    "lib/src/l10n/gen": true
+  }
+}

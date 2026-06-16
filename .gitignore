@@ -48,7 +48,9 @@ firebase-credentials*.json
 *.iml
 *.ipr
 *.iws
-.vscode/
+.vscode/*
+!.vscode/launch.json
+!.vscode/settings.json
 *.code-workspace
 
 # ── OS junk ─────────────────────────────────────────────────────────
