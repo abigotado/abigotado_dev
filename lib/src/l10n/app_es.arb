@@ -5,5 +5,13 @@
   "langhint": "el locale cambia con hot reload, sin recargar",
   "effects_on": "Efectos activados",
   "effects_off": "Efectos desactivados",
-  "effects_hint": "Animaciones pesadas — desactivadas por defecto en móvil y con reduce-motion"
+  "effects_hint": "Animaciones pesadas — desactivadas por defecto en móvil y con reduce-motion",
+  "t1": "estructura lista",
+  "t2": "secciones montadas",
+  "rev_run": "poniendo pegas",
+  "rev_done": "aprobado: calidad humana",
+  "rev_hdr": "comentó la sección hero",
+  "revtext_run": "«Demasiado modesto. Tiene un monorepo de 100+ paquetes y una UI 3–5 veces más rápida. Solicito cambios.»",
+  "revtext_done": "«Ahora sí es honesto. Aprobado — a RELEASE.»",
+  "skip": "Saltar"
 }
