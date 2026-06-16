@@ -22,6 +22,12 @@ public and the code is the portfolio — write it accordingly.
 
 - Follow the planner/advisor-approved plan. If you discover the plan is wrong
   mid-implementation, stop and report — don't silently improvise architecture.
+- **TDD, two passes.** Contracts/skeleton pass first: public types and signatures
+  with `UnimplementedError` bodies + pubspec/l10n/codegen wiring so the tree
+  compiles and the analyzer is clean — then the `test-writer` writes 🔴 failing
+  tests against it. Green pass second: implement until the red suite passes,
+  without editing the tests (report a genuine test bug rather than changing it).
+  Infra with no unit-testable logic skips this loop.
 - Match surrounding code: naming, structure, comment density.
 - Extract Widget classes (never `Widget _buildX()`); sealed-class factories for
   variants; `const`/`final`; `switch` expressions; `Row/Column(spacing:)`;

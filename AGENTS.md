@@ -23,6 +23,14 @@ portfolio artifact. Concept: a multi-agent pipeline "builds" the page live.
 - Every animation has a lite-mode / reduced-motion fallback.
 - Never edit generated files.
 
+## Pipeline (TDD)
+
+Non-trivial work is test-driven: `planner → advisor → coder (contracts/skeleton)
+→ test-writer (🔴 red) → coder (🟢 green) → reviewer → Codex second-opinion`.
+Tests are written against the stubbed contracts and must fail before the green
+pass; infra/config with no unit-testable logic (CI/CD YAML) skips the red→green
+loop. Full detail in `CLAUDE.md` → Agent workflow.
+
 ## Verify before done
 
 ```bash

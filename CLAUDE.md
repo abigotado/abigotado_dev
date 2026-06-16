@@ -86,9 +86,19 @@ Full layering and conventions: see [`ARCHITECTURE.md`](ARCHITECTURE.md).
 ## Agent workflow
 
 Non-trivial work (new section/feature, ≥3 files, architectural choice) goes
-through the pipeline — see `.claude/agents/`:
+through the pipeline — see `.claude/agents/`. It is **test-driven**: tests are
+written against the planned contracts and must fail (🔴) before the
+implementation makes them pass (🟢).
 
-`planner → advisor (challenge the plan) → coder → reviewer → Codex second-opinion → test-writer`
+`planner → advisor (challenge the plan) → coder (contracts/skeleton that
+compiles) → test-writer (🔴 failing tests vs the contracts) → coder (🟢
+implement to green) → reviewer → Codex second-opinion → refactor`
+
+Dart can't compile a test against a type that doesn't exist, so the coder's
+first pass is the public API surface only (signatures + `UnimplementedError`
+bodies); the logic lands in the green pass, driven by the red tests. Work with
+no unit-testable logic (CI/CD YAML, pure config) skips the red→green loop:
+`planner → advisor → coder → reviewer → Codex`.
 
 Orchestration runs at the **main session level** (subagents can't dispatch
 subagents). The main session executes the chain the orchestrator playbook

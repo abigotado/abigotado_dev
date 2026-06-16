@@ -36,3 +36,6 @@ if referenced. Match existing patterns before inventing new ones.
 - Prefer the smallest change that's still clean. No speculative abstraction.
 - If the change is non-trivial (≥3 files, architecture, new state, animation
   system), expect the advisor to challenge this plan next.
+- **TDD:** define contracts (types, signatures, state-transition tables) sharply
+  enough that the `test-writer` can write failing tests against them *first* —
+  fuzzy signatures or untestable side effects sink the red→green cycle.

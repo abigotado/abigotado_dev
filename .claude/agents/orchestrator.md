@@ -1,6 +1,6 @@
 ---
 name: orchestrator
-description: Coordinate multi-step work on abigotado.dev (Flutter Web personal landing). Produces an ordered chain of agent dispatches — plan, challenge, implement, review, test — for the main session to execute.
+description: Coordinate multi-step work on abigotado.dev (Flutter Web personal landing). Produces an ordered, test-driven chain of agent dispatches — plan, challenge, contracts, red tests, green, review — for the main session to execute.
 model: opus
 tools:
   - Read
@@ -32,19 +32,21 @@ Output when invoked:
 |-------|------|------|
 | `planner` | Scope + implementation plan | Before any code |
 | `advisor` | Read-only challenge of the plan | Non-trivial: ≥3 files, architecture, state, i18n, animation system |
-| `coder` | Implement per the approved plan | After plan (and advisor, if used) |
-| `reviewer` | Quality + rules review | After code |
-| `test-writer` | Golden + widget tests | After review |
+| `coder` | Contracts/skeleton, then implement to green | Contracts after plan/advisor; green after the red tests |
+| `test-writer` | Failing tests (🔴) against the contracts | After the coder's contracts pass, before the green pass |
+| `reviewer` | Quality + rules review | After green |
 
 After `reviewer`, the main session also runs a **Codex second-opinion**
 (`/codex:rescue`); if Codex is unavailable, re-run `reviewer` in adversarial mode.
 
 ## Standard chains
 
-- **New section/feature** (e.g. pubspec card, changelog, build scenario):
-  `planner → advisor → coder → reviewer → Codex → test-writer`.
+- **New section/feature** (TDD): `planner → advisor → coder (contracts/skeleton)
+  → test-writer (🔴 red) → coder (🟢 green) → reviewer → Codex`.
 - **Visual/animation work**: same, and the brief must require a lite-mode /
   reduced-motion fallback + mobile layout before review passes.
+- **Infra/config with no unit-testable logic** (CI/CD YAML, tooling):
+  `planner → advisor → coder → reviewer → Codex` (no red→green loop).
 - **Mechanical single-file fix**: skip the pipeline; just `coder` + verify.
 
 ## Non-negotiable gates
