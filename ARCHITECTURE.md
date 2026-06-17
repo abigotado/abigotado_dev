@@ -15,6 +15,7 @@ lib/
       app.dart                    # root MaterialApp
       theme/                      # AppColors (tokens), AppTheme
       view/                       # top-level scaffolds the app composes
+      widget/                     # shared shell-level UI reused by ≥2 features (e.g. SectionCard)
     core/                         # pure, feature-agnostic helpers
       ...                         # e.g. locale resolution, formatting. No UI.
     features/
