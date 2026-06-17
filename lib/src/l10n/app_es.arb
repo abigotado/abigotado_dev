@@ -13,5 +13,15 @@
   "rev_hdr": "comentó la sección hero",
   "revtext_run": "«Demasiado modesto. Tiene un monorepo de 100+ paquetes y una UI 3–5 veces más rápida. Solicito cambios.»",
   "revtext_done": "«Ahora sí es honesto. Aprobado — a RELEASE.»",
-  "skip": "Saltar"
+  "skip": "Saltar",
+  "m1": "tamaño de la app",
+  "m2": "reactividad de la UI",
+  "m3": "monorepo",
+  "m3v": "100+ paquetes",
+  "m4": "listón de tests",
+  "mb": "MB",
+  "m1_a11y": "tamaño de la app: de 75 a 40 megabytes",
+  "m2_a11y": "reactividad de la UI: de 3 a 5 veces más rápida",
+  "m3_a11y": "monorepo: más de 100 paquetes",
+  "m4_a11y": "listón de tests: del 70 al 75 por ciento"
 }
