@@ -55,5 +55,45 @@
   "skip": "Skip",
   "@skip": {
     "description": "Label on the button that skips the build-scenario animation."
+  },
+  "m1": "app size",
+  "@m1": {
+    "description": "Metrics section — label for the app-size card (sighted caption)."
+  },
+  "m2": "UI responsiveness",
+  "@m2": {
+    "description": "Metrics section — label for the UI-responsiveness card (sighted caption)."
+  },
+  "m3": "monorepo",
+  "@m3": {
+    "description": "Metrics section — label for the monorepo-scale card (sighted caption)."
+  },
+  "m3v": "100+ packages",
+  "@m3v": {
+    "description": "Metrics section — value for the monorepo-scale card (100+ packages)."
+  },
+  "m4": "test coverage bar",
+  "@m4": {
+    "description": "Metrics section — label for the test-coverage card (sighted caption)."
+  },
+  "mb": "MB",
+  "@mb": {
+    "description": "Metrics section — megabyte abbreviation used in the app-size card value."
+  },
+  "m1_a11y": "app size: from 75 to 40 megabytes",
+  "@m1_a11y": {
+    "description": "Metrics section — glyph-free screen-reader label for the app-size card."
+  },
+  "m2_a11y": "UI responsiveness: 3 to 5 times faster",
+  "@m2_a11y": {
+    "description": "Metrics section — glyph-free screen-reader label for the UI-responsiveness card."
+  },
+  "m3_a11y": "monorepo: over 100 packages",
+  "@m3_a11y": {
+    "description": "Metrics section — glyph-free screen-reader label for the monorepo-scale card."
+  },
+  "m4_a11y": "test coverage bar: 70 to 75 percent",
+  "@m4_a11y": {
+    "description": "Metrics section — glyph-free screen-reader label for the test-coverage card."
   }
 }
