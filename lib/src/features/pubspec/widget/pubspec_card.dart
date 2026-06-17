@@ -1,4 +1,5 @@
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
+import 'package:abigotado_dev/src/app/widget/section_card.dart';
 import 'package:abigotado_dev/src/features/pubspec/content/pubspec_content.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/widgets.dart';
@@ -15,11 +16,9 @@ import 'package:flutter/widgets.dart';
 /// - Version constraints (`^senior`, …) → `accentAmber`
 /// - Trailing comments (`# plugins, Pigeon`) → `textHint`
 ///
-/// **Card chrome:** `Container` with `color: AppColors.surface`,
-/// `Border.all(AppColors.border)`, `BorderRadius.circular(12)`. Inside:
-/// a header `Row(mainAxisAlignment: spaceBetween)` of `Text('pubspec.yaml')`
-/// (monospace 13, textMuted) and `Text(l10n.ch1)` (localized badge, monospace
-/// 12–13, textMuted), then the code body.
+/// **Card chrome:** delegated to the shared [SectionCard] — the bordered
+/// surface, the `pubspec.yaml` title + localized `l10n.ch1` badge header, and
+/// the hairline divider. This card supplies only the code body as its child.
 ///
 /// **Code body:** all pubspec lines as a single `SelectableText.rich` /
 /// `Text.rich` (monospace 13, height 1.7) wrapped in a
@@ -166,60 +165,16 @@ class PubspecCard extends StatelessWidget {
       container: true,
       label: semanticsLabel,
       child: ExcludeSemantics(
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            border: Border.all(color: AppColors.border),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            spacing: 12,
-            children: [
-              // Header row: filename + localized badge.
-              // Both children are wrapped in Flexible so the row never
-              // overflows on narrow viewports (e.g. 320 px).
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Text(
-                      'pubspec.yaml',
-                      overflow: TextOverflow.ellipsis,
-                      style: _mono.copyWith(
-                        fontSize: 13,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                  ),
-                  Flexible(
-                    child: Text(
-                      l10n.ch1,
-                      overflow: TextOverflow.ellipsis,
-                      style: _mono.copyWith(
-                        fontSize: 13,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              // Hairline divider between header and code body
-              Container(
-                height: 1,
-                color: AppColors.border,
-              ),
-              // Code body — horizontal scroll prevents mid-token line wrapping
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Text.rich(
-                  codeSpan,
-                  softWrap: false,
-                ),
-              ),
-            ],
+        child: SectionCard(
+          title: 'pubspec.yaml',
+          badge: l10n.ch1,
+          // Code body — horizontal scroll prevents mid-token line wrapping.
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Text.rich(
+              codeSpan,
+              softWrap: false,
+            ),
           ),
         ),
       ),

@@ -27,5 +27,16 @@
   "ch1": "навыки",
   "pubspec_description": "Senior Flutter-инженер · архитектура, лидерство в команде, AI-first",
   "pcm": "# плагины, Pigeon",
-  "pubspec_a11y": "навыки, pubspec.yaml"
+  "pubspec_a11y": "навыки, pubspec.yaml",
+  "ch2": "карьера",
+  "ch_org1": "FinHarbor · Somnio",
+  "ch_org2": "Цифровые технологии",
+  "ch_org3": "CPI Technologies",
+  "ch_org4": "РЖД",
+  "ch_org5": "breaking change",
+  "w1": "крипта + фиат: карты, платежи, 2FA/OTP, KYC · perf ×3–5",
+  "w2": "75 → 40 МБ · AI-пайплайн в команде · real-time чат",
+  "w3": "финтех и крипто с нуля · Stripe · LiveKit/WebRTC",
+  "w4": "Clean Architecture · тесты с нуля до планки 70–75%",
+  "w5": "из шеф-редактора — в разработчики"
 }

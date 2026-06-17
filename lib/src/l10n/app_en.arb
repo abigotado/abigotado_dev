@@ -111,5 +111,49 @@
   "pubspec_a11y": "skills, pubspec.yaml",
   "@pubspec_a11y": {
     "description": "Screen-reader announcement summarizing the pubspec.yaml skills card (the colored code tokens are excluded as decorative)."
+  },
+  "ch2": "career",
+  "@ch2": {
+    "description": "Badge on the CHANGELOG.md card — labels it the career section."
+  },
+  "ch_org1": "FinHarbor · Somnio",
+  "@ch_org1": {
+    "description": "Career v5.x org — identical across all locales by design (brand name, not a missing translation)."
+  },
+  "ch_org2": "Digital Technologies",
+  "@ch_org2": {
+    "description": "Career v4.x org name (localized)."
+  },
+  "ch_org3": "CPI Technologies",
+  "@ch_org3": {
+    "description": "Career v3.x org — identical across all locales by design (brand name)."
+  },
+  "ch_org4": "Russian Railways",
+  "@ch_org4": {
+    "description": "Career v2.x org name (localized)."
+  },
+  "ch_org5": "breaking change",
+  "@ch_org5": {
+    "description": "Career v1.0 label — 'breaking change', a dev-joke term kept English in every locale by design."
+  },
+  "w1": "crypto + fiat: cards, payments, 2FA/OTP, KYC · perf ×3–5",
+  "@w1": {
+    "description": "Career v5.x description line."
+  },
+  "w2": "75 → 40 MB · AI pipeline for the team · real-time chat",
+  "@w2": {
+    "description": "Career v4.x description line."
+  },
+  "w3": "fintech & crypto from scratch · Stripe · LiveKit/WebRTC",
+  "@w3": {
+    "description": "Career v3.x description line."
+  },
+  "w4": "Clean Architecture · tests from zero to a 70–75% bar",
+  "@w4": {
+    "description": "Career v2.x description line."
+  },
+  "w5": "from editor-in-chief to developer",
+  "@w5": {
+    "description": "Career v1.0 description line."
   }
 }
