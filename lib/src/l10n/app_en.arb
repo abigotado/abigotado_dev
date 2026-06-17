@@ -155,5 +155,9 @@
   "w5": "from editor-in-chief to developer",
   "@w5": {
     "description": "Career v1.0 description line."
+  },
+  "cta_heading": "Get in touch",
+  "@cta_heading": {
+    "description": "Heading above the contacts panel revealed by the merge-CTA button."
   }
 }

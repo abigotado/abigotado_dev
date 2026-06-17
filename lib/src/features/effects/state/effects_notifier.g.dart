@@ -123,7 +123,7 @@ final class EffectsNotifierProvider
   }
 }
 
-String _$effectsNotifierHash() => r'f0781b381e6ec29a41396184f7ab30585c9638b3';
+String _$effectsNotifierHash() => r'c6f67e4a474219d678598db8651823f1e15b5a23';
 
 /// Manages the effects-mode state for abigotado.dev.
 ///
