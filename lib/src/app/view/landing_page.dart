@@ -3,15 +3,17 @@ import 'package:abigotado_dev/src/features/effects/widget/effects_toggle.dart';
 import 'package:abigotado_dev/src/features/hero/view/terminal_hero.dart';
 import 'package:abigotado_dev/src/features/locale/widget/locale_switcher.dart';
 import 'package:abigotado_dev/src/features/metrics/widget/metrics_section.dart';
+import 'package:abigotado_dev/src/features/pubspec/widget/pubspec_section.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 /// The landing scaffold.
 ///
 /// The "agents build the page" hero ([TerminalHero]) opens the page; the
-/// name/subtitle, the [MetricsSection], and the locale / effects switchers sit
-/// below it. Further sections (pubspec/changelog, hot-reload effect) slot in
-/// beneath as they are delivered through the orchestration pipeline.
+/// name/subtitle, the [MetricsSection], the [PubspecSection], and the locale /
+/// effects switchers sit below it. Further sections (changelog, hot-reload
+/// effect) slot in beneath as they are delivered through the orchestration
+/// pipeline.
 class LandingPage extends StatelessWidget {
   /// Creates the landing scaffold.
   const LandingPage({super.key});
@@ -49,6 +51,7 @@ class LandingPage extends StatelessWidget {
               ],
             ),
             const MetricsSection(),
+            const PubspecSection(),
             Padding(
               padding: const EdgeInsets.only(bottom: 32),
               child: Column(

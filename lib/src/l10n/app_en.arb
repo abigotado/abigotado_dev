@@ -95,5 +95,21 @@
   "m4_a11y": "test coverage bar: 70 to 75 percent",
   "@m4_a11y": {
     "description": "Metrics section — glyph-free screen-reader label for the test-coverage card."
+  },
+  "ch1": "skills",
+  "@ch1": {
+    "description": "Badge on the pubspec.yaml card header — labels the card as the skills section."
+  },
+  "pubspec_description": "Senior Flutter engineer · architecture, team leadership, AI-first delivery",
+  "@pubspec_description": {
+    "description": "The 'description:' value inside the pubspec.yaml skills card. Generalist framing, consistent with the hero subtitle — deliberately NOT fintech-specific (the mockup's fintech value is discarded)."
+  },
+  "pcm": "# plugins, Pigeon",
+  "@pcm": {
+    "description": "Trailing comment on the kotlin_swift dependency line (clarifies the ^basic scope: native plugins, Pigeon)."
+  },
+  "pubspec_a11y": "skills, pubspec.yaml",
+  "@pubspec_a11y": {
+    "description": "Screen-reader announcement summarizing the pubspec.yaml skills card (the colored code tokens are excluded as decorative)."
   }
 }
