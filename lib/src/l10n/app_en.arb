@@ -159,5 +159,29 @@
   "cta_heading": "Get in touch",
   "@cta_heading": {
     "description": "Heading above the contacts panel revealed by the merge-CTA button."
+  },
+  "file_hero": "intro",
+  "@file_hero": {
+    "description": "Sidebar decode-label for hero.dart — clarity word shown next to the filename."
+  },
+  "file_metrics": "proof",
+  "@file_metrics": {
+    "description": "Sidebar decode-label for metrics.json — clarity word shown next to the filename."
+  },
+  "file_pubspec": "skills",
+  "@file_pubspec": {
+    "description": "Sidebar decode-label for pubspec.yaml — clarity word shown next to the filename."
+  },
+  "file_changelog": "career",
+  "@file_changelog": {
+    "description": "Sidebar decode-label for CHANGELOG.md — clarity word shown next to the filename."
+  },
+  "file_contacts": "reach me",
+  "@file_contacts": {
+    "description": "Sidebar decode-label for contacts.dart — clarity word shown next to the filename."
+  },
+  "problems": "0 problems",
+  "@problems": {
+    "description": "Status-bar left cluster — problem count indicator (always zero, we ship clean)."
   }
 }

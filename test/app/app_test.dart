@@ -108,6 +108,21 @@ void main() {
         final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
         expect(app.debugShowCheckedModeBanner, isFalse);
       });
+
+      testWidgets(
+        'desktop (1280×800) shows EXPLORER sidebar label',
+        (tester) async {
+          await _pumpApp(
+            tester,
+            store: _FakeLocaleStore(),
+            reader: const _FakePlatformLocaleReader(_noLocales, null),
+          );
+
+          // RED: EditorShell stub has no sidebar; EXPLORER only appears once
+          // the green pass activates the full responsive Column tree.
+          expect(find.text('EXPLORER'), findsOneWidget);
+        },
+      );
     });
 
     group('locale — auto resolution', () {

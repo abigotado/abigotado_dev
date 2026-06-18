@@ -1,4 +1,5 @@
 import 'package:abigotado_dev/src/app/theme/app_theme.dart';
+import 'package:abigotado_dev/src/app/view/editor_shell.dart';
 import 'package:abigotado_dev/src/app/view/landing_page.dart';
 import 'package:abigotado_dev/src/features/locale/state/locale_notifier.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
@@ -22,7 +23,9 @@ class AbigotadoApp extends ConsumerWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: locale,
-      home: const LandingPage(),
+      home: const EditorShell(
+        child: SingleChildScrollView(child: LandingPage()),
+      ),
     );
   }
 }
