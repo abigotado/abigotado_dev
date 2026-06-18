@@ -1,14 +1,21 @@
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
+import 'package:abigotado_dev/src/app/theme/app_sizing.dart';
+import 'package:abigotado_dev/src/app/widget/content_width.dart';
+import 'package:abigotado_dev/src/app/widget/traffic_lights.dart';
 import 'package:flutter/material.dart';
 
 /// The terminal shell that frames the build-scenario hero: a dark, rounded
 /// panel with macOS-style traffic-light dots and the command line that "runs"
 /// the agents.
 ///
-/// Layout is mobile-first: the panel clamps to a max width and never scrolls
-/// horizontally — the command line wraps/ellipsizes instead of forcing a
-/// fixed-width row. [children] are stacked below the command line (the agent
-/// status lines, reviewer card, etc.).
+/// Layout is mobile-first: the panel is wrapped in [ContentWidth] with
+/// [AppSizing.terminalMaxWidth] (720 px), so it shares the same left-edge
+/// alignment as the content cards below it (both go through
+/// `EditorPane → ContentWidth`). The command line wraps softly so it never
+/// overflows on narrow screens.
+///
+/// [children] are stacked below the command line (agent status lines, reviewer
+/// card, etc.).
 class TerminalFrame extends StatelessWidget {
   /// Creates the terminal frame around [children].
   const TerminalFrame({required this.children, this.cursor, super.key});
@@ -25,70 +32,28 @@ class TerminalFrame extends StatelessWidget {
   /// (a CLI invocation reads the same in every language).
   static const String _command = r'$ agents build abigotado.dev --release';
 
-  /// Maximum terminal width on wide viewports; below this it fills the width.
-  static const double _maxWidth = 720;
-
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    final clampedWidth = width < _maxWidth ? width : _maxWidth;
-
-    return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: clampedWidth),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            border: Border.all(color: AppColors.border),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            spacing: 14,
-            children: [
-              const _TrafficLights(),
-              _CommandLine(command: _command, cursor: cursor),
-              ...children,
-            ],
-          ),
+    return ContentWidth(
+      maxWidth: AppSizing.terminalMaxWidth,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          spacing: 14,
+          children: [
+            const TrafficLights(),
+            _CommandLine(command: _command, cursor: cursor),
+            ...children,
+          ],
         ),
       ),
-    );
-  }
-}
-
-/// The three macOS-style window dots.
-class _TrafficLights extends StatelessWidget {
-  const _TrafficLights();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Row(
-      mainAxisSize: MainAxisSize.min,
-      spacing: 8,
-      children: [
-        _Dot(color: AppColors.accentRed),
-        _Dot(color: AppColors.accentAmber),
-        _Dot(color: AppColors.accentGreen),
-      ],
-    );
-  }
-}
-
-/// A single traffic-light dot.
-class _Dot extends StatelessWidget {
-  const _Dot({required this.color});
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 12,
-      height: 12,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }

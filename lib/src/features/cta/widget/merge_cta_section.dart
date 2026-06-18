@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:abigotado_dev/src/app/widget/content_width.dart';
 import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
 import 'package:abigotado_dev/src/features/cta/widget/contacts_panel.dart';
 import 'package:abigotado_dev/src/features/cta/widget/merge_button.dart';
@@ -67,30 +68,25 @@ class _MergeCtaSectionState extends ConsumerState<MergeCtaSection>
     // rebuild — the tap handler reads the already-resolved `_mode` field.
     _mode = effectsModeOf(context, ref);
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 720),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 16,
-            children: [
-              MergeButton(
-                phase: _phase,
-                onPressed: _phase == MergePhase.merged ? null : _onMerge,
-              ),
-              if (_phase != MergePhase.idle)
-                if (_controller != null)
-                  FadeTransition(
-                    opacity: _controller!,
-                    child: const ContactsPanel(),
-                  )
-                else
-                  const ContactsPanel(),
-            ],
+    return ContentWidth(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 16,
+        children: [
+          MergeButton(
+            phase: _phase,
+            onPressed: _phase == MergePhase.merged ? null : _onMerge,
           ),
-        ),
+          if (_phase != MergePhase.idle)
+            if (_controller != null)
+              FadeTransition(
+                opacity: _controller!,
+                child: const ContactsPanel(),
+              )
+            else
+              const ContactsPanel(),
+        ],
       ),
     );
   }

@@ -39,5 +39,11 @@
   "w3": "fintech y cripto desde cero · Stripe · LiveKit/WebRTC",
   "w4": "Clean Architecture · tests de cero al 70–75%",
   "w5": "de redactor jefe a desarrollador",
-  "cta_heading": "Hablemos"
+  "cta_heading": "Hablemos",
+  "file_hero": "intro",
+  "file_metrics": "pruebas",
+  "file_pubspec": "habilidades",
+  "file_changelog": "carrera",
+  "file_contacts": "escríbeme",
+  "problems": "0 problemas"
 }

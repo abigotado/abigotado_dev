@@ -1,0 +1,254 @@
+import 'package:abigotado_dev/src/app/theme/app_theme.dart';
+import 'package:abigotado_dev/src/app/view/editor_shell.dart';
+import 'package:abigotado_dev/src/app/view/editor_sidebar.dart';
+import 'package:abigotado_dev/src/app/view/editor_status_bar.dart';
+import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
+import 'package:abigotado_dev/src/core/effects/effects_store.dart';
+import 'package:abigotado_dev/src/core/locale/locale_store.dart';
+import 'package:abigotado_dev/src/core/locale/platform_locale_reader.dart';
+import 'package:abigotado_dev/src/core/locale/supported_locale.dart';
+import 'package:abigotado_dev/src/features/effects/state/effects_notifier.dart';
+import 'package:abigotado_dev/src/features/effects/widget/effects_toggle.dart';
+import 'package:abigotado_dev/src/features/locale/state/locale_notifier.dart';
+import 'package:abigotado_dev/src/features/locale/widget/locale_switcher.dart';
+import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+// ---------------------------------------------------------------------------
+// Fakes
+// ---------------------------------------------------------------------------
+
+// Fixes effects to EffectsMode.lite so no animation controllers run and
+// pumpAndSettle does not time out.
+final class _FakeEffectsStore implements EffectsStore {
+  const _FakeEffectsStore();
+
+  @override
+  EffectsMode? read() => EffectsMode.lite;
+
+  @override
+  Future<void> write(EffectsMode mode) async {}
+
+  @override
+  Future<void> clear() async {}
+}
+
+final class _FakeLocaleStore implements LocaleStore {
+  const _FakeLocaleStore();
+
+  @override
+  SupportedLocale? read() => null;
+
+  @override
+  Future<void> write(SupportedLocale locale) async {}
+
+  @override
+  Future<void> clear() async {}
+}
+
+final class _FakePlatformLocaleReader implements PlatformLocaleReader {
+  const _FakePlatformLocaleReader();
+
+  @override
+  List<Locale> get locales => const [];
+
+  @override
+  String? get timeZoneId => null;
+}
+
+// ---------------------------------------------------------------------------
+// Helper: pump EditorShell inside the full provider + Material tree.
+// ---------------------------------------------------------------------------
+
+Future<void> _pumpShell(
+  WidgetTester tester, {
+  required Size surfaceSize,
+  Locale locale = const Locale('en'),
+}) async {
+  await tester.binding.setSurfaceSize(surfaceSize);
+  addTearDown(() => tester.binding.setSurfaceSize(null));
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        localeStoreProvider.overrideWithValue(const _FakeLocaleStore()),
+        platformReaderProvider.overrideWithValue(
+          const _FakePlatformLocaleReader(),
+        ),
+        effectsStoreProvider.overrideWithValue(const _FakeEffectsStore()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.dark(),
+        locale: locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const EditorShell(child: Text('CONTENT-MARKER')),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+void main() {
+  group('EditorShell', () {
+    group('sidebar visibility — responsive', () {
+      testWidgets(
+        'desktop (1280×800) shows EditorSidebar with EXPLORER header',
+        (tester) async {
+          await _pumpShell(tester, surfaceSize: const Size(1280, 800));
+
+          expect(find.byType(EditorSidebar), findsOneWidget);
+          expect(find.text('EXPLORER'), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'mobile (360×800) hides EditorSidebar',
+        (tester) async {
+          await _pumpShell(tester, surfaceSize: const Size(360, 800));
+
+          expect(find.byType(EditorSidebar), findsNothing);
+        },
+      );
+    });
+
+    group('sidebar visibility — breakpoint boundary', () {
+      testWidgets(
+        'width 899 → EditorSidebar absent',
+        (tester) async {
+          await _pumpShell(tester, surfaceSize: const Size(899, 800));
+
+          expect(find.byType(EditorSidebar), findsNothing);
+        },
+      );
+
+      testWidgets(
+        'width 900 → EditorSidebar present',
+        (tester) async {
+          await _pumpShell(tester, surfaceSize: const Size(900, 800));
+
+          expect(find.byType(EditorSidebar), findsOneWidget);
+        },
+      );
+    });
+
+    group('status bar', () {
+      testWidgets(
+        'EditorStatusBar present at desktop width (1280)',
+        (tester) async {
+          await _pumpShell(tester, surfaceSize: const Size(1280, 800));
+
+          expect(find.byType(EditorStatusBar), findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'EditorStatusBar present at mobile width (360)',
+        (tester) async {
+          await _pumpShell(tester, surfaceSize: const Size(360, 800));
+
+          expect(find.byType(EditorStatusBar), findsOneWidget);
+        },
+      );
+    });
+
+    group('status bar — no overflow at narrow phone widths (es locale)', () {
+      // These tests guard the BLOCKER fix: the compact Wrap layout must never
+      // overflow at 320 or 360 px even with the widest locale strings (Spanish
+      // "Efectos activados" is the hardest case).
+      testWidgets(
+        'no RenderFlex overflow at 320×800 in es locale',
+        (tester) async {
+          await _pumpShell(
+            tester,
+            surfaceSize: const Size(320, 800),
+            locale: const Locale('es'),
+          );
+
+          // tester.takeException() returns the first uncaught exception from
+          // pumpAndSettle — a RenderFlex overflow would surface here.
+          expect(tester.takeException(), isNull);
+        },
+      );
+
+      testWidgets(
+        'no RenderFlex overflow at 360×800 in es locale',
+        (tester) async {
+          await _pumpShell(
+            tester,
+            surfaceSize: const Size(360, 800),
+            locale: const Locale('es'),
+          );
+
+          expect(tester.takeException(), isNull);
+        },
+      );
+    });
+
+    group('status bar — switchers', () {
+      testWidgets(
+        'LocaleSwitcher is a descendant of EditorStatusBar at desktop width',
+        (tester) async {
+          await _pumpShell(tester, surfaceSize: const Size(1280, 800));
+
+          expect(
+            find.descendant(
+              of: find.byType(EditorStatusBar),
+              matching: find.byType(LocaleSwitcher),
+            ),
+            findsOneWidget,
+          );
+        },
+      );
+
+      testWidgets(
+        'EffectsToggle is a descendant of EditorStatusBar at desktop width',
+        (tester) async {
+          await _pumpShell(tester, surfaceSize: const Size(1280, 800));
+
+          expect(
+            find.descendant(
+              of: find.byType(EditorStatusBar),
+              matching: find.byType(EffectsToggle),
+            ),
+            findsOneWidget,
+          );
+        },
+      );
+    });
+
+    group('release tag — static', () {
+      testWidgets(
+        'RELEASE text present and no DEBUG text',
+        (tester) async {
+          await _pumpShell(tester, surfaceSize: const Size(1280, 800));
+
+          expect(find.text('RELEASE'), findsOneWidget);
+          expect(find.textContaining('DEBUG'), findsNothing);
+        },
+      );
+
+      testWidgets(
+        'no transient callbacks after pumpAndSettle — no ticker running',
+        (tester) async {
+          await _pumpShell(tester, surfaceSize: const Size(1280, 800));
+
+          expect(
+            tester.binding.transientCallbackCount,
+            equals(0),
+            reason:
+                'lite mode + static ReleaseTag must leave zero transient '
+                'callbacks running',
+          );
+        },
+      );
+    });
+  });
+}

@@ -39,5 +39,11 @@
   "w3": "финтех и крипто с нуля · Stripe · LiveKit/WebRTC",
   "w4": "Clean Architecture · тесты с нуля до планки 70–75%",
   "w5": "из шеф-редактора — в разработчики",
-  "cta_heading": "Свяжитесь"
+  "cta_heading": "Свяжитесь",
+  "file_hero": "интро",
+  "file_metrics": "пруфы",
+  "file_pubspec": "навыки",
+  "file_changelog": "карьера",
+  "file_contacts": "связаться",
+  "problems": "0 проблем"
 }

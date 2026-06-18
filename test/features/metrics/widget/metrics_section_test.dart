@@ -65,10 +65,10 @@ void main() {
 
     group('geometry — multi-column on wide surface', () {
       testWidgets(
-        'surface 1280×800 → first three cards on same row, '
-        'fourth wraps (≥3 cols)',
+        'surface 1280×800 → all four cards on one row (4 cols)',
         (tester) async {
-          // Net available ≈ min(1280,720)−48 = 672; metricsColumnsFor(672) → 3.
+          // Net available ≈ 1000−48 = 952 px once ContentWidth caps width;
+          // metricsColumnsFor(952) → 4 cols, so all four cards fit on one row.
           await _pumpSection(tester, surface: const Size(1280, 800));
 
           final cards = find.byType(MetricCard);
@@ -76,6 +76,9 @@ void main() {
             for (var i = 0; i < 4; i++) tester.getTopLeft(cards.at(i)).dy,
           ];
 
+          // RED: sections still use ConstrainedBox(720) → 3+1 at 1280;
+          // green pass swaps MetricsSection to ContentWidth →
+          // 4 cols on one row.
           expect(
             dys[0],
             equals(dys[1]),
@@ -87,9 +90,21 @@ void main() {
             reason: 'cards 1 and 2 must share the same row top-offset',
           );
           expect(
-            dys[3],
-            greaterThan(dys[0]),
-            reason: 'card 3 wraps to a second row — its dy must exceed row 1',
+            dys[2],
+            equals(dys[3]),
+            reason:
+                'card 3 must also be on row 1 — '
+                'ContentWidth(1000)−48 = 952 fits 4 columns',
+          );
+
+          // All four x-offsets must be distinct (four columns, not stacked).
+          final xs = {
+            for (var i = 0; i < 4; i++) tester.getTopLeft(cards.at(i)).dx,
+          };
+          expect(
+            xs.length,
+            equals(4),
+            reason: 'four distinct x-offsets → four columns',
           );
         },
       );

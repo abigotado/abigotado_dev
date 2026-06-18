@@ -9,9 +9,9 @@ library;
 /// Reproduces the mockup's CSS `repeat(auto-fit, minmax(160px, 1fr))`: a new
 /// column appears only once every card can stay >=160px wide given the 12px
 /// inter-card gaps. Thresholds: 1 col < 332 <= 2 col < 504 <= 3 col < 676 <= 4.
-/// Intrinsically clamped to 1..4 (four branches, min 1). The max width this can
-/// receive at runtime is 720 - 48 = 672 (so >=676 / 4 columns is only reachable
-/// in the isolated unit test, never at runtime — by design).
+/// Intrinsically clamped to 1..4 (four branches, min 1). The runtime budget is
+/// `AppSizing.contentMaxWidth − 2·contentGutter` ≈ 952 px at desktop, so 4
+/// columns is the live desktop layout.
 int metricsColumnsFor(double width) => switch (width) {
   < 332 => 1,
   < 504 => 2,
