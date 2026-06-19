@@ -6,7 +6,6 @@ import 'package:abigotado_dev/src/features/effects/state/effects_notifier.dart';
 import 'package:abigotado_dev/src/features/hero/state/build_phase.dart';
 import 'package:abigotado_dev/src/features/hero/state/build_scenario_notifier.dart';
 import 'package:abigotado_dev/src/features/hero/widget/agent_status_line.dart';
-import 'package:abigotado_dev/src/features/hero/widget/debug_release_banner.dart';
 import 'package:abigotado_dev/src/features/hero/widget/reviewer_comment_card.dart';
 import 'package:abigotado_dev/src/features/hero/widget/skip_button.dart';
 import 'package:abigotado_dev/src/features/hero/widget/terminal_frame.dart';
@@ -113,24 +112,25 @@ class _TerminalHeroState extends ConsumerState<TerminalHero>
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-      child: DebugReleaseBanner(
-        child: TerminalFrame(
-          // Controllers are non-null only in full mode; lite mode passes `null`
-          // so the frame/timeline render their static fallbacks.
-          cursor: cursorController == null
-              ? null
-              : _BlinkingCursor(controller: cursorController),
-          children: [
-            _AgentTimeline(
-              phase: phase,
-              spinner: spinnerController == null
-                  ? null
-                  : _SpinnerGlyph(controller: spinnerController),
-            ),
-            const ReviewerCommentCard(),
-            if (showSkip) const SkipButton(),
-          ],
-        ),
+      // The DEBUG/RELEASE ribbon now lives inside TerminalFrame (wrapping the
+      // terminal box within its ContentWidth), so it anchors to the terminal's
+      // own corner rather than the full-width pane.
+      child: TerminalFrame(
+        // Controllers are non-null only in full mode; lite mode passes `null`
+        // so the frame/timeline render their static fallbacks.
+        cursor: cursorController == null
+            ? null
+            : _BlinkingCursor(controller: cursorController),
+        children: [
+          _AgentTimeline(
+            phase: phase,
+            spinner: spinnerController == null
+                ? null
+                : _SpinnerGlyph(controller: spinnerController),
+          ),
+          const ReviewerCommentCard(),
+          if (showSkip) const SkipButton(),
+        ],
       ),
     );
   }

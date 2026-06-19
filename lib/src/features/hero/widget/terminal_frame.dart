@@ -2,6 +2,7 @@ import 'package:abigotado_dev/src/app/theme/app_colors.dart';
 import 'package:abigotado_dev/src/app/theme/app_sizing.dart';
 import 'package:abigotado_dev/src/app/widget/content_width.dart';
 import 'package:abigotado_dev/src/app/widget/traffic_lights.dart';
+import 'package:abigotado_dev/src/features/hero/widget/debug_release_banner.dart';
 import 'package:flutter/material.dart';
 
 /// The terminal shell that frames the build-scenario hero: a dark, rounded
@@ -34,24 +35,30 @@ class TerminalFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The DEBUG/RELEASE ribbon wraps the terminal box itself (inside
+    // ContentWidth), so the corner ribbon sits on the terminal's own top-end
+    // corner rather than floating in the empty space to its right on wide
+    // viewports (where ContentWidth's Align leaves the outer box full-width).
     return ContentWidth(
       maxWidth: AppSizing.terminalMaxWidth,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          border: Border.all(color: AppColors.border),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          spacing: 14,
-          children: [
-            const TrafficLights(),
-            _CommandLine(command: _command, cursor: cursor),
-            ...children,
-          ],
+      child: DebugReleaseBanner(
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            border: Border.all(color: AppColors.border),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            spacing: 14,
+            children: [
+              const TrafficLights(),
+              _CommandLine(command: _command, cursor: cursor),
+              ...children,
+            ],
+          ),
         ),
       ),
     );
