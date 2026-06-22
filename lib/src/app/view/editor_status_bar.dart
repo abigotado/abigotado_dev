@@ -1,6 +1,6 @@
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
-import 'package:abigotado_dev/src/app/widget/release_tag.dart';
 import 'package:abigotado_dev/src/features/effects/widget/effects_toggle.dart';
+import 'package:abigotado_dev/src/features/hero/widget/release_tag.dart';
 import 'package:abigotado_dev/src/features/locale/widget/locale_switcher.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';

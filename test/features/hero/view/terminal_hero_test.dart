@@ -221,6 +221,9 @@ void main() {
           await tester.pump();
           await clock.advance(); // reviewing → released
           await tester.pump();
+          // Settle the 250ms DEBUG→RELEASE crossfade added in the green pass.
+          // In contracts (instant banner) this pump is a harmless no-op.
+          await tester.pump(const Duration(milliseconds: 300));
 
           final l10n = AppLocalizations.of(
             tester.element(find.byType(TerminalHero)),
@@ -250,6 +253,9 @@ void main() {
 
           await tester.tap(find.byType(SkipButton));
           await tester.pump();
+          // Settle the 250ms DEBUG→RELEASE crossfade added in the green pass.
+          // In contracts (instant banner) this pump is a harmless no-op.
+          await tester.pump(const Duration(milliseconds: 300));
 
           final l10n = AppLocalizations.of(
             tester.element(find.byType(TerminalHero)),
