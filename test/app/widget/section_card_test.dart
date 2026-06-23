@@ -1,7 +1,29 @@
 import 'package:abigotado_dev/src/app/theme/app_theme.dart';
 import 'package:abigotado_dev/src/app/widget/section_card.dart';
+import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
+import 'package:abigotado_dev/src/core/effects/effects_store.dart';
+import 'package:abigotado_dev/src/features/effects/state/effects_notifier.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+// ---------------------------------------------------------------------------
+// Fake
+// ---------------------------------------------------------------------------
+
+/// An [EffectsStore] that always returns lite mode (cards render hover-inert).
+final class _FakeEffectsStore implements EffectsStore {
+  const _FakeEffectsStore();
+
+  @override
+  EffectsMode? read() => EffectsMode.lite;
+
+  @override
+  Future<void> write(EffectsMode mode) async {}
+
+  @override
+  Future<void> clear() async {}
+}
 
 // SectionCard is shared chrome that PubspecCard and ChangelogCard both depend
 // on. These tests pin the contract those cards rely on: the title/badge/child
@@ -21,12 +43,17 @@ Future<void> _pumpCard(
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
   await tester.pumpWidget(
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark(),
-      home: Scaffold(
-        body: Center(
-          child: SectionCard(title: title, badge: badge, child: child),
+    ProviderScope(
+      overrides: [
+        effectsStoreProvider.overrideWithValue(const _FakeEffectsStore()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.dark(),
+        home: Scaffold(
+          body: Center(
+            child: SectionCard(title: title, badge: badge, child: child),
+          ),
         ),
       ),
     ),

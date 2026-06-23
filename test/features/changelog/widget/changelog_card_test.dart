@@ -1,9 +1,31 @@
 import 'package:abigotado_dev/src/app/theme/app_theme.dart';
+import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
+import 'package:abigotado_dev/src/core/effects/effects_store.dart';
 import 'package:abigotado_dev/src/features/changelog/widget/changelog_card.dart';
 import 'package:abigotado_dev/src/features/changelog/widget/changelog_section.dart';
+import 'package:abigotado_dev/src/features/effects/state/effects_notifier.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+// ---------------------------------------------------------------------------
+// Fake
+// ---------------------------------------------------------------------------
+
+/// An [EffectsStore] that always returns lite mode (cards render hover-inert).
+final class _FakeEffectsStore implements EffectsStore {
+  const _FakeEffectsStore();
+
+  @override
+  EffectsMode? read() => EffectsMode.lite;
+
+  @override
+  Future<void> write(EffectsMode mode) async {}
+
+  @override
+  Future<void> clear() async {}
+}
 
 // ---------------------------------------------------------------------------
 // Helper: collect the plain text of every RichText in the tree (Text widgets
@@ -30,13 +52,18 @@ Future<void> _pumpSection(
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
   await tester.pumpWidget(
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark(),
-      locale: locale,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: const Scaffold(body: ChangelogSection()),
+    ProviderScope(
+      overrides: [
+        effectsStoreProvider.overrideWithValue(const _FakeEffectsStore()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.dark(),
+        locale: locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const Scaffold(body: ChangelogSection()),
+      ),
     ),
   );
   await tester.pumpAndSettle();

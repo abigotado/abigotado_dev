@@ -1,4 +1,5 @@
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
+import 'package:abigotado_dev/src/app/widget/hover/hover_lift.dart';
 import 'package:flutter/material.dart';
 
 /// A single metric card displaying a [label] caption and a prominent [value].
@@ -39,8 +40,8 @@ class MetricCard extends StatelessWidget {
       container: true,
       label: semanticsLabel,
       child: ExcludeSemantics(
-        child: Container(
-          decoration: BoxDecoration(
+        child: HoverLift(
+          restDecoration: BoxDecoration(
             color: AppColors.surface,
             border: Border.all(color: AppColors.border),
             borderRadius: BorderRadius.circular(12),

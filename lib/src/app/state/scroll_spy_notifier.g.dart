@@ -59,7 +59,7 @@ final class ScrollSpyNotifierProvider
   }
 }
 
-String _$scrollSpyNotifierHash() => r'00635a86af01cd3b93e1d3892bd3a16f5e1b217d';
+String _$scrollSpyNotifierHash() => r'679f544659889ecc9f3f50ae15f6790870ff0a87';
 
 /// Manages the scroll-spy state for abigotado.dev.
 ///
@@ -144,3 +144,124 @@ final class ActiveEditorFileValueProvider
 
 String _$activeEditorFileValueHash() =>
     r'97992428b61dbe25c12125a3b7c54b37af387e54';
+
+/// Returns `true` when [file]'s section has been revealed (or has never been
+/// measured, in which case all sections default to visible so that content is
+/// readable before the first scroll-spy tick).
+///
+/// `RevealOnScroll` watches this provider to drive its opacity/slide
+/// animation. The `!hasMeasured` guard means sections show immediately on
+/// first render — the host only starts managing reveal after its first
+/// measurement pass, so there is never a "flash of hidden content" on load.
+
+@ProviderFor(sectionRevealed)
+final sectionRevealedProvider = SectionRevealedFamily._();
+
+/// Returns `true` when [file]'s section has been revealed (or has never been
+/// measured, in which case all sections default to visible so that content is
+/// readable before the first scroll-spy tick).
+///
+/// `RevealOnScroll` watches this provider to drive its opacity/slide
+/// animation. The `!hasMeasured` guard means sections show immediately on
+/// first render — the host only starts managing reveal after its first
+/// measurement pass, so there is never a "flash of hidden content" on load.
+
+final class SectionRevealedProvider
+    extends $FunctionalProvider<bool, bool, bool>
+    with $Provider<bool> {
+  /// Returns `true` when [file]'s section has been revealed (or has never been
+  /// measured, in which case all sections default to visible so that content is
+  /// readable before the first scroll-spy tick).
+  ///
+  /// `RevealOnScroll` watches this provider to drive its opacity/slide
+  /// animation. The `!hasMeasured` guard means sections show immediately on
+  /// first render — the host only starts managing reveal after its first
+  /// measurement pass, so there is never a "flash of hidden content" on load.
+  SectionRevealedProvider._({
+    required SectionRevealedFamily super.from,
+    required EditorFile super.argument,
+  }) : super(
+         retry: null,
+         name: r'sectionRevealedProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$sectionRevealedHash();
+
+  @override
+  String toString() {
+    return r'sectionRevealedProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  bool create(Ref ref) {
+    final argument = this.argument as EditorFile;
+    return sectionRevealed(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SectionRevealedProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$sectionRevealedHash() => r'1688f400cae9ea91cf3bf938f7430311887e0b29';
+
+/// Returns `true` when [file]'s section has been revealed (or has never been
+/// measured, in which case all sections default to visible so that content is
+/// readable before the first scroll-spy tick).
+///
+/// `RevealOnScroll` watches this provider to drive its opacity/slide
+/// animation. The `!hasMeasured` guard means sections show immediately on
+/// first render — the host only starts managing reveal after its first
+/// measurement pass, so there is never a "flash of hidden content" on load.
+
+final class SectionRevealedFamily extends $Family
+    with $FunctionalFamilyOverride<bool, EditorFile> {
+  SectionRevealedFamily._()
+    : super(
+        retry: null,
+        name: r'sectionRevealedProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Returns `true` when [file]'s section has been revealed (or has never been
+  /// measured, in which case all sections default to visible so that content is
+  /// readable before the first scroll-spy tick).
+  ///
+  /// `RevealOnScroll` watches this provider to drive its opacity/slide
+  /// animation. The `!hasMeasured` guard means sections show immediately on
+  /// first render — the host only starts managing reveal after its first
+  /// measurement pass, so there is never a "flash of hidden content" on load.
+
+  SectionRevealedProvider call(EditorFile file) =>
+      SectionRevealedProvider._(argument: file, from: this);
+
+  @override
+  String toString() => r'sectionRevealedProvider';
+}
