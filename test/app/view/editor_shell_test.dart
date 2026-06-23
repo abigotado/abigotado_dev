@@ -1,7 +1,9 @@
 import 'package:abigotado_dev/src/app/theme/app_theme.dart';
+import 'package:abigotado_dev/src/app/view/editor_pane.dart';
 import 'package:abigotado_dev/src/app/view/editor_shell.dart';
 import 'package:abigotado_dev/src/app/view/editor_sidebar.dart';
 import 'package:abigotado_dev/src/app/view/editor_status_bar.dart';
+import 'package:abigotado_dev/src/app/widget/background/living_background.dart';
 import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
 import 'package:abigotado_dev/src/core/effects/effects_store.dart';
 import 'package:abigotado_dev/src/core/locale/locale_store.dart';
@@ -9,6 +11,8 @@ import 'package:abigotado_dev/src/core/locale/platform_locale_reader.dart';
 import 'package:abigotado_dev/src/core/locale/supported_locale.dart';
 import 'package:abigotado_dev/src/features/effects/state/effects_notifier.dart';
 import 'package:abigotado_dev/src/features/effects/widget/effects_toggle.dart';
+import 'package:abigotado_dev/src/features/hero/state/build_scenario_notifier.dart';
+import 'package:abigotado_dev/src/features/hero/state/build_scenario_state.dart';
 import 'package:abigotado_dev/src/features/locale/state/locale_notifier.dart';
 import 'package:abigotado_dev/src/features/locale/widget/locale_switcher.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
@@ -58,6 +62,18 @@ final class _FakePlatformLocaleReader implements PlatformLocaleReader {
   String? get timeZoneId => null;
 }
 
+// Fixes the build scenario to a released snapshot so the phase-driven
+// ReleaseTag shows RELEASE without needing a live TerminalHero.
+// Local to this file; do NOT extract to a shared support file.
+final class _FixedScenarioNotifier extends BuildScenarioNotifier {
+  _FixedScenarioNotifier(this._initial);
+
+  final BuildScenarioState _initial;
+
+  @override
+  BuildScenarioState build() => _initial;
+}
+
 // ---------------------------------------------------------------------------
 // Helper: pump EditorShell inside the full provider + Material tree.
 // ---------------------------------------------------------------------------
@@ -78,6 +94,12 @@ Future<void> _pumpShell(
           const _FakePlatformLocaleReader(),
         ),
         effectsStoreProvider.overrideWithValue(const _FakeEffectsStore()),
+        // Pin the scenario to released so the phase-driven ReleaseTag shows
+        // RELEASE. The shell's child is Text('CONTENT-MARKER') — there is no
+        // TerminalHero to advance the scenario from planning.
+        buildScenarioProvider.overrideWith(
+          () => _FixedScenarioNotifier(const BuildScenarioState.released()),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -224,7 +246,7 @@ void main() {
       );
     });
 
-    group('release tag — static', () {
+    group('release tag — released', () {
       testWidgets(
         'RELEASE text present and no DEBUG text',
         (tester) async {
@@ -246,6 +268,91 @@ void main() {
             reason:
                 'lite mode + static ReleaseTag must leave zero transient '
                 'callbacks running',
+          );
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Backdrop framing regressions — GREEN guards (Stack already wired).
+    // These assert that LivingBackground is present and shares a Stack with
+    // the content layer, so a future refactor cannot accidentally remove it.
+    // -------------------------------------------------------------------------
+
+    group('backdrop framing', () {
+      testWidgets(
+        'LivingBackground present at desktop (1280)',
+        (tester) async {
+          await _pumpShell(tester, surfaceSize: const Size(1280, 800));
+
+          expect(
+            find.byType(LivingBackground),
+            findsOneWidget,
+            reason: 'LivingBackground must be mounted inside EditorShell',
+          );
+        },
+      );
+
+      testWidgets(
+        'LivingBackground present at mobile (360)',
+        (tester) async {
+          await _pumpShell(tester, surfaceSize: const Size(360, 800));
+
+          expect(
+            find.byType(LivingBackground),
+            findsOneWidget,
+            reason: 'LivingBackground must be mounted at mobile width too',
+          );
+        },
+      );
+
+      testWidgets(
+        'background and content share one Stack',
+        (tester) async {
+          await _pumpShell(tester, surfaceSize: const Size(1280, 800));
+
+          // Both LivingBackground and EditorPane must descend from a common
+          // Stack in the Scaffold body. Find the Stack ancestors of each and
+          // confirm the first ancestor Stack is the same element.
+          final backgroundStackFinder = find.ancestor(
+            of: find.byType(LivingBackground),
+            matching: find.byType(Stack),
+          );
+          final paneStackFinder = find.ancestor(
+            of: find.byType(EditorPane),
+            matching: find.byType(Stack),
+          );
+
+          expect(
+            backgroundStackFinder,
+            findsOneWidget,
+            reason: 'LivingBackground must have exactly one Stack ancestor',
+          );
+          expect(
+            paneStackFinder,
+            findsOneWidget,
+            reason: 'EditorPane must have exactly one Stack ancestor',
+          );
+
+          // Same widget element → same Stack in the tree.
+          expect(
+            tester.element(backgroundStackFinder),
+            same(tester.element(paneStackFinder)),
+            reason: 'LivingBackground and EditorPane must share the same Stack',
+          );
+        },
+      );
+
+      testWidgets(
+        'CONTENT-MARKER still renders above the backdrop',
+        (tester) async {
+          await _pumpShell(tester, surfaceSize: const Size(1280, 800));
+
+          expect(
+            find.text('CONTENT-MARKER'),
+            findsOneWidget,
+            reason:
+                'The Scaffold child text must be visible above the backdrop',
           );
         },
       );

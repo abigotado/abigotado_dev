@@ -3,6 +3,7 @@ import 'package:abigotado_dev/src/app/theme/app_sizing.dart';
 import 'package:abigotado_dev/src/app/view/editor_pane.dart';
 import 'package:abigotado_dev/src/app/view/editor_sidebar.dart';
 import 'package:abigotado_dev/src/app/view/editor_status_bar.dart';
+import 'package:abigotado_dev/src/app/widget/background/living_background.dart';
 import 'package:abigotado_dev/src/app/widget/traffic_lights.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -42,35 +43,43 @@ class EditorShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isDesktop = constraints.maxWidth >= AppSizing.editorBreakpoint;
+      body: Stack(
+        children: [
+          const Positioned.fill(child: LivingBackground()),
+          Positioned.fill(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isDesktop =
+                    constraints.maxWidth >= AppSizing.editorBreakpoint;
 
-          if (isDesktop) {
-            return Column(
-              children: [
-                const _EditorTitleBar(),
-                Expanded(
-                  child: Row(
+                if (isDesktop) {
+                  return Column(
                     children: [
-                      const EditorSidebar(),
-                      Expanded(child: EditorPane(child: child)),
+                      const _EditorTitleBar(),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            const EditorSidebar(),
+                            Expanded(child: EditorPane(child: child)),
+                          ],
+                        ),
+                      ),
+                      const EditorStatusBar(),
                     ],
-                  ),
-                ),
-                const EditorStatusBar(),
-              ],
-            );
-          } else {
-            return Column(
-              children: [
-                const _EditorTitleBar(compact: true),
-                Expanded(child: EditorPane(child: child)),
-                const EditorStatusBar(compact: true),
-              ],
-            );
-          }
-        },
+                  );
+                } else {
+                  return Column(
+                    children: [
+                      const _EditorTitleBar(compact: true),
+                      Expanded(child: EditorPane(child: child)),
+                      const EditorStatusBar(compact: true),
+                    ],
+                  );
+                }
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

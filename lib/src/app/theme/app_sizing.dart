@@ -30,4 +30,11 @@ abstract final class AppSizing {
 
   /// Horizontal padding applied inside each content section in pixels.
   static const double contentGutter = 24;
+
+  /// Grid pitch for the living background in logical pixels.
+  ///
+  /// Distance between adjacent dot centres on both axes. Used by
+  /// `layoutBackgroundDots` and `LivingBackgroundPainter` so there is a single
+  /// source of truth for the dot-grid density.
+  static const double backgroundDotSpacing = 48;
 }
