@@ -5,16 +5,16 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/painting.dart';
 
 /// Base opacity of each background dot when the animation phase is 0.
-const double kBaseOpacity = 0.06;
+const double kBaseOpacity = 0.14;
 
 /// Half-amplitude of the sinusoidal opacity pulse around [kBaseOpacity].
 ///
 /// Effective opacity range: `[kBaseOpacity - kOpacityAmp,
-/// kBaseOpacity + kOpacityAmp]` = `[0.02, 0.10]`.
-const double kOpacityAmp = 0.04;
+/// kBaseOpacity + kOpacityAmp]` = `[0.09, 0.19]`.
+const double kOpacityAmp = 0.05;
 
 /// Constant logical-pixel radius for every background dot.
-const double kDotBaseRadius = 1.5;
+const double kDotBaseRadius = 2;
 
 /// An immutable snapshot of a single background grid dot.
 ///
