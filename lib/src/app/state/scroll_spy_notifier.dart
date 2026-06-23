@@ -1,5 +1,6 @@
 import 'package:abigotado_dev/src/app/state/scroll_spy_state.dart';
 import 'package:abigotado_dev/src/app/widget/editor_file.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -49,6 +50,19 @@ class ScrollSpyNotifier extends _$ScrollSpyNotifier {
     if (state.scrollRequest == null) return;
     state = state.copyWith(scrollRequest: null);
   }
+
+  /// Latches the scroll-reveal set to [next] (union with `alreadyRevealed` is
+  /// done by the caller via `revealedSet`; this method stores the result).
+  ///
+  /// No-ops when [next] equals the current [ScrollSpyState.revealed] and
+  /// [ScrollSpyState.hasMeasured] is already `true`, avoiding spurious
+  /// rebuilds on every scroll frame once all sections are visible.
+  ///
+  /// (Green pass.)
+  void revealSections(Set<EditorFile> next) {
+    if (state.hasMeasured && setEquals(next, state.revealed)) return;
+    state = state.copyWith(revealed: next, hasMeasured: true);
+  }
 }
 
 /// Derives the currently active [EditorFile] from [scrollSpyProvider].
@@ -59,3 +73,17 @@ class ScrollSpyNotifier extends _$ScrollSpyNotifier {
 @riverpod
 EditorFile activeEditorFileValue(Ref ref) =>
     ref.watch(scrollSpyProvider.select((s) => s.activeFile));
+
+/// Returns `true` when [file]'s section has been revealed (or has never been
+/// measured, in which case all sections default to visible so that content is
+/// readable before the first scroll-spy tick).
+///
+/// `RevealOnScroll` watches this provider to drive its opacity/slide
+/// animation. The `!hasMeasured` guard means sections show immediately on
+/// first render — the host only starts managing reveal after its first
+/// measurement pass, so there is never a "flash of hidden content" on load.
+@riverpod
+bool sectionRevealed(Ref ref, EditorFile file) {
+  final state = ref.watch(scrollSpyProvider);
+  return !state.hasMeasured || state.revealed.contains(file);
+}

@@ -1,4 +1,5 @@
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
+import 'package:abigotado_dev/src/app/widget/hover/hover_lift.dart';
 import 'package:flutter/widgets.dart';
 
 /// Shared chrome for the file-card sections (pubspec.yaml, CHANGELOG.md).
@@ -45,8 +46,8 @@ class SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
+    return HoverLift(
+      restDecoration: BoxDecoration(
         color: AppColors.surface,
         border: Border.all(color: AppColors.border),
         borderRadius: BorderRadius.circular(12),

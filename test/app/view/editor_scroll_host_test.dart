@@ -485,5 +485,105 @@ void main() {
         },
       );
     });
+
+    // -------------------------------------------------------------------------
+    group('scroll-reveal wiring', () {
+      // Falsifiability:
+      //
+      // 'full: drag → revealed contains below-fold file' is RED because
+      // EditorScrollHost._updateActive does NOT call revealSections yet
+      // (green pass wires it). So scrollSpyProvider.revealed stays {} and
+      // hasMeasured stays false, failing the assertions.
+      //
+      // 'lite: revealed stays empty' is GREEN — lite mode means the host
+      // still won't call revealSections (same missing wiring), but the test
+      // asserts the empty/unmeasured state AND that sections are visible via
+      // mode==lite OR, which RevealOnScroll already implements.
+      //
+      // Hero-ticker caveat (full mode): do NOT call pumpAndSettle —
+      // TerminalHero's spinner/cursor controllers repeat() forever. Use
+      // explicit pump(Duration) only.
+
+      testWidgets(
+        'full: drag past a below-fold section → revealed contains it '
+        'and hasMeasured is true',
+        (tester) async {
+          // RED: host does not call revealSections → revealed stays {} and
+          // hasMeasured stays false. The assertions on revealed/hasMeasured
+          // will fail once the scroll actually happens.
+          final container = await _pumpHost(
+            tester,
+            effectsStore: const _FullEffectsStore(),
+          );
+          // One pump to settle layout without pumpAndSettle (spinner repeats).
+          await tester.pump();
+
+          // Drag down by a large amount to push below-fold sections past the
+          // reveal line. Use a direct scroll offset jump for reliability.
+          final vertScrollable = find.byWidgetPredicate(
+            (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+          );
+          tester
+              .state<ScrollableState>(vertScrollable.first)
+              .position
+              .jumpTo(3000);
+
+          // Give the scroll controller listener one frame to fire.
+          await tester.pump(const Duration(milliseconds: 500));
+
+          final state = container.read(scrollSpyProvider);
+
+          expect(
+            state.hasMeasured,
+            isTrue,
+            reason:
+                'after scrolling the host must have performed at least one '
+                'reveal measurement (hasMeasured=true)',
+          );
+          expect(
+            state.revealed,
+            contains(EditorFile.contacts),
+            reason:
+                'scrolling to offset 3000 must have pushed contacts past the '
+                'reveal line — revealed must contain it',
+          );
+        },
+      );
+
+      testWidgets(
+        'lite: revealed stays empty and hasMeasured false; '
+        'sections visible via mode==lite',
+        (tester) async {
+          // GREEN guard: lite mode → host never calls revealSections (even
+          // after green pass, full-mode branch is gated). revealed stays {},
+          // hasMeasured stays false. RevealOnScroll shows all sections because
+          // mode==lite forces revealed=true regardless of the provider.
+          final container = await _pumpHost(
+            tester,
+          ); // _LiteEffectsStore by default
+          await tester.pumpAndSettle();
+
+          final state = container.read(scrollSpyProvider);
+          expect(
+            state.revealed.isEmpty,
+            isTrue,
+            reason:
+                'lite mode: host must not call revealSections → revealed '
+                'stays empty',
+          );
+          expect(
+            state.hasMeasured,
+            isFalse,
+            reason:
+                'lite mode: hasMeasured must remain false (no measurements '
+                'taken in lite mode)',
+          );
+
+          // Sections must be visible (lite forces opacity=1 in RevealOnScroll).
+          expect(find.byType(MetricsSection), findsOneWidget);
+          expect(find.byType(MergeCtaSection), findsOneWidget);
+        },
+      );
+    });
   });
 }

@@ -134,5 +134,132 @@ void main() {
         );
       });
     });
+
+    // -------------------------------------------------------------------------
+    group('revealSections', () {
+      test(
+        'revealSections grows revealed and sets hasMeasured',
+        () {
+          // Call revealSections twice; after the second call revealed must
+          // contain the union of both sets and hasMeasured must be true.
+          //
+          // RED: revealSections throws UnimplementedError.
+          final container = ProviderContainer();
+          addTearDown(container.dispose);
+
+          container.read(scrollSpyProvider.notifier).revealSections({
+            EditorFile.fileHero,
+          });
+
+          container.read(scrollSpyProvider.notifier).revealSections({
+            EditorFile.fileHero,
+            EditorFile.metrics,
+          });
+
+          final state = container.read(scrollSpyProvider);
+          expect(
+            state.revealed,
+            equals(const {EditorFile.fileHero, EditorFile.metrics}),
+            reason:
+                'revealed must be the union of both calls — latch means it '
+                'only grows',
+          );
+          expect(
+            state.hasMeasured,
+            isTrue,
+            reason: 'hasMeasured must flip to true after revealSections',
+          );
+        },
+      );
+
+      test(
+        'first revealSections emits even when next equals default {}',
+        () {
+          // Fresh container: revealed={}, hasMeasured=false.
+          // Calling revealSections({}) must flip hasMeasured to true even
+          // though the revealed set is unchanged.
+          //
+          // Falsifiability: this catches an implementation that guards on
+          //   `setEquals(next, state.revealed)` WITHOUT checking `hasMeasured`.
+          // Such an implementation would drop the first call and never set
+          // hasMeasured=true.
+          //
+          // RED: revealSections throws UnimplementedError.
+          final container = ProviderContainer();
+          addTearDown(container.dispose);
+
+          // Confirm the default state.
+          expect(
+            container.read(scrollSpyProvider).hasMeasured,
+            isFalse,
+            reason:
+                'precondition: hasMeasured must be false on fresh container',
+          );
+
+          container.read(scrollSpyProvider.notifier).revealSections(const {});
+
+          expect(
+            container.read(scrollSpyProvider).hasMeasured,
+            isTrue,
+            reason:
+                'first revealSections call must always emit and flip '
+                'hasMeasured to true, even when next == {} (the default)',
+          );
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    group('sectionRevealed selector', () {
+      test(
+        'sectionRevealed: true for all before measurement; '
+        'reflects set after revealSections',
+        () {
+          // Part 1 — BEFORE measurement (hasMeasured=false):
+          // sectionRevealedProvider(contacts) must return true (the
+          // !hasMeasured guard makes all sections visible before the first
+          // measurement so there is no flash-of-hidden-content).
+          //
+          // This part is GREEN — the selector is real and !hasMeasured is
+          // true on fresh container.
+          //
+          // Part 2 — AFTER revealSections({fileHero}):
+          // sectionRevealed(contacts)==false, sectionRevealed(fileHero)==true.
+          //
+          // The after-part is RED (revealSections throws).
+          // The test is a single unit asserting the full contract.
+          final container = ProviderContainer();
+          addTearDown(container.dispose);
+
+          // Part 1: before measurement — all sections report revealed=true.
+          expect(
+            container.read(sectionRevealedProvider(EditorFile.contacts)),
+            isTrue,
+            reason:
+                'before any measurement hasMeasured=false, so sectionRevealed '
+                'must return true for every file (no flash of hidden content)',
+          );
+
+          // Part 2: after revealSections — only fileHero was revealed.
+          // RED: revealSections throws UnimplementedError.
+          container.read(scrollSpyProvider.notifier).revealSections({
+            EditorFile.fileHero,
+          });
+
+          expect(
+            container.read(sectionRevealedProvider(EditorFile.fileHero)),
+            isTrue,
+            reason: 'fileHero was passed to revealSections → must be true',
+          );
+          expect(
+            container.read(sectionRevealedProvider(EditorFile.contacts)),
+            isFalse,
+            reason:
+                'contacts was NOT passed to revealSections and hasMeasured '
+                'is now true → must be false',
+          );
+        },
+      );
+    });
   });
 }

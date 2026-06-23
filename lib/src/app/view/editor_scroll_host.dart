@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:abigotado_dev/src/app/state/scroll_spy_notifier.dart';
 import 'package:abigotado_dev/src/app/state/scroll_spy_state.dart';
 import 'package:abigotado_dev/src/app/view/landing_page.dart';
+import 'package:abigotado_dev/src/app/view/reveal_geometry.dart';
 import 'package:abigotado_dev/src/app/view/scroll_spy_geometry.dart';
 import 'package:abigotado_dev/src/app/widget/editor_file.dart';
 import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
@@ -176,6 +177,23 @@ class _EditorScrollHostState extends ConsumerState<EditorScrollHost> {
     // The notifier early-outs when the value is unchanged, so calling this on
     // every scroll frame does not produce a rebuild storm.
     ref.read(scrollSpyProvider.notifier).setActiveFile(next);
+
+    // Scroll-reveal: latch sections that have crossed the reveal line.
+    // Skipped in lite so hasMeasured stays false and every section renders
+    // revealed (zero tickers). Reuses the same measured `sections` + live
+    // position as scroll-spy.
+    if (_mode != EffectsMode.lite) {
+      ref
+          .read(scrollSpyProvider.notifier)
+          .revealSections(
+            revealedSet(
+              sections: sections,
+              scrollOffset: _controller.offset,
+              viewportHeight: _controller.position.viewportDimension,
+              alreadyRevealed: ref.read(scrollSpyProvider).revealed,
+            ),
+          );
+    }
   }
 
   // ---------------------------------------------------------------------------

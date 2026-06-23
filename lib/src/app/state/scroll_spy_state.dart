@@ -29,11 +29,18 @@ final class ScrollRequest extends Equatable {
 /// - [scrollRequest] is a pending one-shot navigation request, or `null`
 ///   when there is no pending request. The notifier clears it after the host
 ///   has dispatched the scroll.
+/// - [revealed] is the set of [EditorFile]s whose sections have crossed the
+///   reveal line at least once (one-shot latch, monotonically growing).
+/// - [hasMeasured] is `true` once the host has performed at least one
+///   reveal-set measurement. Used as a guard so that `RevealOnScroll` shows
+///   content immediately before the first measurement has occurred.
 final class ScrollSpyState extends Equatable {
   /// Creates an immutable scroll-spy state snapshot.
   const ScrollSpyState({
     this.activeFile = EditorFile.fileHero,
     this.scrollRequest,
+    this.revealed = const {},
+    this.hasMeasured = false,
   });
 
   /// The file whose section is currently active in the viewport.
@@ -41,6 +48,16 @@ final class ScrollSpyState extends Equatable {
 
   /// A pending scroll-to request, or `null` if none is queued.
   final ScrollRequest? scrollRequest;
+
+  /// The set of files whose sections have entered the reveal zone at least
+  /// once. This set only ever grows — it is a one-shot latch per file.
+  final Set<EditorFile> revealed;
+
+  /// Whether the host has completed at least one reveal-set measurement.
+  ///
+  /// While `false`, `RevealOnScroll` treats every section as already revealed
+  /// so that content is visible before the first scroll-listener fires.
+  final bool hasMeasured;
 
   /// Returns a copy of this state with the provided fields overridden.
   ///
@@ -52,17 +69,21 @@ final class ScrollSpyState extends Equatable {
     EditorFile? activeFile,
     // Sentinel distinguishes "pass null explicitly" from "omit the parameter".
     Object? scrollRequest = _omit,
+    Set<EditorFile>? revealed,
+    bool? hasMeasured,
   }) {
     return ScrollSpyState(
       activeFile: activeFile ?? this.activeFile,
       scrollRequest: scrollRequest == _omit
           ? this.scrollRequest
           : scrollRequest as ScrollRequest?,
+      revealed: revealed ?? this.revealed,
+      hasMeasured: hasMeasured ?? this.hasMeasured,
     );
   }
 
   @override
-  List<Object?> get props => [activeFile, scrollRequest];
+  List<Object?> get props => [activeFile, scrollRequest, revealed, hasMeasured];
 }
 
 /// Sentinel value used by [ScrollSpyState.copyWith] to detect omitted
