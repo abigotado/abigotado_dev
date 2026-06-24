@@ -404,7 +404,10 @@ void main() {
           await tester.pump();
 
           expect(find.text('nitpicking'), findsOneWidget);
-          expect(find.textContaining('Too modest'), findsOneWidget);
+          // Retargeted gag references the real metric (10K+ downloads), not
+          // the removed "100+ package monorepo".
+          expect(find.textContaining('10K+ downloads'), findsOneWidget);
+          expect(find.textContaining('100+ package'), findsNothing);
         },
       );
 

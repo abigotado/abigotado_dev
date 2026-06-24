@@ -44,7 +44,7 @@
   "@rev_hdr": {
     "description": "Header line of the reviewer comment card (what the reviewer commented on)."
   },
-  "revtext_run": "“Too modest. The guy has a 100+ package monorepo and a UI made 3–5× faster. Requesting changes.”",
+  "revtext_run": "“Too modest. The guy has 10K+ downloads and a UI made 3–5× faster. Requesting changes.”",
   "@revtext_run": {
     "description": "Body of the reviewer comment card while nitpicking (requesting changes)."
   },
@@ -56,45 +56,29 @@
   "@skip": {
     "description": "Label on the button that skips the build-scenario animation."
   },
-  "m1": "app size",
-  "@m1": {
-    "description": "Metrics section — label for the app-size card (sighted caption)."
-  },
   "m2": "UI responsiveness",
   "@m2": {
     "description": "Metrics section — label for the UI-responsiveness card (sighted caption)."
-  },
-  "m3": "monorepo",
-  "@m3": {
-    "description": "Metrics section — label for the monorepo-scale card (sighted caption)."
-  },
-  "m3v": "100+ packages",
-  "@m3v": {
-    "description": "Metrics section — value for the monorepo-scale card (100+ packages)."
   },
   "m4": "test coverage bar",
   "@m4": {
     "description": "Metrics section — label for the test-coverage card (sighted caption)."
   },
-  "mb": "MB",
-  "@mb": {
-    "description": "Metrics section — megabyte abbreviation used in the app-size card value."
-  },
-  "m1_a11y": "app size: from 75 to 40 megabytes",
-  "@m1_a11y": {
-    "description": "Metrics section — glyph-free screen-reader label for the app-size card."
+  "m_dl": "downloads",
+  "@m_dl": {
+    "description": "Metrics section — label for the app-store downloads card (sighted caption)."
   },
   "m2_a11y": "UI responsiveness: 3 to 5 times faster",
   "@m2_a11y": {
     "description": "Metrics section — glyph-free screen-reader label for the UI-responsiveness card."
   },
-  "m3_a11y": "monorepo: over 100 packages",
-  "@m3_a11y": {
-    "description": "Metrics section — glyph-free screen-reader label for the monorepo-scale card."
-  },
   "m4_a11y": "test coverage bar: 70 to 75 percent",
   "@m4_a11y": {
     "description": "Metrics section — glyph-free screen-reader label for the test-coverage card."
+  },
+  "m_dl_a11y": "over 10 thousand downloads across app stores",
+  "@m_dl_a11y": {
+    "description": "Metrics section — glyph-free screen-reader label for the downloads card."
   },
   "ch1": "skills",
   "@ch1": {
@@ -140,7 +124,7 @@
   "@w1": {
     "description": "Career v5.x description line."
   },
-  "w2": "75 → 40 MB · AI pipeline for the team · real-time chat",
+  "w2": "optimized size & performance · AI pipeline for the team · real-time chat",
   "@w2": {
     "description": "Career v4.x description line."
   },

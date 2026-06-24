@@ -59,26 +59,29 @@ Future<void> _pumpSection(
 
 // ---------------------------------------------------------------------------
 // Tests
+//
+// Card order (matches the résumé sync): 0 = UI responsiveness (×3–5),
+// 1 = test coverage (70–75%), 2 = downloads (10K+).
 // ---------------------------------------------------------------------------
 
 void main() {
   group('MetricsSection', () {
     group('card count', () {
-      testWidgets('renders four MetricCard widgets', (tester) async {
+      testWidgets('renders three MetricCard widgets', (tester) async {
         await _pumpSection(tester, surface: const Size(800, 600));
-        expect(find.byType(MetricCard), findsNWidgets(4));
+        expect(find.byType(MetricCard), findsNWidgets(3));
       });
     });
 
     group('geometry — single column on phone', () {
       testWidgets(
-        'surface 360×800 → all four cards share one x-offset (one column)',
+        'surface 360×800 → all three cards share one x-offset (one column)',
         (tester) async {
           await _pumpSection(tester, surface: const Size(360, 800));
 
           final cards = find.byType(MetricCard);
           final xOffsets = {
-            for (var i = 0; i < 4; i++) tester.getTopLeft(cards.at(i)).dx,
+            for (var i = 0; i < 3; i++) tester.getTopLeft(cards.at(i)).dx,
           };
 
           expect(
@@ -92,20 +95,18 @@ void main() {
 
     group('geometry — multi-column on wide surface', () {
       testWidgets(
-        'surface 1280×800 → all four cards on one row (4 cols)',
+        'surface 1280×800 → all three cards on one row (3 cols)',
         (tester) async {
           // Net available ≈ 1000−48 = 952 px once ContentWidth caps width;
-          // metricsColumnsFor(952) → 4 cols, so all four cards fit on one row.
+          // metricsColumnsFor(952) → 4, but the column count is capped at the
+          // card count (3), so the three cards fill one row evenly.
           await _pumpSection(tester, surface: const Size(1280, 800));
 
           final cards = find.byType(MetricCard);
           final dys = [
-            for (var i = 0; i < 4; i++) tester.getTopLeft(cards.at(i)).dy,
+            for (var i = 0; i < 3; i++) tester.getTopLeft(cards.at(i)).dy,
           ];
 
-          // RED: sections still use ConstrainedBox(720) → 3+1 at 1280;
-          // green pass swaps MetricsSection to ContentWidth →
-          // 4 cols on one row.
           expect(
             dys[0],
             equals(dys[1]),
@@ -116,22 +117,15 @@ void main() {
             equals(dys[2]),
             reason: 'cards 1 and 2 must share the same row top-offset',
           );
-          expect(
-            dys[2],
-            equals(dys[3]),
-            reason:
-                'card 3 must also be on row 1 — '
-                'ContentWidth(1000)−48 = 952 fits 4 columns',
-          );
 
-          // All four x-offsets must be distinct (four columns, not stacked).
+          // All three x-offsets must be distinct (three columns, not stacked).
           final xs = {
-            for (var i = 0; i < 4; i++) tester.getTopLeft(cards.at(i)).dx,
+            for (var i = 0; i < 3; i++) tester.getTopLeft(cards.at(i)).dx,
           };
           expect(
             xs.length,
-            equals(4),
-            reason: 'four distinct x-offsets → four columns',
+            equals(3),
+            reason: 'three distinct x-offsets → three columns',
           );
         },
       );
@@ -166,28 +160,9 @@ void main() {
         expect(find.text('70–75%'), findsOneWidget);
       });
 
-      testWidgets(
-        'app-size card value contains "75 → 40" (U+2192)',
-        (tester) async {
-          await _pumpSection(tester, surface: const Size(800, 600));
-          // U+2192 →
-          expect(find.textContaining('75 → 40'), findsOneWidget);
-        },
-      );
-
-      testWidgets('app-size card value contains "MB"', (tester) async {
+      testWidgets('downloads card shows 10K+ (ASCII-only)', (tester) async {
         await _pumpSection(tester, surface: const Size(800, 600));
-        expect(find.textContaining('MB'), findsOneWidget);
-      });
-
-      testWidgets('monorepo card shows "100+ packages"', (tester) async {
-        await _pumpSection(tester, surface: const Size(800, 600));
-        expect(find.text('100+ packages'), findsOneWidget);
-      });
-
-      testWidgets('app size label is present', (tester) async {
-        await _pumpSection(tester, surface: const Size(800, 600));
-        expect(find.text('app size'), findsOneWidget);
+        expect(find.text('10K+'), findsOneWidget);
       });
 
       testWidgets('UI responsiveness label is present', (tester) async {
@@ -195,99 +170,95 @@ void main() {
         expect(find.text('UI responsiveness'), findsOneWidget);
       });
 
-      testWidgets('monorepo label is present', (tester) async {
-        await _pumpSection(tester, surface: const Size(800, 600));
-        expect(find.text('monorepo'), findsOneWidget);
-      });
-
       testWidgets('test coverage bar label is present', (tester) async {
         await _pumpSection(tester, surface: const Size(800, 600));
         expect(find.text('test coverage bar'), findsOneWidget);
       });
+
+      testWidgets('downloads label is present', (tester) async {
+        await _pumpSection(tester, surface: const Size(800, 600));
+        expect(find.text('downloads'), findsOneWidget);
+      });
+
+      testWidgets('removed metrics are absent (app size, monorepo)', (
+        tester,
+      ) async {
+        await _pumpSection(tester, surface: const Size(800, 600));
+        expect(find.text('app size'), findsNothing);
+        expect(find.text('monorepo'), findsNothing);
+        expect(find.text('100+ packages'), findsNothing);
+      });
     });
 
     group('i18n — ru', () {
-      testWidgets('monorepo card shows "100+ пакетов"', (tester) async {
+      testWidgets('downloads label shows "загрузки"', (tester) async {
         await _pumpSection(
           tester,
           surface: const Size(800, 600),
           locale: const Locale('ru'),
         );
-        expect(find.text('100+ пакетов'), findsOneWidget);
+        expect(find.text('загрузки'), findsOneWidget);
       });
 
       testWidgets(
-        'app-size label shows "размер приложения"',
+        'coverage label shows "планка тестов"',
         (tester) async {
           await _pumpSection(
             tester,
             surface: const Size(800, 600),
             locale: const Locale('ru'),
           );
-          expect(find.text('размер приложения'), findsOneWidget);
+          expect(find.text('планка тестов'), findsOneWidget);
         },
       );
 
       testWidgets(
-        'English label "app size" is absent under ru locale',
+        'English label "downloads" is absent under ru locale',
         (tester) async {
           await _pumpSection(
             tester,
             surface: const Size(800, 600),
             locale: const Locale('ru'),
           );
-          expect(find.text('app size'), findsNothing);
-        },
-      );
-
-      testWidgets(
-        'app-size card value contains "МБ" (Cyrillic megabyte unit)',
-        (tester) async {
-          await _pumpSection(
-            tester,
-            surface: const Size(800, 600),
-            locale: const Locale('ru'),
-          );
-          // ru mb = "МБ"; card1 value = "75 → 40 МБ"
-          expect(find.textContaining('МБ'), findsOneWidget);
+          expect(find.text('downloads'), findsNothing);
         },
       );
     });
 
     group('i18n — es', () {
-      testWidgets('monorepo card shows "100+ paquetes"', (tester) async {
+      testWidgets('downloads label shows "descargas"', (tester) async {
         await _pumpSection(
           tester,
           surface: const Size(800, 600),
           locale: const Locale('es'),
         );
-        expect(find.text('100+ paquetes'), findsOneWidget);
+        expect(find.text('descargas'), findsOneWidget);
       });
 
       testWidgets(
-        'app-size label shows "tamaño de la app"',
+        'coverage label shows "listón de tests"',
         (tester) async {
           await _pumpSection(
             tester,
             surface: const Size(800, 600),
             locale: const Locale('es'),
           );
-          expect(find.text('tamaño de la app'), findsOneWidget);
+          expect(find.text('listón de tests'), findsOneWidget);
         },
       );
     });
 
     group('a11y — no raw glyphs reach the screen reader', () {
       testWidgets(
-        'speed card (index 1) semantics label is glyph-free: '
+        'speed card (index 0) semantics label is glyph-free: '
         'contains "3 to 5 times", excludes × and –',
         (tester) async {
           final handle = tester.ensureSemantics();
 
           await _pumpSection(tester, surface: const Size(800, 600));
 
-          // Card order: 0=app size, 1=UI responsiveness (×3–5)
-          final node = tester.getSemantics(find.byType(MetricCard).at(1));
+          // Card order: 0 = UI responsiveness (×3–5)
+          final node = tester.getSemantics(find.byType(MetricCard).at(0));
 
           expect(
             node.label,
@@ -312,27 +283,29 @@ void main() {
       );
 
       testWidgets(
-        'app-size card (index 0) semantics label contains "75 to 40", '
-        'excludes → (U+2192)',
+        'downloads card (index 2) semantics label spells out the figure: '
+        'contains "over 10 thousand downloads", excludes the raw "10K+"',
         (tester) async {
           final handle = tester.ensureSemantics();
 
           await _pumpSection(tester, surface: const Size(800, 600));
 
-          // Card order: 0=app size
-          final node = tester.getSemantics(find.byType(MetricCard).at(0));
+          // Card order: 2 = downloads (10K+)
+          final node = tester.getSemantics(find.byType(MetricCard).at(2));
 
           expect(
             node.label,
-            contains('75 to 40'),
+            contains('over 10 thousand downloads'),
             reason:
-                'app-size card semantics label must include '
-                'glyph-free "75 to 40"',
+                'downloads card semantics label must spell out the figure '
+                'glyph-free',
           );
           expect(
             node.label,
-            isNot(contains('→')),
-            reason: 'U+2192 → must not appear in the screen-reader label',
+            isNot(contains('10K+')),
+            reason:
+                'the decorative "10K+" value must be excluded from the '
+                'screen-reader label (ExcludeSemantics)',
           );
 
           handle.dispose();

@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 
 /// A single metric card displaying a [label] caption and a prominent [value].
 ///
-/// Used four times by `MetricsSection` to render the key portfolio numbers
-/// (app-size reduction, UI responsiveness, monorepo scale, test coverage).
+/// Used three times by `MetricsSection` to render the key portfolio numbers
+/// (UI responsiveness, test coverage, app-store downloads).
 ///
 /// Layout order matches the mockup: label on top, value below. The
 /// [semanticsLabel] is a glyph-free screen-reader announcement that merges
@@ -31,7 +31,7 @@ class MetricCard extends StatelessWidget {
   final String label;
 
   /// Glyph-free screen-reader announcement that describes both [label] and
-  /// [value] together (e.g. "app size: from 75 to 40 megabytes").
+  /// [value] together (e.g. "UI responsiveness: 3 to 5 times faster").
   final String semanticsLabel;
 
   @override

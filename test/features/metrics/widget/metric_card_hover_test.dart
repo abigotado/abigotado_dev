@@ -48,7 +48,7 @@ void main() {
           await tester.binding.setSurfaceSize(const Size(800, 400));
           addTearDown(() => tester.binding.setSurfaceSize(null));
 
-          const semanticsLabel = 'app size: from 75 to 40 megabytes';
+          const semanticsLabel = 'over 10 thousand downloads across app stores';
 
           await tester.pumpWidget(
             ProviderScope(
@@ -62,8 +62,8 @@ void main() {
                 home: Scaffold(
                   body: Center(
                     child: MetricCard(
-                      value: '75 → 40 MB',
-                      label: 'app size',
+                      value: '10K+',
+                      label: 'downloads',
                       semanticsLabel: semanticsLabel,
                     ),
                   ),
