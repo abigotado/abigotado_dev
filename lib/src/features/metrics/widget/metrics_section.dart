@@ -1,20 +1,25 @@
+import 'dart:math' as math;
+
 import 'package:abigotado_dev/src/app/widget/content_width.dart';
 import 'package:abigotado_dev/src/features/metrics/metrics_layout.dart';
 import 'package:abigotado_dev/src/features/metrics/widget/metric_card.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/widgets.dart';
 
-/// The portfolio-metrics section: four cards showing key engineering results.
+/// The portfolio-metrics section: three cards showing key engineering results.
 ///
-/// The four metrics are taken directly from the approved mockup:
-///   - App size: 75 → 40 MB
-///   - UI responsiveness: ×3–5
-///   - Monorepo: 100+ packages
-///   - Test coverage: 70–75%
+/// The three metrics come straight from the résumé — the single source of truth
+/// for every figure on this page (CONCEPT rule: numbers must match the résumé):
+///   - UI responsiveness: ×3–5 (Somnio)
+///   - Test coverage: 70–75% (RZD)
+///   - Downloads: 10K+ across app stores (FinHarbor, Digital Technologies)
 ///
 /// Layout is responsive via [metricsColumnsFor]: 1–4 columns depending on the
 /// available width after the `AppSizing.contentMaxWidth` (1000 px) cap and
-/// `AppSizing.contentGutter` (24 px) horizontal padding on each side.
+/// `AppSizing.contentGutter` (24 px) horizontal padding on each side. The
+/// column count is additionally capped at the card count so the three cards
+/// fill the row evenly rather than leaving an empty fourth column on a wide
+/// desktop.
 ///
 /// The section is always visible — it has no Riverpod dependency and requires
 /// no provider gating.
@@ -30,31 +35,32 @@ class MetricsSection extends StatelessWidget {
   /// U+2013 – per the approved codepoint list.
   static const String _coverageValue = '70–75%';
 
+  /// Downloads figure displayed on the downloads card (sighted only).
+  /// ASCII-only ("10K+") — no special glyphs, identical across locales, so it
+  /// is a const here (like [_speedValue]/[_coverageValue]) rather than an arb
+  /// value; only the localized label and screen-reader text live in arb.
+  static const String _downloadsValue = '10K+';
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
-    // The four card data records; built inline — no Widget _buildX() helper.
+    // The three card data records; built inline — no Widget _buildX() helper.
     final cards = [
-      (
-        value: '75 → 40 ${l10n.mb}',
-        label: l10n.m1,
-        semanticsLabel: l10n.m1_a11y,
-      ),
       (
         value: _speedValue,
         label: l10n.m2,
         semanticsLabel: l10n.m2_a11y,
       ),
       (
-        value: l10n.m3v,
-        label: l10n.m3,
-        semanticsLabel: l10n.m3_a11y,
-      ),
-      (
         value: _coverageValue,
         label: l10n.m4,
         semanticsLabel: l10n.m4_a11y,
+      ),
+      (
+        value: _downloadsValue,
+        label: l10n.m_dl,
+        semanticsLabel: l10n.m_dl_a11y,
       ),
     ];
 
@@ -62,7 +68,9 @@ class MetricsSection extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final available = constraints.maxWidth;
-          final columns = metricsColumnsFor(available);
+          // Cap columns at the card count so three cards fill the row evenly
+          // instead of leaving an empty fourth column on a wide desktop.
+          final columns = math.min(metricsColumnsFor(available), cards.length);
           const gap = 12.0;
           final cardWidth = (available - gap * (columns - 1)) / columns;
 

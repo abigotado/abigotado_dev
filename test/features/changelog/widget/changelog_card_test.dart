@@ -265,23 +265,29 @@ void main() {
     });
 
     // -----------------------------------------------------------------------
-    // Glyph integrity (RED on stub)
+    // Glyph integrity
     // Exact Unicode codepoints:
-    //   → U+2192 RIGHTWARDS ARROW
     //   × U+00D7 MULTIPLICATION SIGN
     //   – U+2013 EN DASH
     // -----------------------------------------------------------------------
     group('glyph integrity', () {
       testWidgets(
-        'en: "75 → 40" (U+2192 arrow with spaces) renders',
+        'en: w2 no longer shows the dropped "75 → 40" figure '
+        '(résumé sync — numbers match the résumé)',
         (tester) async {
           await _pumpSection(tester, surface: const Size(800, 1200));
           final body = _collectRichText(tester);
-          // U+2192 between digits with surrounding spaces
           expect(
             body,
-            contains('75 → 40'),
-            reason: '"75 → 40" must appear with U+2192 rightwards arrow',
+            isNot(contains('75 → 40')),
+            reason:
+                'the résumé dropped the 75→40 MB figure; the changelog must '
+                'not reintroduce it (CONCEPT: numbers match the résumé)',
+          );
+          expect(
+            body,
+            contains('optimized size & performance'),
+            reason: 'w2 now uses the non-numeric résumé phrasing',
           );
         },
       );
