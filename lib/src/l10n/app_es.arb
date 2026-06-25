@@ -41,5 +41,7 @@
   "file_pubspec": "habilidades",
   "file_changelog": "carrera",
   "file_contacts": "escríbeme",
-  "problems": "0 problemas"
+  "problems": "0 problemas",
+  "hotreload_label": "Hot reload",
+  "hotreload_hint": "Reconstruye las secciones de la página sin recargar"
 }

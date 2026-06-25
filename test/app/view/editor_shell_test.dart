@@ -328,17 +328,23 @@ void main() {
             findsOneWidget,
             reason: 'LivingBackground must have exactly one Stack ancestor',
           );
+          // EditorPane now also lives inside the FAB-over-pane Stack, so it
+          // has two Stack ancestors; the backdrop Stack (the background's) must
+          // still be one of them — content is framed over the single shared
+          // living-background Stack.
           expect(
             paneStackFinder,
-            findsOneWidget,
-            reason: 'EditorPane must have exactly one Stack ancestor',
+            findsNWidgets(2),
+            reason:
+                'EditorPane descends from the backdrop Stack and the inner '
+                'FAB-over-pane Stack',
           );
-
-          // Same widget element → same Stack in the tree.
           expect(
-            tester.element(backgroundStackFinder),
-            same(tester.element(paneStackFinder)),
-            reason: 'LivingBackground and EditorPane must share the same Stack',
+            tester.elementList(paneStackFinder),
+            contains(tester.element(backgroundStackFinder)),
+            reason:
+                'LivingBackground and EditorPane must share the same backdrop '
+                'Stack (content framed over the living background)',
           );
         },
       );
