@@ -5,7 +5,7 @@
 [![CD](https://github.com/OWNER/REPO/actions/workflows/cd.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/cd.yml)
 -->
 
-Personal site of **Nikita Kovalenko** — Senior Flutter engineer (fintech & crypto), building AI-first development workflows.
+Personal site of **Nikita Kovalenko** — Senior Flutter engineer: architecture from scratch, building & leading the team, AI-first processes.
 
 The concept: **the page builds itself in front of you.** A multi-agent pipeline
 (`planner → coder → reviewer`) assembles the landing live — the same way this
@@ -28,7 +28,7 @@ a demonstration of one.
 
 ## Stack
 
-Flutter Web (CanvasKit) · strict `very_good_analysis` · golden + widget tests · GitHub Actions → Cloudflare Pages.
+Flutter Web (CanvasKit) · strict `very_good_analysis` · widget + unit tests · GitHub Actions → Cloudflare Pages.
 
 ## Develop
 
@@ -36,13 +36,13 @@ Flutter Web (CanvasKit) · strict `very_good_analysis` · golden + widget tests 
 flutter pub get
 flutter run -d chrome      # local dev
 flutter analyze            # static analysis (must be clean)
-flutter test               # widget + golden tests
+flutter test               # widget + unit tests
 dart format .              # formatting
 ```
 
 ## How it's built
 
-This project is developed through an agent orchestration pipeline —
-`planner → advisor → coder → reviewer (+ second-opinion) → test-writer` — with
-a human in the loop at every gate. See [`CLAUDE.md`](CLAUDE.md) for the rules
+This project is developed through a test-driven agent orchestration pipeline —
+`planner → advisor → coder → test-writer → coder → reviewer (+ second-opinion)` —
+with a human in the loop at every gate. See [`CLAUDE.md`](CLAUDE.md) for the rules
 and [`.claude/agents/`](.claude/agents) for the playbooks.
