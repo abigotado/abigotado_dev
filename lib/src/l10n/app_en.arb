@@ -167,5 +167,13 @@
   "problems": "0 problems",
   "@problems": {
     "description": "Status-bar left cluster — problem count indicator (always zero, we ship clean)."
+  },
+  "hotreload_label": "Hot reload",
+  "@hotreload_label": {
+    "description": "Accessible button label for the hot-reload FAB (the ⚡ button that re-runs the section build-flash). Kept English as a Flutter dev term, like 'breaking change'."
+  },
+  "hotreload_hint": "Rebuilds the page sections without reloading",
+  "@hotreload_hint": {
+    "description": "Accessibility hint / tooltip for the hot-reload FAB describing what tapping it does."
   }
 }

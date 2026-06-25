@@ -5,6 +5,7 @@ import 'package:abigotado_dev/src/app/view/editor_sidebar.dart';
 import 'package:abigotado_dev/src/app/view/editor_status_bar.dart';
 import 'package:abigotado_dev/src/app/widget/background/living_background.dart';
 import 'package:abigotado_dev/src/app/widget/traffic_lights.dart';
+import 'package:abigotado_dev/src/features/hotreload/widget/hot_reload_fab.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 
@@ -60,7 +61,7 @@ class EditorShell extends StatelessWidget {
                         child: Row(
                           children: [
                             const EditorSidebar(),
-                            Expanded(child: EditorPane(child: child)),
+                            Expanded(child: _PaneWithFab(child: child)),
                           ],
                         ),
                       ),
@@ -71,7 +72,7 @@ class EditorShell extends StatelessWidget {
                   return Column(
                     children: [
                       const _EditorTitleBar(compact: true),
-                      Expanded(child: EditorPane(child: child)),
+                      Expanded(child: _PaneWithFab(child: child)),
                       const EditorStatusBar(compact: true),
                     ],
                   );
@@ -129,6 +130,36 @@ class _EditorTitleBar extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// The editor content pane with the floating hot-reload [HotReloadFab] pinned
+/// to its bottom-right corner.
+///
+/// The FAB lives in a [Stack] scoped to the content pane — above the status bar
+/// (the pane sits in the layout above it) and clear of the status-bar controls,
+/// so it floats over scrolling content without ever colliding with the compact
+/// status bar's wrapping locale/effects controls. Used by both layout branches.
+class _PaneWithFab extends StatelessWidget {
+  const _PaneWithFab({required this.child});
+
+  /// Gap between the FAB and the pane's bottom-right edges.
+  static const double _fabMargin = 16;
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        EditorPane(child: child),
+        const Positioned(
+          right: _fabMargin,
+          bottom: _fabMargin,
+          child: HotReloadFab(),
+        ),
+      ],
     );
   }
 }
