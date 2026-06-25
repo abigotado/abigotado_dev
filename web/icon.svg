@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Source of truth for favicon.png + icons/Icon-192/512.png (non-maskable).
+       Terminal-prompt mark in the site palette. Regenerate the PNGs with:
+         rsvg-convert -w 512 -h 512 web/icon.svg -o web/icons/Icon-512.png
+         rsvg-convert -w 192 -h 192 web/icon.svg -o web/icons/Icon-192.png
+         rsvg-convert -w  48 -h  48 web/icon.svg -o web/favicon.png -->
+  <rect width="512" height="512" rx="112" fill="#171A21"/>
+  <rect x="6" y="6" width="500" height="500" rx="106" fill="none" stroke="#2A2F3A" stroke-width="8"/>
+  <!-- prompt chevron -->
+  <polyline points="158,166 266,256 158,346" fill="none" stroke="#2DD4A7" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- block cursor -->
+  <rect x="292" y="300" width="86" height="46" rx="9" fill="#F0A32F"/>
+</svg>

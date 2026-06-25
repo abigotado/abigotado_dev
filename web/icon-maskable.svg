@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Source of truth for icons/Icon-maskable-192/512.png. Full-bleed background
+       (the platform applies the mask shape) with the mark inside the ~80% safe
+       zone so it is never clipped. Regenerate with:
+         rsvg-convert -w 512 -h 512 web/icon-maskable.svg -o web/icons/Icon-maskable-512.png
+         rsvg-convert -w 192 -h 192 web/icon-maskable.svg -o web/icons/Icon-maskable-192.png -->
+  <rect width="512" height="512" fill="#171A21"/>
+  <g transform="translate(256,256) scale(0.6) translate(-268,-256)">
+    <polyline points="158,166 266,256 158,346" fill="none" stroke="#2DD4A7" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="292" y="300" width="86" height="46" rx="9" fill="#F0A32F"/>
+  </g>
+</svg>
