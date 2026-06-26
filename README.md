@@ -1,8 +1,9 @@
 # abigotado.dev
 
-<!-- CI/CD badges — uncomment and replace OWNER/REPO once the GitHub remote is set up:
-[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
-[![CD](https://github.com/OWNER/REPO/actions/workflows/cd.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/cd.yml)
+[![CI](https://github.com/abigotado/abigotado_dev/actions/workflows/ci.yml/badge.svg)](https://github.com/abigotado/abigotado_dev/actions/workflows/ci.yml)
+
+<!-- CD badge activates once the Cloudflare Pages deploy is live:
+[![CD](https://github.com/abigotado/abigotado_dev/actions/workflows/cd.yml/badge.svg)](https://github.com/abigotado/abigotado_dev/actions/workflows/cd.yml)
 -->
 
 Personal site of **Nikita Kovalenko** — Senior Flutter engineer: architecture from scratch, building & leading the team, AI-first processes.
