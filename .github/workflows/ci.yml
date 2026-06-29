@@ -81,8 +81,10 @@ jobs:
       - name: Analyze
         run: flutter analyze --fatal-infos --fatal-warnings
 
-      # NOTE: Golden tests, when added later, MUST be authored on ubuntu-latest
-      # (Linux font rendering differs from macOS/Windows). Generate or update
-      # goldens with --update-goldens on a Linux runner, never on a local Mac.
+      # Golden tests are tagged `golden` and skipped by default (see
+      # dart_test.yaml), so this step runs every NON-golden suite exactly as
+      # before. Goldens are Linux-only and authored/verified by golden.yml —
+      # they MUST be generated with --update-goldens on a Linux runner, never
+      # on a local Mac (font anti-aliasing differs).
       - name: Test
         run: flutter test

@@ -1,0 +1,13 @@
+# Golden tests are tagged `golden` and skipped by default, so the everyday
+# `flutter test` run — local (macOS) and the main CI gate — stays green and
+# fast without ever touching pixels. (`flutter test` honours this per-tag skip.)
+#
+# Goldens are authored and verified ONLY on Linux CI (see
+# .github/workflows/golden.yml): macOS/Windows font anti-aliasing differs from
+# the Linux baselines, so a local run would diff. Run them explicitly with:
+#
+#   flutter test --tags golden --run-skipped
+#
+tags:
+  golden:
+    skip: "golden tests run on Linux CI only — see .github/workflows/golden.yml"
