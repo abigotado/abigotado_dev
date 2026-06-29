@@ -1,0 +1,142 @@
+name: Golden
+
+# Golden screenshots for the static sections. Baselines are authored ONLY on
+# Linux (macOS/Windows font anti-aliasing differs), so:
+#   • `generate` — owner-triggered (workflow_dispatch); regenerates the Linux
+#     baselines and pushes them to a review branch to open a PR from.
+#   • `verify`   — on push/PR; checks goldens against committed baselines, and
+#     self-skips (green) until baselines exist, so there is no chicken-and-egg.
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: golden-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    name: Generate baselines (Linux)
+    # Owner-initiated, default-branch only — never automatic, never off main.
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write # scoped to THIS job: push the baseline review branch
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Cache pub packages
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: "3.44.0"
+          channel: stable
+          cache: true
+          pub-cache: "false"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate l10n
+        run: flutter gen-l10n
+
+      - name: Generate Riverpod providers (build_runner)
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Update goldens
+        run: flutter test --tags golden --run-skipped --update-goldens
+
+      - name: Commit baselines to a review branch
+        run: |
+          git add -A
+          # Smuggle-guard: ONLY golden PNGs may be committed. Fail on anything
+          # else (codegen/l10n drift, stray files) so the baseline commit is pure.
+          if git diff --cached --name-only \
+              | grep -vE '^test/features/[^/]+/golden/goldens/[^/]+\.png$' \
+              | grep -q .; then
+            echo "::error::Non-golden changes staged — refusing to commit baselines."
+            git diff --cached --name-only
+            exit 1
+          fi
+          if git diff --cached --quiet; then
+            echo "::notice::Goldens already up to date — nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          BRANCH="chore/goldens-${{ github.run_id }}"
+          git checkout -b "$BRANCH"
+          git commit -m "chore(goldens): update Linux golden baselines"
+          git push origin "$BRANCH"
+          echo "::notice::Baselines pushed to '$BRANCH'. Open a PR into main to review the rendered screenshots; its 'verify' run proves they pass on a clean checkout before you merge."
+
+  verify:
+    name: Verify goldens (Linux)
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      # Cheap probe (post-checkout, so the paths actually exist): skip the rest
+      # until baselines have been generated. No chicken-and-egg, no wasted SDK
+      # setup before the owner runs `generate`.
+      - name: Detect baselines
+        id: baselines
+        run: |
+          if ls test/features/*/golden/goldens/*.png >/dev/null 2>&1; then
+            echo "exist=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exist=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No golden baselines yet — skipping verify. Run the 'generate' workflow to create them."
+          fi
+
+      - name: Cache pub packages
+        if: steps.baselines.outputs.exist == 'true'
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Set up Flutter
+        if: steps.baselines.outputs.exist == 'true'
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: "3.44.0"
+          channel: stable
+          cache: true
+          pub-cache: "false"
+
+      - name: Install dependencies
+        if: steps.baselines.outputs.exist == 'true'
+        run: flutter pub get
+
+      - name: Generate l10n
+        if: steps.baselines.outputs.exist == 'true'
+        run: flutter gen-l10n
+
+      - name: Generate Riverpod providers (build_runner)
+        if: steps.baselines.outputs.exist == 'true'
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Verify goldens
+        if: steps.baselines.outputs.exist == 'true'
+        run: flutter test --tags golden --run-skipped
