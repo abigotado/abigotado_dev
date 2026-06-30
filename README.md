@@ -1,10 +1,7 @@
 # abigotado.dev
 
 [![CI](https://github.com/abigotado/abigotado_dev/actions/workflows/ci.yml/badge.svg)](https://github.com/abigotado/abigotado_dev/actions/workflows/ci.yml)
-
-<!-- CD badge activates once the Cloudflare Pages deploy is live:
 [![CD](https://github.com/abigotado/abigotado_dev/actions/workflows/cd.yml/badge.svg)](https://github.com/abigotado/abigotado_dev/actions/workflows/cd.yml)
--->
 
 Personal site of **Nikita Kovalenko** — Senior Flutter engineer: architecture from scratch, building & leading the team, AI-first processes.
 
@@ -29,7 +26,7 @@ a demonstration of one.
 
 ## Stack
 
-Flutter Web (CanvasKit) · strict `very_good_analysis` · widget + unit tests · GitHub Actions → Cloudflare Pages.
+Flutter Web (CanvasKit) · strict `very_good_analysis` · widget + unit tests · GitHub Actions → GitHub Pages.
 
 ## Develop
 
