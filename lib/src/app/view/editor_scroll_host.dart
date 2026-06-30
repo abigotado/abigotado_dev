@@ -60,6 +60,18 @@ class _EditorScrollHostState extends ConsumerState<EditorScrollHost> {
   /// callback.
   late EffectsMode _mode;
 
+  /// True while a sidebar tap-scroll is animating. Pins the tapped file as the
+  /// active highlight so the activation-line derive in [_updateActive] doesn't
+  /// snap it forward to a following (short-section) neighbour mid-scroll.
+  bool _navigating = false;
+
+  /// Monotonic tag for the in-flight tap-scroll. A rapid second tap supersedes
+  /// the first [Scrollable.ensureVisible] (completing its future early); only
+  /// the navigation whose token still matches [_navSeq] may clear
+  /// [_navigating], so a superseded completion can't unpin while a newer
+  /// scroll is still animating.
+  int _navSeq = 0;
+
   @override
   void initState() {
     super.initState();
@@ -174,9 +186,15 @@ class _EditorScrollHostState extends ConsumerState<EditorScrollHost> {
       scrollOffset: _controller.offset,
       maxScrollExtent: position.maxScrollExtent,
     );
+    // While a sidebar tap-scroll is in flight the clicked target is pinned as
+    // active (set in _onScrollRequest); don't let the activation-line derive
+    // override it. A short target section (e.g. metrics, ~86 px) would
+    // otherwise put the 120 px line into the NEXT section and snap forward.
     // The notifier early-outs when the value is unchanged, so calling this on
     // every scroll frame does not produce a rebuild storm.
-    ref.read(scrollSpyProvider.notifier).setActiveFile(next);
+    if (!_navigating) {
+      ref.read(scrollSpyProvider.notifier).setActiveFile(next);
+    }
 
     // Scroll-reveal: latch sections that have crossed the reveal line.
     // Skipped in lite so hasMeasured stays false and every section renders
@@ -215,6 +233,19 @@ class _EditorScrollHostState extends ConsumerState<EditorScrollHost> {
       return;
     }
 
+    // Pin the tapped file as active for the duration of the programmatic
+    // scroll. _updateActive (which fires on every frame of the ensureVisible
+    // animation) skips its derive while _navigating, so the highlight follows
+    // the tap instead of snapping to a following short-section neighbour.
+    //
+    // navToken tags this navigation. A rapid second tap supersedes the first
+    // ensureVisible — completing its future early — but only the latest
+    // navigation may clear the pin, so the superseded future's whenComplete is
+    // a no-op and the highlight stays pinned through the second scroll.
+    final navToken = ++_navSeq;
+    _navigating = true;
+    ref.read(scrollSpyProvider.notifier).setActiveFile(next.target);
+
     unawaited(
       Scrollable.ensureVisible(
         ctx,
@@ -222,7 +253,9 @@ class _EditorScrollHostState extends ConsumerState<EditorScrollHost> {
             ? Duration.zero
             : const Duration(milliseconds: 320),
         curve: Curves.easeInOutCubic,
-      ),
+      ).whenComplete(() {
+        if (mounted && navToken == _navSeq) _navigating = false;
+      }),
     );
 
     ref.read(scrollSpyProvider.notifier).clearScrollRequest();

@@ -13,6 +13,7 @@ import 'package:abigotado_dev/src/features/effects/state/effects_notifier.dart';
 import 'package:abigotado_dev/src/features/effects/widget/effects_toggle.dart';
 import 'package:abigotado_dev/src/features/hero/state/build_scenario_notifier.dart';
 import 'package:abigotado_dev/src/features/hero/state/build_scenario_state.dart';
+import 'package:abigotado_dev/src/features/hero/widget/debug_release_banner.dart';
 import 'package:abigotado_dev/src/features/locale/state/locale_notifier.dart';
 import 'package:abigotado_dev/src/features/locale/widget/locale_switcher.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
@@ -268,6 +269,80 @@ void main() {
             reason:
                 'lite mode + static ReleaseTag must leave zero transient '
                 'callbacks running',
+          );
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // FIX-1: the DEBUG/RELEASE ribbon wraps the WHOLE editor window (the corner
+    // of the entire site), not the hero terminal panel. Asserted at the shell
+    // level here — the banner must be an ancestor of BOTH the sidebar and the
+    // content. The banner's per-phase label/colour is covered in isolation by
+    // debug_release_banner_test; this group only pins its placement.
+    // -------------------------------------------------------------------------
+
+    group('release ribbon — whole-shell scope (FIX-1)', () {
+      testWidgets(
+        'DebugReleaseBanner wraps the whole shell: ancestor of both sidebar '
+        'and content, reading RELEASE on the top-end corner',
+        (tester) async {
+          await _pumpShell(tester, surfaceSize: const Size(1280, 800));
+
+          // The ribbon encloses the entire editor window: both the file-tree
+          // sidebar and the editor content descend from the single banner.
+          expect(
+            find.ancestor(
+              of: find.byType(EditorSidebar),
+              matching: find.byType(DebugReleaseBanner),
+            ),
+            findsOneWidget,
+            reason: 'ribbon must wrap the sidebar (whole-site corner, FIX-1)',
+          );
+          expect(
+            find.ancestor(
+              of: find.text('CONTENT-MARKER'),
+              matching: find.byType(DebugReleaseBanner),
+            ),
+            findsOneWidget,
+            reason: 'ribbon must wrap the editor content too',
+          );
+
+          // The diagonal corner Banner (distinct from the status-bar ReleaseTag
+          // Text) reads RELEASE and sits on the top-end corner.
+          final banners = tester.widgetList<Banner>(
+            find.descendant(
+              of: find.byType(DebugReleaseBanner),
+              matching: find.byType(Banner),
+            ),
+          );
+          expect(
+            banners.any((b) => b.message == 'RELEASE'),
+            isTrue,
+            reason: 'shell ribbon must read RELEASE in the released scenario',
+          );
+          expect(
+            banners.every((b) => b.location == BannerLocation.topEnd),
+            isTrue,
+            reason: 'ribbon sits on the top-end corner of the whole window',
+          );
+        },
+      );
+
+      testWidgets(
+        'ribbon lives above the content pane, not inside it (regression guard)',
+        (tester) async {
+          await _pumpShell(tester, surfaceSize: const Size(1280, 800));
+
+          // A Banner inside the EditorPane would mean the ribbon only covers
+          // the content area — the exact bug FIX-1 corrects.
+          expect(
+            find.descendant(
+              of: find.byType(EditorPane),
+              matching: find.byType(Banner),
+            ),
+            findsNothing,
+            reason: 'ribbon must wrap the whole window, not the content pane',
           );
         },
       );
