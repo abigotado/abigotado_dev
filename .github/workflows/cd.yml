@@ -1,63 +1,53 @@
-# CD — Cloudflare Pages deploy
+# CD — deploy to GitHub Pages
 #
-# DORMANT: this workflow fires only on manual dispatch.
-# To activate auto-deploy on push to main, complete the checklist below and
-# add `push: branches: [main]` to the `on:` block.
+# Builds the Flutter web release and publishes it to GitHub Pages on every push
+# to main (and on manual dispatch). Free for public repos, no external secrets,
+# and reachable from Russia — unlike Cloudflare, which Russian ISPs throttle to
+# ~16 KB/connection (so a Flutter-web bundle there is effectively unusable).
 #
-# Activation checklist (do in order):
-#   1. Create the GitHub remote and push: `git remote add origin <url> && git push -u origin main`
-#   2. Create a Cloudflare Pages project named `abigotado-dev` in direct-upload
-#      mode via the Cloudflare dashboard (Workers & Pages → Create → Direct upload).
-#      The deploy step does NOT create the project — it must already exist.
-#   3. Mint a scoped Cloudflare API token (Permissions: Cloudflare Pages: Edit)
-#      and add two repo secrets:
-#        • CLOUDFLARE_API_TOKEN  — the scoped token
-#        • CLOUDFLARE_ACCOUNT_ID — your Cloudflare account ID
-#   4. Create a "production" GitHub Environment (Settings → Environments) and
-#      scope CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID to it. Optionally
-#      add required reviewers for an extra approval gate before every deploy.
-#   5. Add `push: branches: [main]` to the `on:` block below to enable
-#      automatic deployment on every merge to main.
-#   6. Point the abigotado.dev apex domain at the Pages project in the
-#      Cloudflare dashboard (Custom domains → Set up a custom domain).
-#   7. Uncomment the CI/CD badge block in README.md.
+# Custom domain: web/CNAME (abigotado.dev) is bundled into build/web, so the
+# Pages artifact carries the domain. To go live, point DNS at GitHub Pages:
+#   A     @   185.199.108.153  185.199.109.153  185.199.110.153  185.199.111.153
+#   AAAA  @   2606:50c0:8000::153  ::8001::153  ::8002::153  ::8003::153
+#   (or an ALIAS/ANAME @ -> abigotado.github.io if the registrar flattens apex)
+# then tick "Enforce HTTPS" in Settings → Pages once the certificate is issued.
 
 name: CD
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
+# One deploy at a time; never cancel an in-progress publish (that can leave the
+# live site half-updated).
 concurrency:
-  group: cd-${{ github.ref }}
-  cancel-in-progress: true
+  group: pages
+  cancel-in-progress: false
 
 permissions:
   contents: read
+  pages: write # publish the Pages deployment
+  id-token: write # OIDC token the deploy-pages action exchanges with Pages
 
 jobs:
   deploy:
-    name: Build and deploy to Cloudflare Pages
+    name: Build and deploy to GitHub Pages
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # Hard guard: production is only ever deployed from main.
-    # workflow_dispatch lets an operator pick any ref; this if: ensures that
-    # even a manual dispatch on a feature branch cannot publish to production.
+    # Hard guard: production is only ever deployed from main — even a manual
+    # dispatch from a feature branch cannot publish.
     if: github.ref == 'refs/heads/main'
-    # Ties the deploy to a GitHub Environment for audit trail, approval gates,
-    # and secret scoping. Before activating: create a "production" Environment
-    # in Settings → Environments and scope CLOUDFLARE_API_TOKEN +
-    # CLOUDFLARE_ACCOUNT_ID to it (optionally with required reviewers).
-    # Referencing an environment that doesn't exist yet is safe for a dormant
-    # workflow — GitHub creates it on first run.
-    environment: production
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       # Pub-cache: one mechanism only — this SHA-pinned step, keyed on pubspec.lock.
-      # flutter-action's pub-cache side is disabled via `pub-cache: "false"` below
-      # to prevent a duplicate entry with a different (Flutter-version-based) key.
+      # flutter-action's own pub caching is disabled via `pub-cache: "false"`.
       - name: Cache pub packages
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -66,13 +56,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pub-
 
-      # `cache: true` caches only the Flutter SDK (large download; worth it).
-      # `pub-cache: "false"` disables flutter-action's built-in pub caching so the
-      # explicit SHA-pinned step above is the sole pub-cache mechanism.
-      # NOTE: flutter-action's internal SDK cache uses `actions/cache@v5` by tag
-      # (a composite action's internals cannot be SHA-pinned without forking).
-      # This is a scoped, accepted exception; dependabot (github-actions) keeps
-      # flutter-action itself current so the transitive tag is rotated on updates.
       - name: Set up Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
@@ -84,19 +67,21 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # l10n gen output is git-ignored; regenerate it so the build resolves
+      # AppLocalizations. (Committed *.g.dart is already present from checkout.)
       - name: Generate l10n
         run: flutter gen-l10n
 
       - name: Build web (release)
-        # --base-href "/" because abigotado.dev is served from the apex domain root.
+        # --base-href "/" because abigotado.dev serves from the apex root.
+        # web/CNAME is copied into build/web, so the artifact carries the domain.
         run: flutter build web --release --base-href "/"
 
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # Pinned Wrangler version: prevents a silent CLI upgrade when the action
-          # is bumped. Update deliberately alongside action version bumps.
-          wranglerVersion: "3.114.17"
-          command: pages deploy build/web --project-name=abigotado-dev --branch=main
+          path: build/web
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
