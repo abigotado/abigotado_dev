@@ -246,6 +246,105 @@ void main() {
           );
         },
       );
+
+      // FIX-2: the sidebar must not "skip" a short middle section. Tapping the
+      // metrics item used to land the highlight on pubspec, because after the
+      // scroll aligned metrics' top to the viewport top, the activation line
+      // (kActivationLine px below it) fell past short metrics into pubspec, so
+      // the on-scroll derive snapped forward. The host now pins the tapped
+      // file as active for the duration of the programmatic scroll, so the
+      // highlight follows the tap. Lite mode makes the scroll an instant jump,
+      // so a single pumpAndSettle exercises the whole request → derive path.
+      testWidgets(
+        'scroll-to a short middle section (metrics) keeps metrics active, '
+        'not its pubspec neighbour (FIX-2: no sidebar skip)',
+        (tester) async {
+          final container = await _pumpHost(tester); // lite: instant jump
+          await tester.pumpAndSettle();
+
+          // Precondition that makes this test falsifying: metrics + its 24 px
+          // inter-section gap is shorter than the activation line, so a naive
+          // post-scroll derive would skip metrics and return pubspec. If this
+          // ever stops holding (metrics grows tall), the test is no longer a
+          // regression guard and this assertion flags it instead of passing
+          // vacuously.
+          final metricsRO = tester.renderObject(find.byType(MetricsSection));
+          final pubspecRO = tester.renderObject(find.byType(PubspecSection));
+          final viewport = RenderAbstractViewport.of(metricsRO);
+          final metricsOffset = viewport.getOffsetToReveal(metricsRO, 0).offset;
+          final pubspecOffset = viewport.getOffsetToReveal(pubspecRO, 0).offset;
+          expect(
+            pubspecOffset - metricsOffset,
+            lessThanOrEqualTo(kActivationLine),
+            reason:
+                'Test only guards the skip bug while metrics is shorter than '
+                'the activation line; otherwise the naive derive would not '
+                'skip it. Distance was ${pubspecOffset - metricsOffset} px.',
+          );
+
+          // Tap the metrics sidebar item.
+          container
+              .read(scrollSpyProvider.notifier)
+              .requestScrollTo(EditorFile.metrics);
+          await tester.pumpAndSettle();
+
+          expect(
+            container.read(scrollSpyProvider).activeFile,
+            equals(EditorFile.metrics),
+            reason:
+                'Tapping metrics must leave metrics highlighted. Without the '
+                'navigating pin the post-jump derive returns pubspec and the '
+                'highlight skips forward — the reported sidebar bug.',
+          );
+        },
+      );
+
+      // FIX-2 (overlap): a rapid second tap in full mode must keep the LATER
+      // target pinned through its 320 ms scroll. The first ensureVisible future
+      // completes early when superseded; a monotonic token ensures only the
+      // latest navigation clears the pin, so the superseded completion cannot
+      // unpin mid-flight and re-expose the skip-forward derive.
+      testWidgets(
+        'rapid double tap (full mode) keeps the later target pinned while its '
+        'scroll animates (FIX-2 overlap)',
+        (tester) async {
+          final container = await _pumpHost(
+            tester,
+            effectsStore: const _FullEffectsStore(),
+          );
+          // One pump settles layout; do NOT pumpAndSettle (spinner repeats).
+          await tester.pump();
+
+          // First tap starts a 320 ms animated scroll toward metrics.
+          container
+              .read(scrollSpyProvider.notifier)
+              .requestScrollTo(EditorFile.metrics);
+          await tester.pump();
+          // Second tap supersedes it (completing the first future) and starts a
+          // fresh 320 ms scroll toward the far-down changelog section.
+          container
+              .read(scrollSpyProvider.notifier)
+              .requestScrollTo(EditorFile.changelog);
+          await tester.pump();
+
+          // Advance only PART of the second animation. changelog is far down,
+          // so a naive mid-scroll derive returns an earlier section — only the
+          // pin keeps changelog active at this moment.
+          await tester.pump(const Duration(milliseconds: 120));
+
+          expect(
+            container.read(scrollSpyProvider).activeFile,
+            equals(EditorFile.changelog),
+            reason:
+                'the later tap target must stay pinned while its scroll '
+                'animates; a superseded first-scroll future must not unpin '
+                'early and let the derive skip forward',
+          );
+
+          // Drain the remaining animation so teardown leaves no active scroll.
+          await tester.pump(const Duration(milliseconds: 400));
+        },
+      );
     });
 
     // -------------------------------------------------------------------------

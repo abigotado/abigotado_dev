@@ -115,7 +115,7 @@ void main() {
       testWidgets(
         'effects=lite → skip() called → released frame: '
         'all agent lines _DoneLine, revtext_done visible, '
-        'RELEASE banner, no SkipButton, no running timers',
+        'no SkipButton, no running timers',
         (tester) async {
           await _pumpHero(
             tester,
@@ -141,15 +141,8 @@ void main() {
           expect(find.text(l10n.revtext_done), findsOneWidget);
           expect(find.text(l10n.revtext_run), findsNothing);
 
-          // Banner widget message must be RELEASE (not DEBUG).
-          final banners = tester.widgetList<Banner>(find.byType(Banner));
-          expect(
-            banners.any((b) => b.message == 'RELEASE'),
-            isTrue,
-            reason: 'DebugReleaseBanner must show RELEASE when released',
-          );
-
-          // SkipButton is hidden once released.
+          // SkipButton is hidden once released. (The DEBUG/RELEASE ribbon now
+          // lives at the shell level, see editor_shell_test, not in the hero.)
           expect(find.byType(SkipButton), findsNothing);
 
           // No persistent animation callbacks: lite mode allocates no tickers.
@@ -180,7 +173,7 @@ void main() {
     // -----------------------------------------------------------------------
     group('full mode — clock-driven transitions', () {
       testWidgets(
-        'effects=full, initial pump → SkipButton visible, DEBUG banner',
+        'effects=full, initial pump → SkipButton visible',
         (tester) async {
           final clock = _FakeScenarioClock();
           await _pumpHero(
@@ -195,15 +188,11 @@ void main() {
 
           // SkipButton appears while the scenario is still running.
           expect(find.byType(SkipButton), findsOneWidget);
-
-          // Banner reads DEBUG before release.
-          final banners = tester.widgetList<Banner>(find.byType(Banner));
-          expect(banners.any((b) => b.message == 'DEBUG'), isTrue);
         },
       );
 
       testWidgets(
-        'effects=full — advance all phases → RELEASE, revtext_done, '
+        'effects=full — advance all phases → released: revtext_done, '
         'SkipButton gone',
         (tester) async {
           final clock = _FakeScenarioClock();
@@ -231,8 +220,8 @@ void main() {
           expect(find.text(l10n.revtext_done), findsOneWidget);
           expect(find.text(l10n.revtext_run), findsNothing);
 
-          final banners = tester.widgetList<Banner>(find.byType(Banner));
-          expect(banners.any((b) => b.message == 'RELEASE'), isTrue);
+          // Released state: reviewer approved, skip control gone. The
+          // DEBUG→RELEASE ribbon is asserted at the shell level now.
           expect(find.byType(SkipButton), findsNothing);
         },
       );
@@ -261,8 +250,6 @@ void main() {
             tester.element(find.byType(TerminalHero)),
           );
           expect(find.text(l10n.revtext_done), findsOneWidget);
-          final banners = tester.widgetList<Banner>(find.byType(Banner));
-          expect(banners.any((b) => b.message == 'RELEASE'), isTrue);
           expect(find.byType(SkipButton), findsNothing);
         },
       );

@@ -5,6 +5,7 @@ import 'package:abigotado_dev/src/app/view/editor_sidebar.dart';
 import 'package:abigotado_dev/src/app/view/editor_status_bar.dart';
 import 'package:abigotado_dev/src/app/widget/background/living_background.dart';
 import 'package:abigotado_dev/src/app/widget/traffic_lights.dart';
+import 'package:abigotado_dev/src/features/hero/widget/debug_release_banner.dart';
 import 'package:abigotado_dev/src/features/hotreload/widget/hot_reload_fab.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -43,44 +44,48 @@ class EditorShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The DEBUG/RELEASE ribbon wraps the whole editor window — it sits on the
+    // top-end corner of the entire site, not on the hero terminal panel.
     return Scaffold(
-      body: Stack(
-        children: [
-          const Positioned.fill(child: LivingBackground()),
-          Positioned.fill(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isDesktop =
-                    constraints.maxWidth >= AppSizing.editorBreakpoint;
+      body: DebugReleaseBanner(
+        child: Stack(
+          children: [
+            const Positioned.fill(child: LivingBackground()),
+            Positioned.fill(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isDesktop =
+                      constraints.maxWidth >= AppSizing.editorBreakpoint;
 
-                if (isDesktop) {
-                  return Column(
-                    children: [
-                      const _EditorTitleBar(),
-                      Expanded(
-                        child: Row(
-                          children: [
-                            const EditorSidebar(),
-                            Expanded(child: _PaneWithFab(child: child)),
-                          ],
+                  if (isDesktop) {
+                    return Column(
+                      children: [
+                        const _EditorTitleBar(),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              const EditorSidebar(),
+                              Expanded(child: _PaneWithFab(child: child)),
+                            ],
+                          ),
                         ),
-                      ),
-                      const EditorStatusBar(),
-                    ],
-                  );
-                } else {
-                  return Column(
-                    children: [
-                      const _EditorTitleBar(compact: true),
-                      Expanded(child: _PaneWithFab(child: child)),
-                      const EditorStatusBar(compact: true),
-                    ],
-                  );
-                }
-              },
+                        const EditorStatusBar(),
+                      ],
+                    );
+                  } else {
+                    return Column(
+                      children: [
+                        const _EditorTitleBar(compact: true),
+                        Expanded(child: _PaneWithFab(child: child)),
+                        const EditorStatusBar(compact: true),
+                      ],
+                    );
+                  }
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
