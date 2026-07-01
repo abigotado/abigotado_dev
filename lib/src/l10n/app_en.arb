@@ -100,7 +100,7 @@
   "@ch2": {
     "description": "Badge on the CHANGELOG.md card — labels it the career section."
   },
-  "ch_org1": "FinHarbor · Somnio",
+  "ch_org1": "FinHarbor",
   "@ch_org1": {
     "description": "Career v5.x org — identical across all locales by design (brand name, not a missing translation)."
   },
@@ -120,7 +120,11 @@
   "@ch_org5": {
     "description": "Career v1.0 label — 'breaking change', a dev-joke term kept English in every locale by design."
   },
-  "w1": "crypto + fiat: cards, payments, 2FA/OTP, KYC · perf ×3–5",
+  "ch_org6": "Somnio Software",
+  "@ch_org6": {
+    "description": "Career v6.x org — identical across all locales by design (brand name)."
+  },
+  "w1": "crypto + fiat: cards, payments, 2FA/OTP, KYC · native Pigeon plugins",
   "@w1": {
     "description": "Career v5.x description line."
   },
@@ -139,6 +143,10 @@
   "w5": "from editor-in-chief to developer",
   "@w5": {
     "description": "Career v1.0 description line."
+  },
+  "w6": "streams → UI responsiveness ×3–5 · AI agents for routine · architecture refactoring",
+  "@w6": {
+    "description": "Career v6.x description line."
   },
   "cta_heading": "Get in touch",
   "@cta_heading": {

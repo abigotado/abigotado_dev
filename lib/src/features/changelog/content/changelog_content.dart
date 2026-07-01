@@ -9,6 +9,7 @@ import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 /// Entries are listed newest-first (highest version at index 0) to match the
 /// CHANGELOG convention of most-recent-first.
 const List<CareerEntry> careerEntries = [
+  CareerEntry(version: 'v6.x', org: _org6, what: _what6),
   CareerEntry(version: 'v5.x', org: _org1, what: _what1),
   CareerEntry(version: 'v4.x', org: _org2, what: _what2),
   CareerEntry(version: 'v3.x', org: _org3, what: _what3),
@@ -23,8 +24,10 @@ String _org2(AppLocalizations l) => l.ch_org2;
 String _org3(AppLocalizations l) => l.ch_org3;
 String _org4(AppLocalizations l) => l.ch_org4;
 String _org5(AppLocalizations l) => l.ch_org5;
+String _org6(AppLocalizations l) => l.ch_org6;
 String _what1(AppLocalizations l) => l.w1;
 String _what2(AppLocalizations l) => l.w2;
 String _what3(AppLocalizations l) => l.w3;
 String _what4(AppLocalizations l) => l.w4;
 String _what5(AppLocalizations l) => l.w5;
+String _what6(AppLocalizations l) => l.w6;
