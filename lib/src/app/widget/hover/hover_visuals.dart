@@ -14,13 +14,13 @@ const double kHoverGlowBlur = 24;
 /// Opacity of the glow box-shadow added on hover.
 const double kHoverGlowOpacity = 0.33;
 
-/// Fixed perspective-tilt angle applied in full mode while hovered.
+/// Maximum perspective-tilt angle (radians) reached at a card's edges while
+/// hovered in full mode.
 ///
-/// Approximately 2 degrees. The tilt is always in the same direction — it is
-/// NOT cursor-tracked — so the effect is a subtle lift cue rather than a
-/// parallax. Cursor-tracking would require access to the pointer position in
-/// every build, adding unnecessary coupling to mouse state.
-const double kHoverTiltRadians = 0.035;
+/// Approximately 3.5 degrees. The tilt is cursor-tracked: the angle on each
+/// axis scales with the pointer's distance from the card centre — zero at the
+/// centre, this value at the edge — so the card leans toward the cursor.
+const double kHoverMaxTiltRadians = 0.06;
 
 /// Scale factor applied together with the tilt while hovered in full mode.
 const double kHoverTiltScale = 1.02;
@@ -62,35 +62,45 @@ BoxDecoration hoverDecoration({
   };
 }
 
-/// Returns a [Matrix4] transform that applies a subtle fixed-direction
-/// perspective tilt while hovered in full mode.
+/// Returns a [Matrix4] transform for the hover lift while hovered in full mode.
 ///
-/// In [EffectsMode.full] **and** [hovered] the transform combines:
-/// - A perspective projection (entry [3][2] = 0.001).
-/// - An X-axis rotation of [kHoverTiltRadians].
-/// - A Y-axis rotation of `-kHoverTiltRadians`.
-/// - A uniform scale of [kHoverTiltScale].
-///
-/// The tilt is always in the same fixed direction — it is NOT cursor-tracked —
-/// so the effect is a subtle lift cue rather than a parallax. Cursor-tracking
-/// would require access to the pointer position in every build, adding
-/// unnecessary coupling to mouse state.
+/// In [EffectsMode.full] **and** [hovered] the card is scaled by
+/// [kHoverTiltScale] under a perspective projection (entry [3][2] = 0.001) and
+/// tilted toward the cursor: [pointer] is the cursor position in the card's
+/// local coordinates and [size] its laid-out size, so the X/Y rotation on each
+/// axis grows with the pointer's distance from the centre, up to
+/// [kHoverMaxTiltRadians] at the edges. When [pointer] is `null` (the hover has
+/// just begun, before the first move) or [size] is empty the card is scaled but
+/// flat — the parallax kicks in on the first pointer move.
 ///
 /// In [EffectsMode.lite] **or** `!hovered` [Matrix4.identity()] is returned so
 /// the card is painted untransformed (the tilt is a no-op).
 ///
-/// **Contracts (green pass)**:
-/// - `full + hovered` → returned matrix is not identity.
+/// **Contracts**:
+/// - `full + hovered` → returned matrix is not identity (at minimum the scale).
+/// - `full + hovered`, pointer off-centre → tilt differs from the centred one.
 /// - `lite + hovered` → [Matrix4.identity()] (no transform).
 /// - `full + !hovered` → [Matrix4.identity()] (no transform).
-Matrix4 hoverTilt({required bool hovered, required EffectsMode mode}) {
-  return switch ((mode, hovered)) {
-    (EffectsMode.full, true) =>
-      Matrix4.identity()
-        ..setEntry(3, 2, 0.001)
-        ..rotateX(kHoverTiltRadians)
-        ..rotateY(-kHoverTiltRadians)
-        ..scaleByDouble(kHoverTiltScale, kHoverTiltScale, kHoverTiltScale, 1),
-    _ => Matrix4.identity(),
-  };
+Matrix4 hoverTilt({
+  required bool hovered,
+  required Offset? pointer,
+  required Size size,
+  required EffectsMode mode,
+}) {
+  if (mode != EffectsMode.full || !hovered) return Matrix4.identity();
+
+  final transform = Matrix4.identity()..setEntry(3, 2, 0.001);
+
+  if (pointer != null && size.width > 0 && size.height > 0) {
+    // Normalise the pointer to [-1, 1] from the card centre, clamped so an
+    // event landing on the very edge can't over-rotate past the max angle.
+    final nx = (((pointer.dx / size.width) - 0.5) * 2).clamp(-1.0, 1.0);
+    final ny = (((pointer.dy / size.height) - 0.5) * 2).clamp(-1.0, 1.0);
+    transform
+      ..rotateX(ny * kHoverMaxTiltRadians)
+      ..rotateY(-nx * kHoverMaxTiltRadians);
+  }
+
+  return transform
+    ..scaleByDouble(kHoverTiltScale, kHoverTiltScale, kHoverTiltScale, 1);
 }
