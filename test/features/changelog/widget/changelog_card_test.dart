@@ -108,11 +108,18 @@ void main() {
       );
 
       testWidgets(
-        'all 5 version tags render in the card body',
+        'all 6 version tags render in the card body',
         (tester) async {
           await _pumpSection(tester, surface: const Size(800, 1200));
           final body = _collectRichText(tester);
-          for (final version in ['v5.x', 'v4.x', 'v3.x', 'v2.x', 'v1.0']) {
+          for (final version in [
+            'v6.x',
+            'v5.x',
+            'v4.x',
+            'v3.x',
+            'v2.x',
+            'v1.0',
+          ]) {
             expect(
               body,
               contains(version),
@@ -133,6 +140,7 @@ void main() {
         (tester) async {
           await _pumpSection(tester, surface: const Size(800, 1200));
           final body = _collectRichText(tester);
+          expect(body, contains('Somnio Software'));
           expect(body, contains('crypto + fiat'));
           expect(body, contains('Digital Technologies'));
           expect(body, contains('Russian Railways'));
@@ -232,7 +240,8 @@ void main() {
     // -----------------------------------------------------------------------
     group('invariant orgs', () {
       testWidgets(
-        'FinHarbor · Somnio, CPI Technologies, breaking change render in ru',
+        'FinHarbor, Somnio Software, CPI Technologies, breaking change '
+        'render in ru',
         (tester) async {
           await _pumpSection(
             tester,
@@ -242,9 +251,16 @@ void main() {
           final body = _collectRichText(tester);
           expect(
             body,
-            contains('FinHarbor · Somnio'),
+            contains('FinHarbor'),
             reason:
-                'FinHarbor · Somnio is an invariant brand name — '
+                'FinHarbor is an invariant brand name — '
+                'must render identically in ru',
+          );
+          expect(
+            body,
+            contains('Somnio Software'),
+            reason:
+                'Somnio Software is an invariant brand name — '
                 'must render identically in ru',
           );
           expect(
@@ -309,14 +325,16 @@ void main() {
       );
 
       testWidgets(
-        'en: "perf ×3–5" renders as composed string',
+        'en: "UI responsiveness ×3–5" renders as composed string',
         (tester) async {
           await _pumpSection(tester, surface: const Size(800, 1200));
           final body = _collectRichText(tester);
           expect(
             body,
-            contains('perf ×3–5'),
-            reason: '"perf ×3–5" must appear as a composed glyph string',
+            contains('UI responsiveness ×3–5'),
+            reason:
+                '"UI responsiveness ×3–5" must appear as a composed glyph '
+                'string',
           );
         },
       );

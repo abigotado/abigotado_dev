@@ -18,8 +18,8 @@ void main() {
     // Structural integrity
     // -----------------------------------------------------------------------
     group('count', () {
-      test('exactly 5 entries', () {
-        expect(careerEntries.length, equals(5));
+      test('exactly 6 entries', () {
+        expect(careerEntries.length, equals(6));
       });
     });
 
@@ -39,11 +39,11 @@ void main() {
     });
 
     group('version order', () {
-      test('newest-first and all five tags present', () {
+      test('newest-first and all six tags present', () {
         final versions = careerEntries.map((e) => e.version).toList();
         expect(
           versions,
-          equals(['v5.x', 'v4.x', 'v3.x', 'v2.x', 'v1.0']),
+          equals(['v6.x', 'v5.x', 'v4.x', 'v3.x', 'v2.x', 'v1.0']),
           reason:
               'versions must be newest-first and unique; '
               'got: $versions',
