@@ -8,18 +8,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///
 /// ## Full-mode contract
 ///
-/// Outer [MouseRegion] callbacks (`onEnter` / `onExit`) are guarded by
-/// `mode == EffectsMode.full` so that a mouse entering a card in lite mode
-/// never triggers the tilt or glow.  When a hover begins:
+/// Outer [MouseRegion] callbacks (`onEnter` / `onHover` / `onExit`) are guarded
+/// by `mode == EffectsMode.full` so a mouse over a card in lite mode never
+/// triggers the tilt or glow.  In full mode:
 ///
-/// 1. `_hovered` is set to `true` → [AnimatedContainer.decoration] transitions
-///    to `hoverDecoration(hovered: true, mode: mode, rest:
-///    widget.restDecoration)` and [AnimatedContainer.transform] transitions
-///    to `hoverTilt(hovered: true, mode: mode)` over [kHoverAnimMs]
-///    milliseconds.
-/// 2. On exit `_hovered` is set to `false` → both values return to rest.
-/// 3. `_resetScheduled`: a post-frame callback that resets `_hovered` to
-///    `false` if the widget is still mounted after a mode flip to lite.  This
+/// 1. `onEnter` sets `_hovered = true` → [AnimatedContainer.decoration]
+///    transitions to the accent glow and the card scales up over
+///    [kHoverAnimMs] milliseconds.
+/// 2. `onHover` records the pointer position (and the card's size) on every
+///    move → [AnimatedContainer.transform] leans the card toward the cursor
+///    via `hoverTilt`, smoothing toward each new target over [kHoverAnimMs] ms.
+/// 3. `onExit` clears `_hovered` and the pointer → decoration and transform
+///    return to rest.
+/// 4. `_resetScheduled`: a post-frame callback that resets `_hovered` (and the
+///    pointer) if the widget is still mounted after a mode flip to lite.  This
 ///    prevents a stuck-hover when the mode changes programmatically while the
 ///    pointer is over the card (common on Flutter Web when the manual toggle
 ///    fires while the cursor hasn't moved).
@@ -73,19 +75,35 @@ final class _HoverLiftState extends ConsumerState<HoverLift> {
   bool _hovered = false;
   bool _resetScheduled = false;
 
+  /// Cursor position in the card's local coordinates, updated on every hover
+  /// move so the tilt follows the pointer. Null while not hovered (and for the
+  /// frame between onEnter and the first onHover).
+  Offset? _pointer;
+
+  /// The card's laid-out size, captured alongside [_pointer] so the tilt can
+  /// normalise the pointer offset from the centre.
+  Size? _size;
+
   @override
   Widget build(BuildContext context) {
     final mode = effectsModeOf(context, ref);
     _scheduleResetIfStuck(mode);
+    final isFull = mode == EffectsMode.full;
     return MouseRegion(
-      onEnter: mode == EffectsMode.full ? (_) => _setHovered(true) : null,
-      onExit: mode == EffectsMode.full ? (_) => _setHovered(false) : null,
+      onEnter: isFull ? (_) => _setHovered(true) : null,
+      onHover: isFull ? (event) => _trackPointer(event.localPosition) : null,
+      onExit: isFull ? (_) => _clearHover() : null,
       child: AnimatedContainer(
-        duration: mode == EffectsMode.full
+        duration: isFull
             ? const Duration(milliseconds: kHoverAnimMs)
             : Duration.zero,
         curve: Curves.easeOut,
-        transform: hoverTilt(hovered: _hovered, mode: mode),
+        transform: hoverTilt(
+          hovered: _hovered,
+          pointer: _pointer,
+          size: _size ?? Size.zero,
+          mode: mode,
+        ),
         transformAlignment: Alignment.center,
         decoration: hoverDecoration(
           hovered: _hovered,
@@ -103,6 +121,28 @@ final class _HoverLiftState extends ConsumerState<HoverLift> {
     setState(() => _hovered = value);
   }
 
+  /// Records the current pointer position (card-local) and the card's size so
+  /// [hoverTilt] can lean the card toward the cursor. The size comes from this
+  /// element's render box via [BuildContext.size] — the same coordinate space
+  /// as the [MouseRegion]'s local hover position.
+  void _trackPointer(Offset localPosition) {
+    setState(() {
+      _hovered = true;
+      _pointer = localPosition;
+      _size = context.size;
+    });
+  }
+
+  /// Clears the hover state on pointer exit so the card returns to rest and the
+  /// tilt un-tracks.
+  void _clearHover() {
+    if (!_hovered && _pointer == null) return;
+    setState(() {
+      _hovered = false;
+      _pointer = null;
+    });
+  }
+
   /// Clears a stale [_hovered] flag via a post-frame callback when the mode
   /// flips from full to lite while the pointer is still over the card.
   ///
@@ -117,7 +157,10 @@ final class _HoverLiftState extends ConsumerState<HoverLift> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _resetScheduled = false;
       if (!mounted) return;
-      setState(() => _hovered = false);
+      setState(() {
+        _hovered = false;
+        _pointer = null;
+      });
     });
   }
 }

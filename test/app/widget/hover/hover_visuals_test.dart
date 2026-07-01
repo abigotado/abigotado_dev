@@ -116,61 +116,92 @@ void main() {
   });
 
   group('hoverTilt', () {
-    group('lite mode', () {
-      test('lite + hovered:true → identity matrix', () {
-        // Key lite-mode guard: no 3-D transform ever emitted in lite.
-        // Red phase: throws UnimplementedError.
-        expect(
-          hoverTilt(hovered: true, mode: EffectsMode.lite),
-          equals(Matrix4.identity()),
-        );
-      });
+    const size = Size(200, 100);
+    const centre = Offset(100, 50);
+
+    test('lite + hovered → identity even with a pointer', () {
+      // No 3-D transform is ever emitted in lite, regardless of the pointer.
+      expect(
+        hoverTilt(
+          hovered: true,
+          pointer: centre,
+          size: size,
+          mode: EffectsMode.lite,
+        ),
+        equals(Matrix4.identity()),
+      );
     });
 
-    group('full mode', () {
-      test('full + hovered:false → identity matrix', () {
-        // Not hovered → no transform, regardless of mode.
-        // Red phase: throws UnimplementedError.
-        expect(
-          hoverTilt(hovered: false, mode: EffectsMode.full),
-          equals(Matrix4.identity()),
-        );
-      });
+    test('full + not hovered → identity', () {
+      expect(
+        hoverTilt(
+          hovered: false,
+          pointer: centre,
+          size: size,
+          mode: EffectsMode.full,
+        ),
+        equals(Matrix4.identity()),
+      );
+    });
 
-      test('full + hovered:true → fixed tilt (not identity)', () {
-        // Two assertions:
-        // 1. The result is NOT identity (the transform is actually applied).
-        // 2. The result equals the exact matrix built from the public constants
-        //    — the tilt must be deterministic, not cursor-tracked.
-        //
-        // Red phase: throws UnimplementedError.
+    test('full + hovered + pointer at centre → non-identity (scale lift)', () {
+      // At the centre the tilt angle is zero, but the card still lifts: the
+      // perspective projection + uniform scale make the matrix non-identity.
+      expect(
+        hoverTilt(
+          hovered: true,
+          pointer: centre,
+          size: size,
+          mode: EffectsMode.full,
+        ),
+        isNot(equals(Matrix4.identity())),
+      );
+    });
 
-        final expected = Matrix4.identity()
-          ..setEntry(3, 2, 0.001)
-          ..rotateX(kHoverTiltRadians)
-          ..rotateY(-kHoverTiltRadians)
-          ..scaleByDouble(
-            kHoverTiltScale,
-            kHoverTiltScale,
-            kHoverTiltScale,
-            1,
-          );
+    test('full + hovered: off-centre tilt differs from centre (tracked)', () {
+      final centred = hoverTilt(
+        hovered: true,
+        pointer: centre,
+        size: size,
+        mode: EffectsMode.full,
+      );
+      final corner = hoverTilt(
+        hovered: true,
+        pointer: Offset.zero,
+        size: size,
+        mode: EffectsMode.full,
+      );
+      expect(
+        corner,
+        isNot(equals(centred)),
+        reason:
+            'the tilt must track the pointer — a corner hover and a centre '
+            'hover cannot produce the same matrix',
+      );
+    });
 
-        final result = hoverTilt(hovered: true, mode: EffectsMode.full);
-
-        expect(
-          result,
-          isNot(equals(Matrix4.identity())),
-          reason: 'full+hovered must produce a non-identity transform',
-        );
-        expect(
-          result,
-          equals(expected),
-          reason:
-              'full+hovered must equal the pinned tilt matrix built from '
-              'kHoverTiltRadians, kHoverTiltScale and 0.001 perspective entry',
-        );
-      });
+    test('full + hovered: left and right pointers tilt oppositely', () {
+      const left = Offset(0, 50);
+      const right = Offset(200, 50);
+      expect(
+        hoverTilt(
+          hovered: true,
+          pointer: left,
+          size: size,
+          mode: EffectsMode.full,
+        ),
+        isNot(
+          equals(
+            hoverTilt(
+              hovered: true,
+              pointer: right,
+              size: size,
+              mode: EffectsMode.full,
+            ),
+          ),
+        ),
+        reason: 'horizontal pointer position must flip the Y-rotation',
+      );
     });
   });
 }

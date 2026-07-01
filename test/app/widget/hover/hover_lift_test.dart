@@ -159,6 +159,34 @@ void main() {
       );
     });
 
+    group('full mode cursor tracking', () {
+      testWidgets(
+        'tilt follows the pointer: centre and off-centre transforms differ',
+        (tester) async {
+          await _pump(tester, storedMode: EffectsMode.full);
+
+          final gesture = await _hoverEnter(tester); // pointer at centre
+          final atCentre = _transform(tester);
+
+          // Move toward the bottom-right quadrant, staying over the card so
+          // onHover (not onExit) fires with a new local position.
+          await gesture.moveTo(
+            tester.getCenter(find.byType(HoverLift)) + const Offset(80, 30),
+          );
+          await tester.pump();
+          final offCentre = _transform(tester);
+
+          expect(
+            offCentre,
+            isNot(equals(atCentre)),
+            reason:
+                'full mode: the tilt must track the pointer — moving the '
+                'cursor off-centre must change the transform target',
+          );
+        },
+      );
+    });
+
     group('full mode hover exit', () {
       testWidgets(
         'hover exit → rest decoration (no boxShadow) + identity transform',
