@@ -153,19 +153,15 @@ const TextStyle _proseStyle = TextStyle(
   color: AppColors.textMuted,
 );
 
-/// A section heading, rendered via a bare [RichText].
+/// A section heading.
 ///
-/// Every anchor-bearing heading here (experience/skills/education/contacts)
-/// is deliberately the SAME localized word as its `ReadmeView` anchor-bar
-/// chip (e.g. `l10n.rm_h_skills` == `l10n.rm_anchor_skills` == "Skills") —
-/// a natural nav-word/heading-word echo, true in all three locales. Both
-/// need to render that literal word on screen at once. `find.text()`
-/// explicitly ignores standalone [RichText] widgets (only [Text]/[Text.rich]
-/// match, per its `findRichText` doc), so using [RichText] here — while the
-/// anchor chip stays a plain [Text] — lets both widgets carry the identical
-/// word without one finder accidentally matching both. Visually and for
-/// assistive tech this renders exactly like [Text]: [RichText] participates
-/// in the semantics tree the same way.
+/// Anchor-bearing headings (experience/skills/education/contacts) carry the
+/// SAME localized word as their `ReadmeView` anchor-bar chips (e.g.
+/// `l10n.rm_h_skills` == `l10n.rm_anchor_skills` == "Skills") — a deliberate
+/// nav-word/heading-word echo, true in all three locales. Tests that target
+/// a chip specifically scope their finder to the tappable wrapper
+/// (`find.widgetWithText(InkWell, …)`) instead of relying on the heading
+/// rendering through a different widget type.
 class _ReadmeSectionHeading extends StatelessWidget {
   const _ReadmeSectionHeading({required this.text});
 
@@ -173,9 +169,7 @@ class _ReadmeSectionHeading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RichText(
-      text: TextSpan(text: text, style: _headingStyle),
-    );
+    return Text(text, style: _headingStyle);
   }
 }
 

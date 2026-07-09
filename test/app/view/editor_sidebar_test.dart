@@ -273,12 +273,12 @@ void main() {
           final handle = tester.ensureSemantics();
           await _pumpSidebar(tester, container);
 
-          final readmeRowData = tester
-              .getSemantics(find.byType(ReadmeSidebarRow))
-              .getSemanticsData();
+          // isSemantics (subset match) — raw SemanticsData flags are a
+          // Tristate enum on Flutter 3.44, so comparing them to a bool can
+          // never pass; see editor_file_row_test for the same pattern.
           expect(
-            readmeRowData.flagsCollection.isSelected,
-            isTrue,
+            tester.getSemantics(find.byType(ReadmeSidebarRow)),
+            isSemantics(isSelected: true),
             reason: 'ReadmeSidebarRow must be selected while readme is open',
           );
 

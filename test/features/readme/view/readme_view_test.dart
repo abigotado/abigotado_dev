@@ -88,10 +88,25 @@ void main() {
         await _pumpView(tester);
         final l10n = AppLocalizations.of(tester.element(find.byType(Scaffold)));
 
-        expect(find.text(l10n.rm_anchor_experience), findsOneWidget);
-        expect(find.text(l10n.rm_anchor_skills), findsOneWidget);
-        expect(find.text(l10n.rm_anchor_education), findsOneWidget);
-        expect(find.text(l10n.rm_anchor_contacts), findsOneWidget);
+        // Each anchor word also appears as its section heading (a deliberate
+        // nav-word/heading-word echo), so the finder scopes to the tappable
+        // chip: the InkWell is the only interactive bearer of the word.
+        expect(
+          find.widgetWithText(InkWell, l10n.rm_anchor_experience),
+          findsOneWidget,
+        );
+        expect(
+          find.widgetWithText(InkWell, l10n.rm_anchor_skills),
+          findsOneWidget,
+        );
+        expect(
+          find.widgetWithText(InkWell, l10n.rm_anchor_education),
+          findsOneWidget,
+        );
+        expect(
+          find.widgetWithText(InkWell, l10n.rm_anchor_contacts),
+          findsOneWidget,
+        );
       });
     });
 
@@ -122,7 +137,12 @@ void main() {
             tester.element(find.byType(Scaffold)),
           );
 
-          final contactsChip = find.text(l10n.rm_anchor_contacts);
+          // Scoped to the InkWell chip — the same word also renders as the
+          // contacts section heading inside the document body.
+          final contactsChip = find.widgetWithText(
+            InkWell,
+            l10n.rm_anchor_contacts,
+          );
           expect(contactsChip, findsOneWidget);
 
           await tester.tap(contactsChip);

@@ -188,15 +188,11 @@ class _ReadmeAnchorBar extends StatelessWidget {
 
 /// One anchor-bar chip — a bordered, tappable jump-to-section control.
 ///
-/// Renders [label] as a plain [Text] — `find.text()` targets it directly.
 /// Each anchor label (e.g. `l10n.rm_anchor_skills` = "Skills") is the SAME
 /// localized string as the section heading it jumps to
 /// (`l10n.rm_h_skills` = "Skills"): a natural nav-word/heading-word echo.
-/// `ReadmeBody` renders the corresponding heading via a bare [RichText]
-/// instead of [Text] specifically so the two on-screen "Skills" words stay
-/// visually identical while remaining independently addressable — this chip
-/// is the [Text] side of that split; see `_ReadmeSectionHeading`'s doc for
-/// the other half.
+/// The chip is the only [InkWell]-wrapped bearer of that word, so tests
+/// address it via `find.widgetWithText(InkWell, …)`.
 class _ReadmeAnchorChip extends StatelessWidget {
   const _ReadmeAnchorChip({required this.label, required this.onTap});
 
