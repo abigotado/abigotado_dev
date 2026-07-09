@@ -1,4 +1,4 @@
-import 'package:abigotado_dev/src/features/cta/content/cta_content.dart';
+import 'package:abigotado_dev/src/core/content/contact_links.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // ---------------------------------------------------------------------------

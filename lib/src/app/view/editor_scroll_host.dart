@@ -130,6 +130,17 @@ class _EditorScrollHostState extends ConsumerState<EditorScrollHost> {
   /// [_updateActive] call. Used for the stationary cases (initState, hero
   /// animation, locale reflow, viewport resize) where a scroll event alone
   /// would not fire but the highlight still needs to be re-derived.
+  ///
+  /// Also drains any [ScrollRequest] already pending in [scrollSpyProvider]
+  /// at the time this callback runs — the remounted-host case. `ref.listen`
+  /// (wired in [build]) only fires on a CHANGE, so a request enqueued before
+  /// this host mounted (e.g. a sidebar tap while the README replaced the pane,
+  /// which unmounts and later remounts [EditorScrollHost] via `PaneContent`)
+  /// would otherwise never be dispatched: there is no earlier listener to have
+  /// seen it change, and by the time this widget starts listening the value is
+  /// already old news. Reusing [_onScrollRequest] here (the same
+  /// pin/token/clear handler `ref.listen` calls) keeps a single code path for
+  /// "a scroll request is pending" regardless of how it became pending.
   void _scheduleUpdate() {
     if (_updateScheduled) return;
     _updateScheduled = true;
@@ -137,6 +148,9 @@ class _EditorScrollHostState extends ConsumerState<EditorScrollHost> {
       _updateScheduled = false;
       if (!mounted) return;
       _updateActive();
+
+      final pending = ref.read(scrollSpyProvider).scrollRequest;
+      if (pending != null) _onScrollRequest(null, pending);
     });
   }
 

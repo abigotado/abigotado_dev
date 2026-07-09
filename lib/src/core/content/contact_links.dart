@@ -1,4 +1,4 @@
-import 'package:abigotado_dev/src/features/cta/content/contact_link.dart';
+import 'package:abigotado_dev/src/core/content/contact_link.dart';
 
 /// Source-of-truth contact list for the merge-CTA section.
 ///

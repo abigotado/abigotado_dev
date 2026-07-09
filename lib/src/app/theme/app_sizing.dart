@@ -28,6 +28,13 @@ abstract final class AppSizing {
   /// has a single named source of truth.
   static const double terminalMaxWidth = 720;
 
+  /// Maximum width of the README document's content column in pixels.
+  ///
+  /// Narrower than [contentMaxWidth] — 760 px is a comfortable reading
+  /// measure for the prose-heavy README document, distinct from the wider
+  /// section-card grid the pitch uses.
+  static const double readmeMaxWidth = 760;
+
   /// Horizontal padding applied inside each content section in pixels.
   static const double contentGutter = 24;
 

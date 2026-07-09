@@ -1,7 +1,7 @@
 import 'package:abigotado_dev/src/app/theme/app_theme.dart';
+import 'package:abigotado_dev/src/app/widget/contact_link_tile.dart';
+import 'package:abigotado_dev/src/core/content/contact_link.dart';
 import 'package:abigotado_dev/src/core/launcher/url_launcher.dart';
-import 'package:abigotado_dev/src/features/cta/content/contact_link.dart';
-import 'package:abigotado_dev/src/features/cta/widget/contact_link_tile.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
