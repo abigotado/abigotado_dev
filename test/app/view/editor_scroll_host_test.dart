@@ -700,33 +700,42 @@ void main() {
       // re-reads the provider directly and dispatches any already-pending
       // request, which is the drain this test locks.
       //
-      // CONTRACT AMBIGUITY (flagged, not resolved by guessing — see the
-      // test-writer's handoff notes): at the fixed 1280×800 surface this
-      // suite standardizes on, ChangelogSection's `getOffsetToReveal` offset
-      // (~1020 px) exceeds `maxScrollExtent` (~861 px) — i.e. the page
-      // physically cannot scroll far enough to put changelog's activation
-      // line 120 px below the fold. `ensureVisible`/`jumpTo` clamp to
-      // maxScrollExtent, and `activeEditorFile`'s documented bottom-pin rule
-      // (see the 'bottom-pin' test above) then correctly reports `contacts`
-      // as active — NOT a drain bug, but a geometry fact independent of this
-      // suite's README changes. This test is written to the letter of the
-      // suite-10 spec (`EditorFile.changelog`, `activeFile == changelog`) and
-      // is therefore RED for TWO entangled reasons: (1) the drain itself may
-      // or may not need green-pass work, and (2) `changelog` may be an
-      // unreachable target at this viewport regardless of how correctly the
-      // drain is implemented. The green pass must disambiguate: either widen
-      // the bottom-pin exemption, pick a shorter idle-page height, or this
-      // test's target/surface needs to change.
+      // CONTRACT AMBIGUITY — RESOLVED (sanctioned green-pass correction, see
+      // README stage-1 GREEN handoff): the original spec seeded
+      // `EditorFile.changelog` as the pre-mount target. At the fixed
+      // 1280×800 surface this suite standardizes on, ChangelogSection's
+      // `getOffsetToReveal` offset (measured: 1020 px) exceeds
+      // `maxScrollExtent` (measured: 861 px) — the page physically cannot
+      // scroll far enough to put changelog's activation line 120 px below
+      // the fold. `ensureVisible`/`jumpTo` clamp to maxScrollExtent, and
+      // `activeEditorFile`'s documented bottom-pin rule (see the
+      // 'bottom-pin' test above) then reports `contacts` as active
+      // regardless of how correctly the drain itself is implemented —
+      // `changelog` can never be the observed `activeFile` at this
+      // viewport, so asserting it would pin a geometric impossibility, not
+      // exercise the drain.
+      //
+      // Why `pubspec` and not one of the other candidates:
+      // - `contacts` is the bottom-pin fallback: a completely undrained
+      //   request (host stuck at the top, `_scheduleUpdate` never re-reading
+      //   the pending request) would ALSO report `contacts` via a plain
+      //   scroll-to-top `activeEditorFile` derive on some geometries — it
+      //   could false-pass a broken drain.
+      // - `fileHero` is the at-rest default; asserting it proves nothing
+      //   about whether a scroll happened at all.
+      // - `metrics` (offset 478) is reachable too, but `pubspec` (measured:
+      //   588 px, well under 861 px maxScrollExtent) is the more honest
+      //   mid-document target and is the one this pass adopts.
       testWidgets(
         'a request enqueued before EditorScrollHost mounts is consumed on '
         'first frame — scrollRequest drains and activeFile becomes '
-        'changelog (see the contract-ambiguity note above this group)',
+        'pubspec (see the contract-ambiguity note above this group)',
         (tester) async {
           final container = await _pumpHost(
             tester,
             beforeMount: (c) => c
                 .read(scrollSpyProvider.notifier)
-                .requestScrollTo(EditorFile.changelog),
+                .requestScrollTo(EditorFile.pubspec),
           );
           await tester.pumpAndSettle();
 
@@ -739,17 +748,15 @@ void main() {
           );
           expect(
             container.read(scrollSpyProvider).activeFile,
-            equals(EditorFile.changelog),
+            equals(EditorFile.pubspec),
           );
 
-          final changelogTop = tester
-              .getTopLeft(find.byType(ChangelogSection))
-              .dy;
+          final pubspecTop = tester.getTopLeft(find.byType(PubspecSection)).dy;
           expect(
-            changelogTop,
+            pubspecTop,
             lessThan(800),
             reason:
-                'the drained request must actually scroll ChangelogSection '
+                'the drained request must actually scroll PubspecSection '
                 'into the 800 px viewport, not just clear the flag',
           );
         },

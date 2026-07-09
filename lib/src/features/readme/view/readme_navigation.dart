@@ -45,5 +45,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// No-ops if the README is already open (double-entry guard) — calling this
 /// twice in a row must not arm two [LocalHistoryEntry] instances, which would
 /// require two Back presses to leave the README.
-void openReadme(BuildContext context, WidgetRef ref) =>
-    throw UnimplementedError('green pass');
+void openReadme(BuildContext context, WidgetRef ref) {
+  if (ref.read(readmeOpenProvider)) return;
+
+  ref.read(presentationProvider.notifier).openReadme();
+  ModalRoute.of(context)!.addLocalHistoryEntry(
+    LocalHistoryEntry(
+      onRemove: ref.read(presentationProvider.notifier).showPitch,
+      impliesAppBarDismissal: false,
+    ),
+  );
+}

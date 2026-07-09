@@ -18,6 +18,14 @@ part of 'presentation_notifier.dart';
 /// via the browser-Back / close-button path documented on `openReadme` in
 /// `readme_navigation.dart` — this notifier only flips the flag; it never
 /// touches `Navigator` itself.
+///
+/// `keepAlive: true` — same rationale as `HotReloadNotifier`: an entry point
+/// (`ReadmeEntryChip`, `ReadmeInvitationCard`) only ever `ref.read`s this
+/// notifier from a tap callback; it never `ref.watch`es it. Without
+/// `keepAlive`, a moment with zero active watchers (`PaneContent` and
+/// `EditorSidebar` are the app's only watchers) would let auto-dispose
+/// reclaim the state between the tap and the next read, silently reverting
+/// `openReadme()` back to [PresentationView.pitch].
 
 @ProviderFor(PresentationNotifier)
 final presentationProvider = PresentationNotifierProvider._();
@@ -32,6 +40,14 @@ final presentationProvider = PresentationNotifierProvider._();
 /// via the browser-Back / close-button path documented on `openReadme` in
 /// `readme_navigation.dart` — this notifier only flips the flag; it never
 /// touches `Navigator` itself.
+///
+/// `keepAlive: true` — same rationale as `HotReloadNotifier`: an entry point
+/// (`ReadmeEntryChip`, `ReadmeInvitationCard`) only ever `ref.read`s this
+/// notifier from a tap callback; it never `ref.watch`es it. Without
+/// `keepAlive`, a moment with zero active watchers (`PaneContent` and
+/// `EditorSidebar` are the app's only watchers) would let auto-dispose
+/// reclaim the state between the tap and the next read, silently reverting
+/// `openReadme()` back to [PresentationView.pitch].
 final class PresentationNotifierProvider
     extends $NotifierProvider<PresentationNotifier, PresentationState> {
   /// Drives which [PresentationView] the pane shows: the stylized pitch or the
@@ -44,13 +60,21 @@ final class PresentationNotifierProvider
   /// via the browser-Back / close-button path documented on `openReadme` in
   /// `readme_navigation.dart` — this notifier only flips the flag; it never
   /// touches `Navigator` itself.
+  ///
+  /// `keepAlive: true` — same rationale as `HotReloadNotifier`: an entry point
+  /// (`ReadmeEntryChip`, `ReadmeInvitationCard`) only ever `ref.read`s this
+  /// notifier from a tap callback; it never `ref.watch`es it. Without
+  /// `keepAlive`, a moment with zero active watchers (`PaneContent` and
+  /// `EditorSidebar` are the app's only watchers) would let auto-dispose
+  /// reclaim the state between the tap and the next read, silently reverting
+  /// `openReadme()` back to [PresentationView.pitch].
   PresentationNotifierProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'presentationProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -72,7 +96,7 @@ final class PresentationNotifierProvider
 }
 
 String _$presentationNotifierHash() =>
-    r'd5f0241490b01b96be8ad0312c8382cc75e52069';
+    r'50417f6f7120d5e0484906faef2afc6260259835';
 
 /// Drives which [PresentationView] the pane shows: the stylized pitch or the
 /// `README.md` document.
@@ -84,6 +108,14 @@ String _$presentationNotifierHash() =>
 /// via the browser-Back / close-button path documented on `openReadme` in
 /// `readme_navigation.dart` — this notifier only flips the flag; it never
 /// touches `Navigator` itself.
+///
+/// `keepAlive: true` — same rationale as `HotReloadNotifier`: an entry point
+/// (`ReadmeEntryChip`, `ReadmeInvitationCard`) only ever `ref.read`s this
+/// notifier from a tap callback; it never `ref.watch`es it. Without
+/// `keepAlive`, a moment with zero active watchers (`PaneContent` and
+/// `EditorSidebar` are the app's only watchers) would let auto-dispose
+/// reclaim the state between the tap and the next read, silently reverting
+/// `openReadme()` back to [PresentationView.pitch].
 
 abstract class _$PresentationNotifier extends $Notifier<PresentationState> {
   PresentationState build();

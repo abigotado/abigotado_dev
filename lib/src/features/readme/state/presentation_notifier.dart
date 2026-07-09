@@ -15,7 +15,15 @@ part 'presentation_notifier.g.dart';
 /// via the browser-Back / close-button path documented on `openReadme` in
 /// `readme_navigation.dart` — this notifier only flips the flag; it never
 /// touches `Navigator` itself.
-@riverpod
+///
+/// `keepAlive: true` — same rationale as `HotReloadNotifier`: an entry point
+/// (`ReadmeEntryChip`, `ReadmeInvitationCard`) only ever `ref.read`s this
+/// notifier from a tap callback; it never `ref.watch`es it. Without
+/// `keepAlive`, a moment with zero active watchers (`PaneContent` and
+/// `EditorSidebar` are the app's only watchers) would let auto-dispose
+/// reclaim the state between the tap and the next read, silently reverting
+/// `openReadme()` back to [PresentationView.pitch].
+@Riverpod(keepAlive: true)
 class PresentationNotifier extends _$PresentationNotifier {
   @override
   PresentationState build() => const PresentationState();
@@ -26,7 +34,10 @@ class PresentationNotifier extends _$PresentationNotifier {
   /// caller is `openReadme` in `readme_navigation.dart`, which pairs this with
   /// arming the browser-Back interception; calling it twice must never arm a
   /// second `LocalHistoryEntry`.
-  void openReadme() => throw UnimplementedError('green pass');
+  void openReadme() {
+    if (state.view == PresentationView.readme) return;
+    state = state.copyWith(view: PresentationView.readme);
+  }
 
   /// Switches the presentation back to [PresentationView.pitch].
   ///
@@ -36,7 +47,10 @@ class PresentationNotifier extends _$PresentationNotifier {
   /// `Navigator.of(context).maybePop()` instead of this method directly, so
   /// the local history entry is always popped in lockstep with the
   /// presentation state.
-  void showPitch() => throw UnimplementedError('green pass');
+  void showPitch() {
+    if (state.view == PresentationView.pitch) return;
+    state = state.copyWith(view: PresentationView.pitch);
+  }
 }
 
 /// Whether the `README.md` document is currently the shown presentation.
