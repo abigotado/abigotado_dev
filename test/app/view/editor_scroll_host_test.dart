@@ -108,6 +108,10 @@ Future<ProviderContainer> _pumpHost(
   WidgetTester tester, {
   EffectsStore effectsStore = const _LiteEffectsStore(),
   Size surfaceSize = const Size(1280, 800),
+  // Runs against the freshly created container BEFORE `pumpWidget` mounts
+  // EditorScrollHost — lets a test seed provider state pre-mount (e.g. a
+  // pending ScrollRequest enqueued before the host exists).
+  void Function(ProviderContainer container)? beforeMount,
 }) async {
   await tester.binding.setSurfaceSize(surfaceSize);
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -123,6 +127,7 @@ Future<ProviderContainer> _pumpHost(
     ],
   );
   addTearDown(container.dispose);
+  beforeMount?.call(container);
 
   // Wrap MaterialApp in a Consumer so that changes to localeProvider rebuild
   // MaterialApp with the new locale, mirroring how AbigotadoApp works. Without
@@ -681,6 +686,72 @@ void main() {
           // Sections must be visible (lite forces opacity=1 in RevealOnScroll).
           expect(find.byType(MetricsSection), findsOneWidget);
           expect(find.byType(MergeCtaSection), findsOneWidget);
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    group('remount pre-mount request drain', () {
+      // The README-return case: a sidebar tap enqueues a ScrollRequest while
+      // EditorScrollHost is unmounted (PaneContent shows ReadmeView instead),
+      // then EditorScrollHost remounts once the README closes. `ref.listen`
+      // only fires on a CHANGE — a request already pending when the listener
+      // attaches is never re-delivered by `ref.listen` alone. `_scheduleUpdate`
+      // re-reads the provider directly and dispatches any already-pending
+      // request, which is the drain this test locks.
+      //
+      // CONTRACT AMBIGUITY (flagged, not resolved by guessing — see the
+      // test-writer's handoff notes): at the fixed 1280×800 surface this
+      // suite standardizes on, ChangelogSection's `getOffsetToReveal` offset
+      // (~1020 px) exceeds `maxScrollExtent` (~861 px) — i.e. the page
+      // physically cannot scroll far enough to put changelog's activation
+      // line 120 px below the fold. `ensureVisible`/`jumpTo` clamp to
+      // maxScrollExtent, and `activeEditorFile`'s documented bottom-pin rule
+      // (see the 'bottom-pin' test above) then correctly reports `contacts`
+      // as active — NOT a drain bug, but a geometry fact independent of this
+      // suite's README changes. This test is written to the letter of the
+      // suite-10 spec (`EditorFile.changelog`, `activeFile == changelog`) and
+      // is therefore RED for TWO entangled reasons: (1) the drain itself may
+      // or may not need green-pass work, and (2) `changelog` may be an
+      // unreachable target at this viewport regardless of how correctly the
+      // drain is implemented. The green pass must disambiguate: either widen
+      // the bottom-pin exemption, pick a shorter idle-page height, or this
+      // test's target/surface needs to change.
+      testWidgets(
+        'a request enqueued before EditorScrollHost mounts is consumed on '
+        'first frame — scrollRequest drains and activeFile becomes '
+        'changelog (see the contract-ambiguity note above this group)',
+        (tester) async {
+          final container = await _pumpHost(
+            tester,
+            beforeMount: (c) => c
+                .read(scrollSpyProvider.notifier)
+                .requestScrollTo(EditorFile.changelog),
+          );
+          await tester.pumpAndSettle();
+
+          expect(
+            container.read(scrollSpyProvider).scrollRequest,
+            isNull,
+            reason:
+                'the pre-mount request must be drained by _scheduleUpdate on '
+                'the first post-frame callback, not left pending forever',
+          );
+          expect(
+            container.read(scrollSpyProvider).activeFile,
+            equals(EditorFile.changelog),
+          );
+
+          final changelogTop = tester
+              .getTopLeft(find.byType(ChangelogSection))
+              .dy;
+          expect(
+            changelogTop,
+            lessThan(800),
+            reason:
+                'the drained request must actually scroll ChangelogSection '
+                'into the 800 px viewport, not just clear the flag',
+          );
         },
       );
     });

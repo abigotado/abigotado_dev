@@ -1,0 +1,82 @@
+import 'package:abigotado_dev/src/app/theme/app_theme.dart';
+import 'package:abigotado_dev/src/features/readme/state/presentation_notifier.dart';
+import 'package:abigotado_dev/src/features/readme/widget/readme_invitation_card.dart';
+import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+// ---------------------------------------------------------------------------
+// Helper: pump ReadmeInvitationCard under MaterialApp home Scaffold so a root
+// ModalRoute exists (openReadme's LocalHistoryEntry needs a route to attach
+// to).
+// ---------------------------------------------------------------------------
+
+Future<ProviderContainer> _pumpCard(
+  WidgetTester tester, {
+  Size surface = const Size(800, 600),
+}) async {
+  await tester.binding.setSurfaceSize(surface);
+  addTearDown(() => tester.binding.setSurfaceSize(null));
+
+  final container = ProviderContainer();
+  addTearDown(container.dispose);
+
+  await tester.pumpWidget(
+    UncontrolledProviderScope(
+      container: container,
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.dark(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const Scaffold(body: ReadmeInvitationCard()),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+
+  return container;
+}
+
+void main() {
+  group('ReadmeInvitationCard', () {
+    group('rendering', () {
+      testWidgets('renders l10n.rm_invitation', (tester) async {
+        await _pumpCard(tester);
+        final l10n = AppLocalizations.of(tester.element(find.byType(Scaffold)));
+
+        expect(find.text(l10n.rm_invitation), findsOneWidget);
+      });
+    });
+
+    group('tap', () {
+      testWidgets('tap sets readmeOpenProvider to true', (tester) async {
+        final container = await _pumpCard(tester);
+        final l10n = AppLocalizations.of(tester.element(find.byType(Scaffold)));
+
+        expect(container.read(readmeOpenProvider), isFalse);
+
+        await tester.tap(find.text(l10n.rm_invitation));
+        await tester.pumpAndSettle();
+
+        expect(container.read(readmeOpenProvider), isTrue);
+      });
+    });
+
+    group('tap target', () {
+      testWidgets('rendered height is at least 44 px', (tester) async {
+        await _pumpCard(tester);
+
+        final size = tester.getSize(find.byType(ReadmeInvitationCard));
+        expect(
+          size.height,
+          greaterThanOrEqualTo(44),
+          reason:
+              'WCAG 2.5.5: minimum tap target height must be at least 44 '
+              'px; actual height: ${size.height}',
+        );
+      });
+    });
+  });
+}
