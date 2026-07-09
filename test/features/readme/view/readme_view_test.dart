@@ -2,6 +2,7 @@ import 'package:abigotado_dev/src/app/theme/app_theme.dart';
 import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
 import 'package:abigotado_dev/src/core/effects/effects_store.dart';
 import 'package:abigotado_dev/src/features/effects/state/effects_notifier.dart';
+import 'package:abigotado_dev/src/features/readme/view/readme_body.dart';
 import 'package:abigotado_dev/src/features/readme/view/readme_view.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -129,26 +130,76 @@ void main() {
 
     group('anchor tap', () {
       testWidgets(
-        'tapping an anchor chip in lite mode jumps the target section into '
-        'view without exception',
+        'lite mode: the education anchor jumps its section to the viewport '
+        'top; the contacts anchor lands within the viewport (clamped)',
         (tester) async {
           await _pumpView(tester);
           final l10n = AppLocalizations.of(
             tester.element(find.byType(Scaffold)),
           );
 
-          // Scoped to the InkWell chip — the same word also renders as the
-          // contacts section heading inside the document body.
+          // Chip finders scope to the InkWell wrapper — the same words also
+          // render as section headings inside the document body; heading
+          // finders scope to ReadmeBody (the chips live in the anchor bar
+          // outside it).
+          final educationChip = find.widgetWithText(
+            InkWell,
+            l10n.rm_anchor_education,
+          );
+          final educationHeading = find.descendant(
+            of: find.byType(ReadmeBody),
+            matching: find.text(l10n.rm_h_education),
+          );
+          expect(educationChip, findsOneWidget);
+
+          // Precondition: education starts below the 800 px fold, otherwise
+          // this test cannot prove the jump happened.
+          expect(tester.getTopLeft(educationHeading).dy, greaterThan(800));
+
+          await tester.tap(educationChip);
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+
+          // Lite mode = instant jumpTo. Education is a MID-document section,
+          // so ensureVisible can align its top with the viewport top — the
+          // heading must sit near the top of the pane, not be nudged a few
+          // pixels.
+          final educationTop = tester.getTopLeft(educationHeading).dy;
+          expect(
+            educationTop,
+            lessThan(400),
+            reason:
+                'after the education anchor tap its section must be at the '
+                'top of the pane (was at dy=$educationTop)',
+          );
+
+          // The contacts section is the LAST section: aligning its top with
+          // the viewport top would overshoot maxScrollExtent, so the jump
+          // clamps at the document bottom. The heading must still land
+          // inside the viewport.
           final contactsChip = find.widgetWithText(
             InkWell,
             l10n.rm_anchor_contacts,
           );
-          expect(contactsChip, findsOneWidget);
+          final contactsHeading = find.descendant(
+            of: find.byType(ReadmeBody),
+            matching: find.text(l10n.rm_h_contacts),
+          );
 
           await tester.tap(contactsChip);
           await tester.pumpAndSettle();
-
           expect(tester.takeException(), isNull);
+
+          final contactsTop = tester.getTopLeft(contactsHeading).dy;
+          expect(
+            contactsTop,
+            lessThan(800),
+            reason:
+                'after the contacts anchor tap the section must be visible '
+                'within the 800 px viewport (was at dy=$contactsTop; the '
+                'scroll clamps at maxScrollExtent because contacts is the '
+                'final section)',
+          );
         },
       );
     });

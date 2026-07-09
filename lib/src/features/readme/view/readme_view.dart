@@ -66,6 +66,10 @@ class _ReadmeViewState extends ConsumerState<ReadmeView> {
     final mode = effectsModeOf(context, ref);
 
     return Column(
+      // Stretch, not the default centre: the tab and anchor-bar strips span
+      // the full pane width (their bottom borders read as toolbar rules) and
+      // the anchor chips left-align with the document below.
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _ReadmeTab(
           title: l10n.rm_tab_title,
@@ -213,13 +217,19 @@ class _ReadmeAnchorChip extends StatelessWidget {
             border: Border.all(color: AppColors.border),
             borderRadius: BorderRadius.circular(6),
           ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'monospace',
-              fontSize: 13,
-              color: AppColors.accentTeal,
+          // Center(widthFactor: 1) keeps the label vertically centred within
+          // the 44 px min-height box while the chip shrink-wraps its width.
+          // Container(alignment:) would instead expand to the Wrap's full run
+          // width, stacking the four chips into full-width rows.
+          child: Center(
+            widthFactor: 1,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 13,
+                color: AppColors.accentTeal,
+              ),
             ),
           ),
         ),
