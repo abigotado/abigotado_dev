@@ -241,7 +241,7 @@
   "@rm_collab_team": {
     "description": "README document — collaboration format: assembling and leading a team."
   },
-  "rm_about": "My core expertise is Flutter: 5+ years of cross-platform development, from from-scratch architecture (DDD, Clean Architecture, feature-first) to shipping in the stores. Around the code, I build out the whole engineering process: Git flow, CI/CD, review, and testing with a 70–75% coverage bar. When needed I work full-stack: backend (Java, SQL), infrastructure (Docker, nginx, CI/CD), plus working knowledge of Go and C++.",
+  "rm_about": "My core expertise is Flutter: 5+ years of cross-platform development, from architecture designed from scratch (DDD, Clean Architecture, feature-first) to shipping in the stores. Around the code, I build out the whole engineering process: Git flow, CI/CD, review, and testing with a 70–75% coverage bar. When needed I work full-stack: backend (Java, SQL), infrastructure (Docker, nginx, CI/CD), plus working knowledge of Go and C++.",
   "@rm_about": {
     "description": "README document — the main 'about me' paragraph."
   },

@@ -58,4 +58,27 @@ void main() {
       );
     }
   });
+
+  group('rm_domains', () {
+    // Fintech is a credential, not the identity: the README domains line must
+    // never OPEN with fintech — it closes with it as the deep-dive. Guards
+    // the owner's positioning rule against a future content edit.
+    for (final locale in locales) {
+      testWidgets(
+        'does not start with fintech — locale ${locale.languageCode}',
+        (tester) async {
+          final l10n = await AppLocalizations.delegate.load(locale);
+          final domains = l10n.rm_domains.trim().toLowerCase();
+
+          expect(
+            domains.startsWith('fintech') || domains.startsWith('финтех'),
+            isFalse,
+            reason:
+                '"${l10n.rm_domains}" (${locale.languageCode}) must not '
+                'lead with fintech — it is one domain among several',
+          );
+        },
+      );
+    }
+  });
 }

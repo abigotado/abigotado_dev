@@ -529,7 +529,7 @@ class _ReadmeLanguages extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       spacing: 6,
       children: [
-        Text(heading, style: _headingStyle),
+        _ReadmeSectionHeading(text: heading),
         Text(body, style: _proseStyle, softWrap: true),
       ],
     );

@@ -44,12 +44,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///
 /// No-ops if the README is already open (double-entry guard) — calling this
 /// twice in a row must not arm two [LocalHistoryEntry] instances, which would
-/// require two Back presses to leave the README.
+/// require two Back presses to leave the README. Also no-ops when [context]
+/// has no enclosing [ModalRoute] (nothing to arm): opening without a local
+/// history entry would leave Back exiting the site and ✕/`maybePop()` with
+/// nothing to pop — a README that cannot be closed. Better to not open at
+/// all from such a context.
 void openReadme(BuildContext context, WidgetRef ref) {
   if (ref.read(readmeOpenProvider)) return;
 
+  final route = ModalRoute.of(context);
+  if (route == null) return;
+
   ref.read(presentationProvider.notifier).openReadme();
-  ModalRoute.of(context)!.addLocalHistoryEntry(
+  route.addLocalHistoryEntry(
     LocalHistoryEntry(
       onRemove: ref.read(presentationProvider.notifier).showPitch,
       impliesAppBarDismissal: false,
