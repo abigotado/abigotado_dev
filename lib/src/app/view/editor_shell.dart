@@ -8,6 +8,7 @@ import 'package:abigotado_dev/src/app/widget/traffic_lights.dart';
 import 'package:abigotado_dev/src/features/hero/widget/debug_release_banner.dart';
 import 'package:abigotado_dev/src/features/hotreload/widget/hot_reload_fab.dart';
 import 'package:abigotado_dev/src/features/readme/state/presentation_notifier.dart';
+import 'package:abigotado_dev/src/features/readme/widget/readme_preview_panel.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,10 +25,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///   Expanded(child: Row(children: [
 ///     EditorSidebar(),              // fixed 172 px file-explorer panel
 ///     Expanded(child: EditorPane(child: child)),
+///     if (width >= AppSizing.readmePanelBreakpoint)
+///       ReadmePreviewPanel(),       // fixed 380 px README preview, ≥1600px
 ///   ])),
 ///   EditorStatusBar(),
 /// ])
 /// ```
+///
+/// The third `Row` child, [ReadmePreviewPanel], appears once
+/// `constraints.maxWidth` reaches [AppSizing.readmePanelBreakpoint] (1600 px).
+/// It is mounted directly with no external width wrapper — the panel owns
+/// and reclaims its own fixed width itself (see its class doc) — so below
+/// the breakpoint the desktop layout is byte-identical to before this panel
+/// existed.
 ///
 /// Mobile (< 900 px):
 /// ```dart
@@ -68,6 +78,9 @@ class EditorShell extends StatelessWidget {
                             children: [
                               const EditorSidebar(),
                               Expanded(child: _PaneWithFab(child: child)),
+                              if (constraints.maxWidth >=
+                                  AppSizing.readmePanelBreakpoint)
+                                const ReadmePreviewPanel(),
                             ],
                           ),
                         ),

@@ -111,10 +111,12 @@ class _TerminalHeroState extends ConsumerState<TerminalHero>
     final showSkip = isFull && phase != BuildPhase.released;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-      // The DEBUG/RELEASE ribbon now lives inside TerminalFrame (wrapping the
-      // terminal box within its ContentWidth), so it anchors to the terminal's
-      // own corner rather than the full-width pane.
+      // Vertical breathing room only. Horizontal gutters belong to
+      // TerminalFrame's own ContentWidth — an outer horizontal padding here
+      // would shift the frame's column relative to the content cards and
+      // break the deliberate right-edge alignment between the terminal and
+      // the cards below it.
+      padding: const EdgeInsets.symmetric(vertical: 32),
       child: TerminalFrame(
         // Controllers are non-null only in full mode; lite mode passes `null`
         // so the frame/timeline render their static fallbacks.

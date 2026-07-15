@@ -44,12 +44,19 @@ class ReadmeEntryChip extends ConsumerWidget {
                   size: 16,
                   color: AppColors.accentTeal,
                 ),
-                Text(
-                  l10n.rm_entry_chip,
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 13,
-                    color: AppColors.accentTeal,
+                // Flexible + softWrap: on ultra-narrow phones the label wraps
+                // to a second line instead of overflowing the Row — the ru
+                // label overflowed by 13 px at a 360 px surface inside the
+                // real EditorPane-guttered tree.
+                Flexible(
+                  child: Text(
+                    l10n.rm_entry_chip,
+                    softWrap: true,
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 13,
+                      color: AppColors.accentTeal,
+                    ),
                   ),
                 ),
               ],
