@@ -241,7 +241,7 @@
   "@rm_collab_team": {
     "description": "README document — collaboration format: assembling and leading a team."
   },
-  "rm_about": "My core expertise is Flutter: 5+ years of cross-platform development, from architecture designed from scratch (DDD, Clean Architecture, feature-first) to shipping in the stores. Around the code, I build out the whole engineering process: Git flow, CI/CD, review, and testing with a 70–75% coverage bar. When needed I work full-stack: backend (Java, SQL), infrastructure (Docker, nginx, CI/CD), plus working knowledge of Go and C++.",
+  "rm_about": "My core expertise is Flutter: 5+ years of cross-platform development, from architecture designed from scratch (DDD, Clean Architecture, feature-first) to shipping in the stores. Around the code, I build out the whole engineering process: Git flow, CI/CD, review, and testing with a 70–75% coverage bar. I mentor developers and run technical interviews. When needed I work full-stack: backend (Java, SQL), infrastructure (Docker, nginx, CI/CD), plus working knowledge of Go and C++.",
   "@rm_about": {
     "description": "README document — the main 'about me' paragraph."
   },
@@ -405,6 +405,10 @@
   "@rm_exp5_b3": {
     "description": "README experience entry 5 — achievement bullet 3."
   },
+  "rm_exp5_b4": "Mentored a Flutter developer, did code reviews",
+  "@rm_exp5_b4": {
+    "description": "README experience entry 5 — achievement bullet 4."
+  },
   "rm_exp6_org": "Nyamee",
   "@rm_exp6_org": {
     "description": "README experience entry 6 org — identical across all locales by design (brand name, not a missing translation)."
@@ -465,7 +469,7 @@
   "@rm_sk5_t": {
     "description": "README skills group 5 — heading."
   },
-  "rm_sk5_b": "Java / Spring Boot, SQL (PostgreSQL, SQLite), REST API design, Docker, CI/CD, nginx; working knowledge of Go and C++.",
+  "rm_sk5_b": "Java / Spring Boot, SQL (PostgreSQL, SQLite), REST API design, Docker, CI/CD, nginx; working knowledge of Kubernetes, Go, and C++.",
   "@rm_sk5_b": {
     "description": "README skills group 5 — backend & infrastructure body line."
   },
