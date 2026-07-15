@@ -496,5 +496,13 @@
   "rm_languages": "Russian — native · English C2 · Spanish C2",
   "@rm_languages": {
     "description": "README document — languages one-line summary."
+  },
+  "rm_panel_label": "preview",
+  "@rm_panel_label": {
+    "description": "Chrome label in the sticky README preview panel header, next to the README.md filename (VS Code 'preview' tab marker)."
+  },
+  "rm_panel_open": "Read the full README",
+  "@rm_panel_open": {
+    "description": "CTA button in the sticky README preview panel that opens the full README document."
   }
 }

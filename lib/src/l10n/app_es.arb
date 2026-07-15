@@ -124,5 +124,7 @@
   "rm_edu2_d": "Facultad de Relaciones Económicas Internacionales, Finanzas y Crédito",
   "rm_cert1": "Diploma de reconversión profesional: programación en C y C++ en sistemas operativos tipo UNIX — MEPhI",
   "rm_cert2": "Programa educativo «Java» — Centro Digital de MEPhI / Greenatom (Rosatom)",
-  "rm_languages": "Ruso — nativo · Inglés C2 · Español C2"
+  "rm_languages": "Ruso — nativo · Inglés C2 · Español C2",
+  "rm_panel_label": "vista previa",
+  "rm_panel_open": "Leer el README completo"
 }

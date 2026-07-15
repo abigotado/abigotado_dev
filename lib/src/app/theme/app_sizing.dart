@@ -35,6 +35,25 @@ abstract final class AppSizing {
   /// section-card grid the pitch uses.
   static const double readmeMaxWidth = 760;
 
+  /// Fixed width of the sticky README preview panel in pixels.
+  ///
+  /// Only shown when the viewport is at least [readmePanelBreakpoint] wide.
+  /// The panel owns this width itself (see `ReadmePreviewPanel`'s class doc)
+  /// rather than an external wrapper, so hiding the panel fully reclaims the
+  /// space instead of leaving a blank gap.
+  static const double readmePanelWidth = 380;
+
+  /// Viewport width breakpoint in pixels above which the README preview
+  /// panel is shown.
+  ///
+  /// Must be at least [sidebarWidth] + [contentGutter] + [contentMaxWidth] +
+  /// [readmePanelWidth] (172 + 24 + 1000 + 380 = 1576 px) so the pitch's
+  /// content cards keep their full [contentMaxWidth] measure the moment the
+  /// panel appears — a narrower breakpoint would squeeze the card column
+  /// below 1000 px as soon as the panel claims its 380 px. 1600 clears that
+  /// 1576 px floor with headroom; a guard test pins this invariant.
+  static const double readmePanelBreakpoint = 1600;
+
   /// Horizontal padding applied inside each content section in pixels.
   static const double contentGutter = 24;
 
