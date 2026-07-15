@@ -1,5 +1,10 @@
+import 'package:abigotado_dev/src/app/theme/app_colors.dart';
+import 'package:abigotado_dev/src/app/theme/app_sizing.dart';
 import 'package:abigotado_dev/src/features/readme/state/presentation_notifier.dart';
-import 'package:flutter/widgets.dart';
+import 'package:abigotado_dev/src/features/readme/view/readme_body.dart';
+import 'package:abigotado_dev/src/features/readme/view/readme_navigation.dart';
+import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// The sticky README preview panel — a fixed-width third column shown on
@@ -27,7 +32,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// `ReadmePreviewPanel` would keep reserving the width even while this
 /// widget renders nothing, so `EditorShell` must never add one.
 ///
-/// ## Intended GREEN render (implemented in the green pass)
+/// ## Render
 ///
 /// ```dart
 /// @override
@@ -90,16 +95,133 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///
 /// Fully static: no `AnimatedX` widget, no `AnimationController`, no
 /// ticker — the panel has no motion of its own to gate behind lite mode.
-///
-/// ## THIS PASS
-///
-/// `build` returns [SizedBox.shrink] unconditionally — the
-/// `readmeOpenProvider` guard, header, crop, and CTA all wait for the green
-/// pass to implement the tree sketched above.
 class ReadmePreviewPanel extends ConsumerWidget {
   /// Creates the README preview panel.
   const ReadmePreviewPanel({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => const SizedBox.shrink();
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (ref.watch(readmeOpenProvider)) return const SizedBox.shrink();
+
+    final l10n = AppLocalizations.of(context);
+
+    return Container(
+      width: AppSizing.readmePanelWidth,
+      decoration: const BoxDecoration(
+        color: AppColors.surface, // matches EditorSidebar's chrome
+        border: Border(left: BorderSide(color: AppColors.border)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _PanelHeader(title: l10n.rm_tab_title, label: l10n.rm_panel_label),
+          const Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  spacing: 16,
+                  children: [ReadmeBody.headerCrop(), _PanelCta()],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The panel's header strip: the `README.md` filename plus a "preview"
+/// caption — the VS Code tab-marker convention this panel is styled after.
+///
+/// Mirrors `EditorSidebar`'s header treatment and `ReadmeView`'s
+/// `_ReadmeTab` strip: same `AppColors.surface` background, bottom hairline
+/// `AppColors.border`, and padding.
+class _PanelHeader extends StatelessWidget {
+  const _PanelHeader({required this.title, required this.label});
+
+  final String title;
+  final String label;
+
+  static const _titleStyle = TextStyle(
+    fontFamily: 'monospace',
+    fontSize: 13,
+    color: AppColors.textPrimary,
+  );
+
+  static const _labelStyle = TextStyle(
+    fontFamily: 'monospace',
+    fontSize: 11,
+    color: AppColors.textMuted,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(bottom: BorderSide(color: AppColors.border)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title, style: _titleStyle),
+          Text(label, style: _labelStyle),
+        ],
+      ),
+    );
+  }
+}
+
+/// The panel's CTA: opens the full `README.md` document.
+///
+/// Same shape as `ReadmeInvitationCard`'s idiom, but with an accent-teal
+/// border in place of that card's plain hairline `AppColors.border` — the
+/// stronger invitation appropriate to a permanently-visible panel. Funnels
+/// through `openReadme` — the same single entry point every other README
+/// trigger uses — and never touches `presentationProvider`/
+/// `PresentationNotifier` directly.
+class _PanelCta extends ConsumerWidget {
+  const _PanelCta();
+
+  static const _labelStyle = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: AppColors.accentTeal,
+  );
+
+  static const _arrowStyle = TextStyle(
+    fontSize: 14,
+    color: AppColors.accentTeal,
+  );
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+
+    return Semantics(
+      button: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () => openReadme(context, ref),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 44),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.accentTeal),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            spacing: 8,
+            children: [
+              Text(l10n.rm_panel_open, style: _labelStyle),
+              const Text('→', style: _arrowStyle),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
