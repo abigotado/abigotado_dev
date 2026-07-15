@@ -316,11 +316,51 @@ void main() {
           );
         },
       );
+
+      testWidgets(
+        '1600×900, PaneContent, opening the README reclaims the panel strip '
+        '— the content pane widens by readmePanelWidth',
+        (tester) async {
+          // Measures the OUTER pane, not the panel itself: an accidental
+          // fixed-width wrapper around ReadmePreviewPanel inside EditorShell
+          // would keep a 380 px dead strip while the panel's own width reads
+          // 0 — only the pane getting the space back proves the reclaim.
+          await _pumpShell(
+            tester,
+            child: const PaneContent(),
+            surfaceSize: const Size(1600, 900),
+          );
+          final l10n = AppLocalizations.of(
+            tester.element(find.byType(EditorShell)),
+          );
+
+          final paneWidthPitch = tester
+              .getSize(find.byType(EditorScrollHost))
+              .width;
+
+          await tester.tap(
+            find.widgetWithText(InkWell, l10n.rm_panel_open),
+          );
+          await tester.pumpAndSettle();
+
+          final paneWidthReadme = tester.getSize(find.byType(ReadmeView)).width;
+          expect(
+            paneWidthReadme,
+            closeTo(paneWidthPitch + AppSizing.readmePanelWidth, 0.5),
+            reason:
+                'while the README is open the shrunk panel must give its '
+                'full ${AppSizing.readmePanelWidth} px back to the pane — '
+                'a dead strip here means a width wrapper leaked outside '
+                "the panel's readmeOpen watch",
+          );
+        },
+      );
     });
 
     group('animation', () {
       testWidgets(
-        '1600×900 lite, PaneContent → transientCallbackCount == 0',
+        '1600×900 lite, PaneContent → panel subtree declares no implicit '
+        'animations and no transient callbacks are registered',
         (tester) async {
           await _pumpShell(
             tester,
@@ -328,6 +368,21 @@ void main() {
             surfaceSize: const Size(1600, 900),
           );
 
+          // Structural: any AnimatedContainer/AnimatedOpacity/… inside the
+          // panel would show up here even when its (finite) animation has
+          // already drained by the time pumpAndSettle returns.
+          expect(
+            find.descendant(
+              of: find.byType(ReadmePreviewPanel),
+              matching: find.byWidgetPredicate(
+                (w) => w is ImplicitlyAnimatedWidget,
+              ),
+            ),
+            findsNothing,
+            reason:
+                'the preview panel is static by contract — stage 2 '
+                'ships no panel animation',
+          );
           expect(tester.binding.transientCallbackCount, equals(0));
         },
       );

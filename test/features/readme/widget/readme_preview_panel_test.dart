@@ -229,17 +229,28 @@ void main() {
 
     group('animation', () {
       testWidgets(
-        'no transient callbacks after pumpAndSettle — panel is fully static',
+        'panel subtree declares no implicit animations and no transient '
+        'callbacks are registered',
         (tester) async {
           await _pumpPanel(tester);
 
+          // Structural, not just timing: a finite AnimatedContainer would
+          // have drained before pumpAndSettle returned and a bare
+          // transientCallbackCount check would stay green — the widget
+          // predicate catches the declaration itself.
           expect(
-            tester.binding.transientCallbackCount,
-            equals(0),
+            find.descendant(
+              of: find.byType(ReadmePreviewPanel),
+              matching: find.byWidgetPredicate(
+                (w) => w is ImplicitlyAnimatedWidget,
+              ),
+            ),
+            findsNothing,
             reason:
-                'ReadmePreviewPanel has no animation controller, ticker, or '
-                'AnimatedX widget of its own',
+                'ReadmePreviewPanel is static by contract — no AnimatedX '
+                'widgets in stage 2',
           );
+          expect(tester.binding.transientCallbackCount, equals(0));
         },
       );
     });

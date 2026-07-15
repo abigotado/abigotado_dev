@@ -1,5 +1,7 @@
 import 'package:abigotado_dev/src/app/theme/app_theme.dart';
 import 'package:abigotado_dev/src/app/view/editor_pane.dart';
+import 'package:abigotado_dev/src/app/view/landing_page.dart';
+import 'package:abigotado_dev/src/app/widget/editor_file.dart';
 import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
 import 'package:abigotado_dev/src/core/effects/effects_store.dart';
 import 'package:abigotado_dev/src/features/effects/state/effects_notifier.dart';
@@ -11,19 +13,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // ---------------------------------------------------------------------------
-// BORN-GREEN GUARDS. `TerminalFrame`'s right-flush layout is already real,
-// implemented production code as of the stage-2 contracts commit (see its
-// class doc) — nothing here is stubbed. Every assertion below passes on the
-// current tree and must STAY green through the coder's green pass; they pin
-// the documented geometry against a future regression.
+// Guards for TerminalFrame's right-flush layout (implemented in the stage-2
+// contracts commit — see its class doc). Every assertion pins the documented
+// geometry against regression.
+//
+// The harness pumps the REAL production hierarchy —
+// EditorPane → SingleChildScrollView → LandingPage → … → TerminalHero →
+// TerminalFrame — NOT a bare TerminalFrame. An earlier version of this suite
+// pumped the frame directly and stayed green while the real tree was 24 px
+// off: TerminalHero wrapped the frame in an extra horizontal padding that
+// shifted the whole ContentWidth column relative to the cards. Geometry
+// guards are only honest against the tree users actually see.
 // ---------------------------------------------------------------------------
 
-// ---------------------------------------------------------------------------
-// Fake
-// ---------------------------------------------------------------------------
-
-final class _FakeEffectsStore implements EffectsStore {
-  const _FakeEffectsStore();
+final class _LiteEffectsStore implements EffectsStore {
+  const _LiteEffectsStore();
 
   @override
   EffectsMode? read() => EffectsMode.lite;
@@ -35,26 +39,10 @@ final class _FakeEffectsStore implements EffectsStore {
   Future<void> clear() async {}
 }
 
-// ---------------------------------------------------------------------------
-// Helper: pump TerminalFrame stacked above MetricsSection inside EditorPane —
-// the same nesting `EditorScrollHost`'s real section list uses (both widgets
-// are direct children of one Column, wrapped once by EditorPane). Mirrors
-// metrics_section_test.dart's `_pumpSection`.
-//
-// TerminalFrame's own `children` is a single `SizedBox(width:
-// double.infinity)` filler. Per TerminalFrame's class doc ("The load-bearing
-// width mechanism"), it is `ReviewerCommentCard`'s `width: double.infinity`
-// that forces the panel's Column to fill the `AppSizing.terminalMaxWidth` cap
-// (or, below the cap, the full available content width) instead of
-// shrink-wrapping to the command line's intrinsic width — without it the
-// panel would be narrower than the metrics Wrap at narrow surface widths and
-// the "share both edges below the cap" guard below would not hold. A minimal
-// `SizedBox` reproduces that exact mechanism without pulling in
-// `ReviewerCommentCard`'s own `buildScenarioProvider` coupling, which this
-// pure geometry suite has no need for.
-// ---------------------------------------------------------------------------
-
-Future<void> _pumpSection(
+// Pumps the real landing tree inside EditorPane — the same wrapping the
+// editor shell applies in production. Lite: the hero renders its static
+// released frame, so pumpAndSettle is safe.
+Future<void> _pumpLanding(
   WidgetTester tester, {
   required Size surface,
 }) async {
@@ -64,22 +52,21 @@ Future<void> _pumpSection(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        effectsStoreProvider.overrideWithValue(const _FakeEffectsStore()),
+        effectsStoreProvider.overrideWithValue(const _LiteEffectsStore()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: AppTheme.dark(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const Scaffold(
+        home: Scaffold(
           body: EditorPane(
-            child: Column(
-              children: [
-                TerminalFrame(
-                  children: [SizedBox(width: double.infinity, height: 1)],
-                ),
-                MetricsSection(),
-              ],
+            child: SingleChildScrollView(
+              child: LandingPage(
+                sectionKeys: {
+                  for (final f in EditorFile.values) f: GlobalKey(),
+                },
+              ),
             ),
           ),
         ),
@@ -91,12 +78,12 @@ Future<void> _pumpSection(
 
 void main() {
   group('TerminalFrame', () {
-    group('right-flush against the metrics Wrap', () {
+    group('right-flush against the metrics Wrap (real landing tree)', () {
       testWidgets(
         '1280×900 surface → panel right edge flush with the metrics Wrap '
         'right edge, panel left edge indented past the Wrap left edge',
         (tester) async {
-          await _pumpSection(tester, surface: const Size(1280, 900));
+          await _pumpLanding(tester, surface: const Size(1280, 900));
 
           final panelTopRight = tester.getTopRight(
             find.byKey(TerminalFrame.panelKey),
@@ -116,7 +103,9 @@ void main() {
             closeTo(wrapTopRight.dx, 0.5),
             reason:
                 'the terminal panel and the metrics Wrap both cap at '
-                'AppSizing.contentMaxWidth — their right edges must be flush',
+                'AppSizing.contentMaxWidth — their right edges must be '
+                'flush in the REAL tree (TerminalHero must not add '
+                'horizontal padding around the frame)',
           );
           expect(
             panelTopLeft.dx,
@@ -133,7 +122,7 @@ void main() {
         '360×900 surface → panel and metrics Wrap share both edges '
         '(flush is a no-op below AppSizing.contentMaxWidth)',
         (tester) async {
-          await _pumpSection(tester, surface: const Size(360, 900));
+          await _pumpLanding(tester, surface: const Size(360, 900));
 
           final panelTopRight = tester.getTopRight(
             find.byKey(TerminalFrame.panelKey),
