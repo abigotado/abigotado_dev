@@ -108,6 +108,10 @@ Future<ProviderContainer> _pumpHost(
   WidgetTester tester, {
   EffectsStore effectsStore = const _LiteEffectsStore(),
   Size surfaceSize = const Size(1280, 800),
+  // Runs against the freshly created container BEFORE `pumpWidget` mounts
+  // EditorScrollHost — lets a test seed provider state pre-mount (e.g. a
+  // pending ScrollRequest enqueued before the host exists).
+  void Function(ProviderContainer container)? beforeMount,
 }) async {
   await tester.binding.setSurfaceSize(surfaceSize);
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -123,6 +127,7 @@ Future<ProviderContainer> _pumpHost(
     ],
   );
   addTearDown(container.dispose);
+  beforeMount?.call(container);
 
   // Wrap MaterialApp in a Consumer so that changes to localeProvider rebuild
   // MaterialApp with the new locale, mirroring how AbigotadoApp works. Without
@@ -681,6 +686,79 @@ void main() {
           // Sections must be visible (lite forces opacity=1 in RevealOnScroll).
           expect(find.byType(MetricsSection), findsOneWidget);
           expect(find.byType(MergeCtaSection), findsOneWidget);
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    group('remount pre-mount request drain', () {
+      // The README-return case: a sidebar tap enqueues a ScrollRequest while
+      // EditorScrollHost is unmounted (PaneContent shows ReadmeView instead),
+      // then EditorScrollHost remounts once the README closes. `ref.listen`
+      // only fires on a CHANGE — a request already pending when the listener
+      // attaches is never re-delivered by `ref.listen` alone. `_scheduleUpdate`
+      // re-reads the provider directly and dispatches any already-pending
+      // request, which is the drain this test locks.
+      //
+      // CONTRACT AMBIGUITY — RESOLVED (sanctioned green-pass correction, see
+      // README stage-1 GREEN handoff): the original spec seeded
+      // `EditorFile.changelog` as the pre-mount target. At the fixed
+      // 1280×800 surface this suite standardizes on, ChangelogSection's
+      // `getOffsetToReveal` offset (measured: 1020 px) exceeds
+      // `maxScrollExtent` (measured: 861 px) — the page physically cannot
+      // scroll far enough to put changelog's activation line 120 px below
+      // the fold. `ensureVisible`/`jumpTo` clamp to maxScrollExtent, and
+      // `activeEditorFile`'s documented bottom-pin rule (see the
+      // 'bottom-pin' test above) then reports `contacts` as active
+      // regardless of how correctly the drain itself is implemented —
+      // `changelog` can never be the observed `activeFile` at this
+      // viewport, so asserting it would pin a geometric impossibility, not
+      // exercise the drain.
+      //
+      // Why `pubspec` and not one of the other candidates:
+      // - `contacts` is the bottom-pin fallback: a completely undrained
+      //   request (host stuck at the top, `_scheduleUpdate` never re-reading
+      //   the pending request) would ALSO report `contacts` via a plain
+      //   scroll-to-top `activeEditorFile` derive on some geometries — it
+      //   could false-pass a broken drain.
+      // - `fileHero` is the at-rest default; asserting it proves nothing
+      //   about whether a scroll happened at all.
+      // - `metrics` (offset 478) is reachable too, but `pubspec` (measured:
+      //   588 px, well under 861 px maxScrollExtent) is the more honest
+      //   mid-document target and is the one this pass adopts.
+      testWidgets(
+        'a request enqueued before EditorScrollHost mounts is consumed on '
+        'first frame — scrollRequest drains and activeFile becomes '
+        'pubspec (see the contract-ambiguity note above this group)',
+        (tester) async {
+          final container = await _pumpHost(
+            tester,
+            beforeMount: (c) => c
+                .read(scrollSpyProvider.notifier)
+                .requestScrollTo(EditorFile.pubspec),
+          );
+          await tester.pumpAndSettle();
+
+          expect(
+            container.read(scrollSpyProvider).scrollRequest,
+            isNull,
+            reason:
+                'the pre-mount request must be drained by _scheduleUpdate on '
+                'the first post-frame callback, not left pending forever',
+          );
+          expect(
+            container.read(scrollSpyProvider).activeFile,
+            equals(EditorFile.pubspec),
+          );
+
+          final pubspecTop = tester.getTopLeft(find.byType(PubspecSection)).dy;
+          expect(
+            pubspecTop,
+            lessThan(800),
+            reason:
+                'the drained request must actually scroll PubspecSection '
+                'into the 800 px viewport, not just clear the flag',
+          );
         },
       );
     });

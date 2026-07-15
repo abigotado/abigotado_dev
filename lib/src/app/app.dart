@@ -1,6 +1,6 @@
 import 'package:abigotado_dev/src/app/theme/app_theme.dart';
-import 'package:abigotado_dev/src/app/view/editor_scroll_host.dart';
 import 'package:abigotado_dev/src/app/view/editor_shell.dart';
+import 'package:abigotado_dev/src/app/view/pane_content.dart';
 import 'package:abigotado_dev/src/features/locale/state/locale_notifier.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +23,7 @@ class AbigotadoApp extends ConsumerWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: locale,
-      home: const EditorShell(child: EditorScrollHost()),
+      home: const EditorShell(child: PaneContent()),
     );
   }
 }

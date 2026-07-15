@@ -8,6 +8,8 @@ import 'package:abigotado_dev/src/features/hero/view/terminal_hero.dart';
 import 'package:abigotado_dev/src/features/hotreload/widget/section_flash.dart';
 import 'package:abigotado_dev/src/features/metrics/widget/metrics_section.dart';
 import 'package:abigotado_dev/src/features/pubspec/widget/pubspec_section.dart';
+import 'package:abigotado_dev/src/features/readme/widget/readme_entry_chip.dart';
+import 'package:abigotado_dev/src/features/readme/widget/readme_invitation_card.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 
@@ -16,11 +18,17 @@ import 'package:flutter/material.dart';
 /// The "agents build the page" hero ([TerminalHero]) opens the page; the
 /// name/subtitle, the [MetricsSection], the [PubspecSection], the
 /// [ChangelogSection], and the [MergeCtaSection] sit below it.
+/// [ReadmeEntryChip] opens above everything, and [ReadmeInvitationCard]
+/// closes below everything.
 ///
 /// Each section is wrapped in a [SectionFlash] (the hot-reload "rebuild" wave,
 /// staggered by document `order`) outside its [RevealOnScroll] (so the flash
 /// tint is never dimmed by the reveal fade), and both sit inside the
 /// [KeyedSubtree] whose key the scroll host measures.
+///
+/// [ReadmeEntryChip] and [ReadmeInvitationCard] are deliberately OUTSIDE every
+/// [KeyedSubtree] — they are not scroll-spy sections, so adding them must not
+/// shift any section's measured offset.
 ///
 /// [sectionKeys] maps each [EditorFile] to the [GlobalKey] for its section
 /// widget. The scroll host owns these keys and passes them in so the
@@ -51,6 +59,9 @@ class LandingPage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 24,
       children: [
+        // Outside every KeyedSubtree: not a scroll-spy section, must never
+        // shift a measured section offset.
+        const ReadmeEntryChip(),
         // Hero section: terminal widget + name/subtitle block share one key so
         // the scroll-spy can treat the combined hero as a single section.
         // KeyedSubtree is outermost; SectionFlash then RevealOnScroll wrap the
@@ -134,6 +145,8 @@ class LandingPage extends StatelessWidget {
             ),
           ),
         ),
+        // Outside every KeyedSubtree — same rationale as ReadmeEntryChip.
+        const ReadmeInvitationCard(),
         // Trailing space (outside all KeyedSubtrees) so the CTA clears the FAB.
         const SizedBox(height: _fabClearance),
       ],

@@ -1,6 +1,6 @@
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
-import 'package:abigotado_dev/src/features/cta/content/cta_content.dart';
-import 'package:abigotado_dev/src/features/cta/widget/contact_link_tile.dart';
+import 'package:abigotado_dev/src/app/widget/contact_link_tile.dart';
+import 'package:abigotado_dev/src/core/content/contact_links.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 

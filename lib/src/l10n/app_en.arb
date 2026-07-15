@@ -4,7 +4,7 @@
   "@name": {
     "description": "The author's full name."
   },
-  "sub": "Senior Flutter engineer · architecture from scratch, building & leading the team · AI-first processes",
+  "sub": "Team lead / Flutter engineer · architecture & teams from scratch · AI-first processes",
   "@sub": {
     "description": "One-line professional subtitle shown below the name on the landing page."
   },
@@ -84,7 +84,7 @@
   "@ch1": {
     "description": "Badge on the pubspec.yaml card header — labels the card as the skills section."
   },
-  "pubspec_description": "Senior Flutter engineer · architecture, team leadership, AI-first delivery",
+  "pubspec_description": "Team lead / Flutter engineer · architecture, team leadership, AI-first delivery",
   "@pubspec_description": {
     "description": "The 'description:' value inside the pubspec.yaml skills card. Generalist framing, consistent with the hero subtitle — deliberately NOT fintech-specific (the mockup's fintech value is discarded)."
   },
@@ -183,5 +183,318 @@
   "hotreload_hint": "Rebuilds the page sections without reloading",
   "@hotreload_hint": {
     "description": "Accessibility hint / tooltip for the hot-reload FAB describing what tapping it does."
+  },
+
+  "rm_entry_chip": "README.md — the plain-language version",
+  "@rm_entry_chip": {
+    "description": "Label on the chip above the hero that opens the README document."
+  },
+  "rm_invitation": "For the full, human story → README.md",
+  "@rm_invitation": {
+    "description": "Label on the closing invitation card (after contacts) that opens the README document."
+  },
+  "rm_tab_title": "README.md",
+  "@rm_tab_title": {
+    "description": "The README document tab's title — invariant filename, identical in every locale by design."
+  },
+  "rm_close_hint": "Close the README and return to the site",
+  "@rm_close_hint": {
+    "description": "Accessible label for the README document's close (✕) control."
+  },
+  "file_readme": "about me",
+  "@file_readme": {
+    "description": "Sidebar decode-label for README.md — clarity word shown next to the filename."
+  },
+  "rm_anchor_experience": "Experience",
+  "@rm_anchor_experience": {
+    "description": "README anchor-bar chip label jumping to the experience section."
+  },
+  "rm_anchor_skills": "Skills",
+  "@rm_anchor_skills": {
+    "description": "README anchor-bar chip label jumping to the skills section."
+  },
+  "rm_anchor_education": "Education",
+  "@rm_anchor_education": {
+    "description": "README anchor-bar chip label jumping to the education section."
+  },
+  "rm_anchor_contacts": "Contacts",
+  "@rm_anchor_contacts": {
+    "description": "README anchor-bar chip label jumping to the contacts section."
+  },
+  "rm_role": "Team lead / Flutter engineer. I build apps, teams, and engineering processes.",
+  "@rm_role": {
+    "description": "README document header — one-line role statement below the name."
+  },
+  "rm_collab_intro": "Open to working together — in whichever format suits you:",
+  "@rm_collab_intro": {
+    "description": "README document — intro line above the three collaboration-format bullets."
+  },
+  "rm_collab_staff": "in-house — team lead / tech lead for mobile (or a strong senior)",
+  "@rm_collab_staff": {
+    "description": "README document — collaboration format: full-time/staff role."
+  },
+  "rm_collab_contract": "contract — a turnkey app build",
+  "@rm_collab_contract": {
+    "description": "README document — collaboration format: contract/turnkey delivery."
+  },
+  "rm_collab_team": "as a team — I'll assemble and lead a team for your project",
+  "@rm_collab_team": {
+    "description": "README document — collaboration format: assembling and leading a team."
+  },
+  "rm_about": "My core expertise is Flutter: 5+ years of cross-platform development, from architecture designed from scratch (DDD, Clean Architecture, feature-first) to shipping in the stores. Around the code, I build out the whole engineering process: Git flow, CI/CD, review, and testing with a 70–75% coverage bar. When needed I work full-stack: backend (Java, SQL), infrastructure (Docker, nginx, CI/CD), plus working knowledge of Go and C++.",
+  "@rm_about": {
+    "description": "README document — the main 'about me' paragraph."
+  },
+  "rm_ai": "I know how, and like, to build AI engineering into the workflow: multi-agent pipelines and scripts on Claude Code, Codex, opencode, and Cursor give a 2–3x speed-up — held to the same strict review as hand-written code. I stay deeply engaged with the AI space: tracking how models and tools evolve and carrying working practices into the team process.",
+  "@rm_ai": {
+    "description": "README document — the AI-first engineering paragraph."
+  },
+  "rm_domains": "I've worked across different domains — enterprise systems, real-time apps and chat, media — with deep hands-on experience in fintech and crypto (payments, cards, KYC, security).",
+  "@rm_domains": {
+    "description": "README document — the domains-worked-in paragraph."
+  },
+  "rm_h_experience": "Experience",
+  "@rm_h_experience": {
+    "description": "README document — experience section heading."
+  },
+  "rm_h_projects": "Projects",
+  "@rm_h_projects": {
+    "description": "README document — projects section heading, reserved for a stage-3 block between experience and skills. Not yet rendered in stage 1."
+  },
+  "rm_h_skills": "Skills",
+  "@rm_h_skills": {
+    "description": "README document — skills section heading."
+  },
+  "rm_h_education": "Education",
+  "@rm_h_education": {
+    "description": "README document — education section heading."
+  },
+  "rm_h_languages": "Languages",
+  "@rm_h_languages": {
+    "description": "README document — languages section heading."
+  },
+  "rm_h_contacts": "Contacts",
+  "@rm_h_contacts": {
+    "description": "README document — contacts section heading."
+  },
+  "rm_exp1_org": "Somnio Software",
+  "@rm_exp1_org": {
+    "description": "README experience entry 1 org — identical across all locales by design (brand name, not a missing translation)."
+  },
+  "rm_exp1_role": "Flutter Developer",
+  "@rm_exp1_role": {
+    "description": "README experience entry 1 — role title."
+  },
+  "rm_exp1_sum": "Cross-platform development at one of the leading international Flutter consultancies, across multiple client applications.",
+  "@rm_exp1_sum": {
+    "description": "README experience entry 1 — one-sentence engagement summary."
+  },
+  "rm_exp1_b1": "Reworked stream-heavy state management and made the app 3–5× faster and more responsive",
+  "@rm_exp1_b1": {
+    "description": "README experience entry 1 — achievement bullet 1."
+  },
+  "rm_exp1_b2": "Build custom AI-agent pipelines and scripts that speed up everyday development",
+  "@rm_exp1_b2": {
+    "description": "README experience entry 1 — achievement bullet 2."
+  },
+  "rm_exp1_b3": "Maintain ~85% test coverage and regular code-quality checks across the team",
+  "@rm_exp1_b3": {
+    "description": "README experience entry 1 — achievement bullet 3."
+  },
+  "rm_exp2_org": "FinHarbor",
+  "@rm_exp2_org": {
+    "description": "README experience entry 2 org — identical across all locales by design (brand name, not a missing translation)."
+  },
+  "rm_exp2_role": "Flutter Developer",
+  "@rm_exp2_role": {
+    "description": "README experience entry 2 — role title."
+  },
+  "rm_exp2_sum": "Hybrid crypto + fiat fintech app (payment cards, crypto exchange, trading) in a distributed international team, with 10K+ downloads across app stores.",
+  "@rm_exp2_sum": {
+    "description": "README experience entry 2 — one-sentence engagement summary."
+  },
+  "rm_exp2_b1": "Built the in-app payments and card features",
+  "@rm_exp2_b1": {
+    "description": "README experience entry 2 — achievement bullet 1."
+  },
+  "rm_exp2_b2": "Built the mobile side of the 2FA/OTP flows (integration and UI)",
+  "@rm_exp2_b2": {
+    "description": "README experience entry 2 — achievement bullet 2."
+  },
+  "rm_exp2_b3": "Worked on the mobile side of KYC verification (Sumsub)",
+  "@rm_exp2_b3": {
+    "description": "README experience entry 2 — achievement bullet 3."
+  },
+  "rm_exp2_b4": "Built internal Flutter plugins and packages, including native ones via Pigeon (Kotlin/Swift)",
+  "@rm_exp2_b4": {
+    "description": "README experience entry 2 — achievement bullet 4."
+  },
+  "rm_exp3_org": "Digital Technologies & Platforms",
+  "@rm_exp3_org": {
+    "description": "README experience entry 3 — localized org name."
+  },
+  "rm_exp3_role": "Flutter Developer",
+  "@rm_exp3_role": {
+    "description": "README experience entry 3 — role title."
+  },
+  "rm_exp3_sum": "Developed and maintained a large cross-platform mobile app with 10K+ downloads across app stores.",
+  "@rm_exp3_sum": {
+    "description": "README experience entry 3 — one-sentence engagement summary."
+  },
+  "rm_exp3_b1": "Optimized performance and reduced the app's size",
+  "@rm_exp3_b1": {
+    "description": "README experience entry 3 — achievement bullet 1."
+  },
+  "rm_exp3_b2": "Built a real-time chat on WebSocket",
+  "@rm_exp3_b2": {
+    "description": "README experience entry 3 — achievement bullet 2."
+  },
+  "rm_exp3_b3": "One of the drivers of the team's AI adoption — from scratch to a fully AI-assisted pipeline",
+  "@rm_exp3_b3": {
+    "description": "README experience entry 3 — achievement bullet 3."
+  },
+  "rm_exp4_org": "CPI Technologies GmbH",
+  "@rm_exp4_org": {
+    "description": "README experience entry 4 org — identical across all locales by design (brand name, not a missing translation)."
+  },
+  "rm_exp4_role": "Flutter Developer",
+  "@rm_exp4_role": {
+    "description": "README experience entry 4 — role title."
+  },
+  "rm_exp4_sum": "Developed cross-platform applications from scratch across several domains, including fintech and crypto.",
+  "@rm_exp4_sum": {
+    "description": "README experience entry 4 — one-sentence engagement summary."
+  },
+  "rm_exp4_b1": "Designed app architecture from scratch (DDD, feature-first)",
+  "@rm_exp4_b1": {
+    "description": "README experience entry 4 — achievement bullet 1."
+  },
+  "rm_exp4_b2": "Implemented the Stripe API for in-app payments",
+  "@rm_exp4_b2": {
+    "description": "README experience entry 4 — achievement bullet 2."
+  },
+  "rm_exp4_b3": "Integrated Firebase Auth, Storage, and Firestore; built chats on Firestore and Matrix.org",
+  "@rm_exp4_b3": {
+    "description": "README experience entry 4 — achievement bullet 3."
+  },
+  "rm_exp4_b4": "Integrated video streaming with LiveKit and WebRTC",
+  "@rm_exp4_b4": {
+    "description": "README experience entry 4 — achievement bullet 4."
+  },
+  "rm_exp5_org": "Russian Railways",
+  "@rm_exp5_org": {
+    "description": "README experience entry 5 — localized org name."
+  },
+  "rm_exp5_role": "Flutter Developer",
+  "@rm_exp5_role": {
+    "description": "README experience entry 5 — role title."
+  },
+  "rm_exp5_sum": "Maintained and refactored enterprise mobile apps for an 850K-employee company, used by thousands of employees, and built new apps from scratch.",
+  "@rm_exp5_sum": {
+    "description": "README experience entry 5 — one-sentence engagement summary."
+  },
+  "rm_exp5_b1": "Migrated the app to Clean Architecture",
+  "@rm_exp5_b1": {
+    "description": "README experience entry 5 — achievement bullet 1."
+  },
+  "rm_exp5_b2": "Introduced testing with a 70–75% coverage bar where none existed",
+  "@rm_exp5_b2": {
+    "description": "README experience entry 5 — achievement bullet 2."
+  },
+  "rm_exp5_b3": "Integrated YuMoney payments",
+  "@rm_exp5_b3": {
+    "description": "README experience entry 5 — achievement bullet 3."
+  },
+  "rm_exp6_org": "Nyamee",
+  "@rm_exp6_org": {
+    "description": "README experience entry 6 org — identical across all locales by design (brand name, not a missing translation)."
+  },
+  "rm_exp6_role": "Flutter Developer",
+  "@rm_exp6_role": {
+    "description": "README experience entry 6 — role title."
+  },
+  "rm_exp6_sum": "Developed and maintained cross-platform mobile applications using Flutter.",
+  "@rm_exp6_sum": {
+    "description": "README experience entry 6 — one-sentence engagement summary."
+  },
+  "rm_exp6_b1": "Implemented complex UI components and animations using Flutter Canvas",
+  "@rm_exp6_b1": {
+    "description": "README experience entry 6 — achievement bullet 1."
+  },
+  "rm_exp6_b2": "Integrated deep linking and push notifications",
+  "@rm_exp6_b2": {
+    "description": "README experience entry 6 — achievement bullet 2."
+  },
+  "rm_exp6_b3": "Migrated to Navigator 2.0",
+  "@rm_exp6_b3": {
+    "description": "README experience entry 6 — achievement bullet 3."
+  },
+  "rm_sk1_t": "Flutter core",
+  "@rm_sk1_t": {
+    "description": "README skills group 1 — heading."
+  },
+  "rm_sk1_b": "BLoC, Riverpod, go_router, auto_route, Dio, GraphQL, Hive, WebSocket, Firebase, Pigeon (native plugins), widget/unit/integration testing.",
+  "@rm_sk1_b": {
+    "description": "README skills group 1 — Flutter core body line."
+  },
+  "rm_sk2_t": "Fintech & crypto",
+  "@rm_sk2_t": {
+    "description": "README skills group 2 — heading."
+  },
+  "rm_sk2_b": "Payment cards, crypto exchange & trading, KYC flows, Stripe API, in-app payments.",
+  "@rm_sk2_b": {
+    "description": "README skills group 2 — fintech & crypto body line."
+  },
+  "rm_sk3_t": "Mobile security",
+  "@rm_sk3_t": {
+    "description": "README skills group 3 — heading."
+  },
+  "rm_sk3_b": "Secure & encrypted storage, biometric authentication, app-lock & screen protection on backgrounding, code obfuscation, OWASP Mobile practices.",
+  "@rm_sk3_b": {
+    "description": "README skills group 3 — mobile security body line."
+  },
+  "rm_sk4_t": "AI-first tooling",
+  "@rm_sk4_t": {
+    "description": "README skills group 4 — heading."
+  },
+  "rm_sk4_b": "Claude Code, Cursor, Codex, opencode, multi-agent dev pipelines, AI-assisted code review, custom automation agents & scripts.",
+  "@rm_sk4_b": {
+    "description": "README skills group 4 — AI-first tooling body line."
+  },
+  "rm_sk5_t": "Backend & infrastructure (addition)",
+  "@rm_sk5_t": {
+    "description": "README skills group 5 — heading."
+  },
+  "rm_sk5_b": "Java / Spring Boot, SQL (PostgreSQL, SQLite), REST API design, Docker, CI/CD, nginx; working knowledge of Go and C++.",
+  "@rm_sk5_b": {
+    "description": "README skills group 5 — backend & infrastructure body line."
+  },
+  "rm_edu1_t": "Master's in Software Engineering, National Research Nuclear University MEPhI (IICS)",
+  "@rm_edu1_t": {
+    "description": "README education entry 1 — degree + institution line."
+  },
+  "rm_edu1_d": "GPA 5.0/5.0, diploma with honors",
+  "@rm_edu1_d": {
+    "description": "README education entry 1 — supporting detail line."
+  },
+  "rm_edu2_t": "Bachelor's in Economics, MGIMO University",
+  "@rm_edu2_t": {
+    "description": "README education entry 2 — degree + institution line."
+  },
+  "rm_edu2_d": "Faculty of International Economic Relations, Finance and Credit",
+  "@rm_edu2_d": {
+    "description": "README education entry 2 — supporting detail line."
+  },
+  "rm_cert1": "Professional Retraining Diploma — C/C++ Programming in UNIX-like OS — NRNU MEPhI",
+  "@rm_cert1": {
+    "description": "README document — certification line 1."
+  },
+  "rm_cert2": "\"Java\" short-term skills program — MEPhI Digital Center / Greenatom (Rosatom)",
+  "@rm_cert2": {
+    "description": "README document — certification line 2."
+  },
+  "rm_languages": "Russian — native · English C2 · Spanish C2",
+  "@rm_languages": {
+    "description": "README document — languages one-line summary."
   }
 }

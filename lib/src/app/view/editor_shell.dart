@@ -7,8 +7,10 @@ import 'package:abigotado_dev/src/app/widget/background/living_background.dart';
 import 'package:abigotado_dev/src/app/widget/traffic_lights.dart';
 import 'package:abigotado_dev/src/features/hero/widget/debug_release_banner.dart';
 import 'package:abigotado_dev/src/features/hotreload/widget/hot_reload_fab.dart';
+import 'package:abigotado_dev/src/features/readme/state/presentation_notifier.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// The editor-IDE shell that frames the landing content.
 ///
@@ -146,7 +148,11 @@ class _EditorTitleBar extends StatelessWidget {
 /// (the pane sits in the layout above it) and clear of the status-bar controls,
 /// so it floats over scrolling content without ever colliding with the compact
 /// status bar's wrapping locale/effects controls. Used by both layout branches.
-class _PaneWithFab extends StatelessWidget {
+///
+/// The FAB is hidden while the README is open ([readmeOpenProvider]) — the
+/// hot-reload "rebuild" flash it triggers is a pitch-only conceit that has no
+/// meaning over the README document.
+class _PaneWithFab extends ConsumerWidget {
   const _PaneWithFab({required this.child});
 
   /// Gap between the FAB and the pane's bottom-right edges.
@@ -155,15 +161,18 @@ class _PaneWithFab extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final readmeOpen = ref.watch(readmeOpenProvider);
+
     return Stack(
       children: [
         EditorPane(child: child),
-        const Positioned(
-          right: _fabMargin,
-          bottom: _fabMargin,
-          child: HotReloadFab(),
-        ),
+        if (!readmeOpen)
+          const Positioned(
+            right: _fabMargin,
+            bottom: _fabMargin,
+            child: HotReloadFab(),
+          ),
       ],
     );
   }
