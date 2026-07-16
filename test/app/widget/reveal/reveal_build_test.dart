@@ -533,21 +533,38 @@ void main() {
           );
           final hiddenSize = tester.getSize(find.byType(_ProbeChild));
 
-          // Mid-build.
+          // Mid-CHROME (40 ms — inside the [0, 88 ms] chrome window, where
+          // the root opacity is genuinely intermediate).
           container.read(scrollSpyProvider.notifier).revealSections({
             EditorFile.metrics,
           });
           await tester.pump();
           await tester.pump();
-          await tester.pump(const Duration(milliseconds: 400));
-          final midOpacity = _rootOpacity(tester).opacity;
+          await tester.pump(const Duration(milliseconds: 40));
+          final chromeOpacityMid = _rootOpacity(tester).opacity;
           expect(
-            midOpacity,
+            chromeOpacityMid,
             greaterThan(0.0),
-            reason: 'precondition: genuinely mid-build',
+            reason: 'precondition: genuinely mid-chrome',
           );
-          expect(midOpacity, lessThan(1.0));
-          final midSize = tester.getSize(find.byType(_ProbeChild));
+          expect(chromeOpacityMid, lessThan(1.0));
+          final midChromeSize = tester.getSize(find.byType(_ProbeChild));
+
+          // Mid-CASCADE (400 ms of 800). The chrome window closed at 88 ms —
+          // the root Opacity correctly reads exactly 1.0 here — so the
+          // "genuinely mid-build" precondition is pinned via the scope's
+          // animation progress instead.
+          await tester.pump(const Duration(milliseconds: 360));
+          final progress = tester
+              .widget<SectionBuildScope>(find.byType(SectionBuildScope))
+              .progress
+              .value;
+          expect(
+            progress,
+            allOf(greaterThan(0.0), lessThan(1.0)),
+            reason: 'precondition: genuinely mid-cascade',
+          );
+          final midCascadeSize = tester.getSize(find.byType(_ProbeChild));
 
           // Settled.
           await tester.pump(const Duration(milliseconds: kSectionBuildMs));
@@ -560,9 +577,14 @@ void main() {
           final settledSize = tester.getSize(find.byType(_ProbeChild));
 
           expect(
-            midSize,
+            midChromeSize,
             equals(hiddenSize),
-            reason: 'a mid-build frame must not resize the probe',
+            reason: 'a mid-chrome frame must not resize the probe',
+          );
+          expect(
+            midCascadeSize,
+            equals(hiddenSize),
+            reason: 'a mid-cascade frame must not resize the probe',
           );
           expect(
             settledSize,
