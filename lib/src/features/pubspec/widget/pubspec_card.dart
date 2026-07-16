@@ -1,4 +1,5 @@
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
+import 'package:abigotado_dev/src/app/widget/reveal/build_cascade_item.dart';
 import 'package:abigotado_dev/src/app/widget/section_card.dart';
 import 'package:abigotado_dev/src/features/pubspec/content/pubspec_content.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
@@ -50,6 +51,13 @@ import 'package:flutter/widgets.dart';
 /// excluded, but the skills themselves are the section's content, so the label
 /// is the localized summary (`l10n.pubspec_a11y`) followed by the skill names
 /// — generated from [pubspecDependencies] so it never drifts from the list.
+///
+/// **Section-build cascade:** the code body is wrapped in a single
+/// `BuildCascadeItem(index: 0, count: 1)` — while beneath an in-progress
+/// `RevealBuild` it fades/slides in as one unit (there is nothing to
+/// stagger within a single card body). Outside a build in progress,
+/// `BuildCascadeItem` is a no-op passthrough and this card's render is
+/// unchanged.
 class PubspecCard extends StatelessWidget {
   /// Creates the pubspec.yaml skills card.
   const PubspecCard({super.key});
@@ -169,11 +177,15 @@ class PubspecCard extends StatelessWidget {
           title: 'pubspec.yaml',
           badge: l10n.ch1,
           // Code body — horizontal scroll prevents mid-token line wrapping.
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Text.rich(
-              codeSpan,
-              softWrap: false,
+          child: BuildCascadeItem(
+            index: 0,
+            count: 1,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Text.rich(
+                codeSpan,
+                softWrap: false,
+              ),
             ),
           ),
         ),
