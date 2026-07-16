@@ -118,6 +118,24 @@ class _AnimatedHeading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The cursor's size depends only on [style], not on the animation
+    // progress — measure ONCE per build here, outside the per-tick
+    // AnimatedBuilder path, and dispose the TextPainter deterministically
+    // (its contract requires it; leaking it defers native Paragraph cleanup
+    // to GC finalization).
+    final painter = TextPainter(
+      text: TextSpan(text: 'M', style: style),
+      textDirection: Directionality.of(context),
+    )..layout();
+    final lineHeight = painter.height;
+    painter.dispose();
+    final cursor = _BuildCursorGlyph(
+      width: (style.fontSize ?? lineHeight) * 0.6,
+      // A margin under the measured line height: the placeholder must never
+      // be the tallest thing on the line, whatever style is passed in.
+      height: lineHeight * 0.85,
+    );
+
     return AnimatedBuilder(
       animation: progress,
       builder: (context, _) {
@@ -134,7 +152,7 @@ class _AnimatedHeading extends StatelessWidget {
                   if (headingCursorVisible(progress.value))
                     WidgetSpan(
                       alignment: PlaceholderAlignment.middle,
-                      child: _BuildCursorGlyph(style: style),
+                      child: cursor,
                     ),
                 ],
               ),
@@ -149,27 +167,22 @@ class _AnimatedHeading extends StatelessWidget {
 
 /// The solid block caret shown by [_AnimatedHeading] while typing.
 ///
-/// Sized from [style]'s *own* measured line height (via a throwaway
-/// [TextPainter] rather than an assumed font-metric ratio) so it fits inside
-/// the paragraph's line box under any [TextStyle] a caller passes —
-/// embedding it as a [WidgetSpan] must never grow the heading's height.
+/// Receives its resolved [width]/[height] from `_AnimatedHeading`, which
+/// measures the caller's [TextStyle] line box ONCE per build (and disposes
+/// the measuring `TextPainter`) — this widget stays trivially const-able and
+/// allocation-free on the per-tick path. Sized under the line height so
+/// embedding it as a `WidgetSpan` never grows the heading.
 class _BuildCursorGlyph extends StatelessWidget {
-  const _BuildCursorGlyph({required this.style});
+  const _BuildCursorGlyph({required this.width, required this.height});
 
-  final TextStyle style;
+  final double width;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
-    final metrics = TextPainter(
-      text: TextSpan(text: 'M', style: style),
-      textDirection: Directionality.of(context),
-    )..layout();
-    final fontSize = style.fontSize ?? metrics.height;
     return Container(
-      width: fontSize * 0.6,
-      // A margin under the measured line height: the placeholder must never
-      // be the tallest thing on the line, whatever style is passed in.
-      height: metrics.height * 0.85,
+      width: width,
+      height: height,
       color: AppColors.accentTeal,
     );
   }
