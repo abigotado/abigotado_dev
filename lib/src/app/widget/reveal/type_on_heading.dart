@@ -1,4 +1,6 @@
+import 'package:abigotado_dev/src/app/theme/app_colors.dart';
 import 'package:abigotado_dev/src/app/widget/reveal/section_build_scope.dart';
+import 'package:abigotado_dev/src/app/widget/reveal/section_build_timing.dart';
 import 'package:flutter/widgets.dart';
 
 /// Renders [text] as a heading that either sits static or types itself out
@@ -18,10 +20,8 @@ import 'package:flutter/widgets.dart';
 ///
 /// ## Animated branch (`SectionBuildScope.maybeOf` returns non-`null`)
 ///
-/// Delegates to [_AnimatedHeading] — see its doc for the intended green-pass
-/// render. Unreachable in the CONTRACTS pass: `RevealBuild`'s current stub
-/// never provides a [SectionBuildScope], so [build] always takes the static
-/// branch today.
+/// Delegates to [_AnimatedHeading] — see its doc for the render. Reachable
+/// once a `RevealBuild` ancestor is in full mode and mid-build.
 class TypeOnHeading extends StatelessWidget {
   /// Creates a self-typing heading for [text].
   const TypeOnHeading({
@@ -61,7 +61,7 @@ class TypeOnHeading extends StatelessWidget {
 /// The typing-cursor render of [TypeOnHeading], active while its section's
 /// build is in progress.
 ///
-/// ## Intended GREEN render
+/// ## Render
 ///
 /// ```dart
 /// return AnimatedBuilder(
@@ -100,13 +100,9 @@ class TypeOnHeading extends StatelessWidget {
 ///
 /// **Cursor sizing constraint (advisor-pinned):** the cursor glyph's own
 /// height must stay within [style]'s line-box height at every frame — the
-/// heading must not visibly grow/shrink while typing. A green-pass test
-/// samples a mid-progress frame and asserts the heading's laid-out height is
-/// unchanged from its settled (fully-typed) height.
-///
-/// Unreachable in the CONTRACTS pass: [TypeOnHeading.build] only constructs
-/// this widget when [SectionBuildScope.maybeOf] is non-`null`, and
-/// `RevealBuild`'s current stub never provides one.
+/// heading must not visibly grow/shrink while typing. [_BuildCursorGlyph]
+/// measures [style]'s own line height rather than assuming a font-metric
+/// ratio, so this holds for whatever [TextStyle] a caller passes.
 class _AnimatedHeading extends StatelessWidget {
   const _AnimatedHeading({
     required this.text,
@@ -121,5 +117,60 @@ class _AnimatedHeading extends StatelessWidget {
   final Animation<double> progress;
 
   @override
-  Widget build(BuildContext context) => throw UnimplementedError('green pass');
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: progress,
+      builder: (context, _) {
+        final length = text.length;
+        final shown = headingCharsShown(progress.value, length);
+        return Semantics(
+          label: text,
+          child: ExcludeSemantics(
+            child: Text.rich(
+              TextSpan(
+                style: style,
+                children: [
+                  TextSpan(text: text.substring(0, shown)),
+                  if (headingCursorVisible(progress.value))
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.middle,
+                      child: _BuildCursorGlyph(style: style),
+                    ),
+                ],
+              ),
+              overflow: overflow,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// The solid block caret shown by [_AnimatedHeading] while typing.
+///
+/// Sized from [style]'s *own* measured line height (via a throwaway
+/// [TextPainter] rather than an assumed font-metric ratio) so it fits inside
+/// the paragraph's line box under any [TextStyle] a caller passes —
+/// embedding it as a [WidgetSpan] must never grow the heading's height.
+class _BuildCursorGlyph extends StatelessWidget {
+  const _BuildCursorGlyph({required this.style});
+
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    final metrics = TextPainter(
+      text: TextSpan(text: 'M', style: style),
+      textDirection: Directionality.of(context),
+    )..layout();
+    final fontSize = style.fontSize ?? metrics.height;
+    return Container(
+      width: fontSize * 0.6,
+      // A margin under the measured line height: the placeholder must never
+      // be the tallest thing on the line, whatever style is passed in.
+      height: metrics.height * 0.85,
+      color: AppColors.accentTeal,
+    );
+  }
 }

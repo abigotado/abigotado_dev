@@ -1,4 +1,5 @@
 import 'package:abigotado_dev/src/app/widget/reveal/section_build_scope.dart';
+import 'package:abigotado_dev/src/app/widget/reveal/section_build_timing.dart';
 import 'package:flutter/widgets.dart';
 
 /// Wraps one item of a section's content — a `_LogEntry`, a metric card, the
@@ -19,9 +20,7 @@ import 'package:flutter/widgets.dart';
 ///
 /// ## Animated branch (`SectionBuildScope.maybeOf` returns non-`null`)
 ///
-/// Delegates to [_AnimatedCascadeItem] — see its doc for the intended
-/// green-pass render. Unreachable in the CONTRACTS pass for the same reason
-/// as `TypeOnHeading`'s animated branch.
+/// Delegates to [_AnimatedCascadeItem] — see its doc for the render.
 class BuildCascadeItem extends StatelessWidget {
   /// Creates a cascade-staggered wrapper for item [index] of [count].
   const BuildCascadeItem({
@@ -57,7 +56,7 @@ class BuildCascadeItem extends StatelessWidget {
 /// The fade/slide render of [BuildCascadeItem], active while its section's
 /// build is in progress.
 ///
-/// ## Intended GREEN render
+/// ## Render
 ///
 /// ```dart
 /// return AnimatedBuilder(
@@ -89,10 +88,6 @@ class BuildCascadeItem extends StatelessWidget {
 /// painting, never affecting layout or size — a cascading item must never
 /// shift its siblings or change the section's overall height as it
 /// animates in.
-///
-/// Unreachable in the CONTRACTS pass: [BuildCascadeItem.build] only
-/// constructs this widget when [SectionBuildScope.maybeOf] is non-`null`,
-/// and `RevealBuild`'s current stub never provides one.
 class _AnimatedCascadeItem extends StatelessWidget {
   const _AnimatedCascadeItem({
     required this.index,
@@ -107,5 +102,29 @@ class _AnimatedCascadeItem extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => throw UnimplementedError('green pass');
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: progress,
+      // `child` here is the AnimatedBuilder-cached widget subtree (this
+      // class's own `child` field, passed via the `child:` argument below) —
+      // it is built once, not reconstructed on every tick; only the Opacity/
+      // FractionalTranslation wrapper repaints per frame.
+      builder: (context, child) => Opacity(
+        opacity: cascadeItemOpacity(progress.value, index, count),
+        // The item is genuinely present (mid-cascade content is still
+        // meaningful, unlike a decorative overlay), so its semantics must
+        // stay reachable at every opacity — mirrors `reveal_on_scroll.dart`'s
+        // `alwaysIncludeSemantics: true` on its own AnimatedOpacity.
+        alwaysIncludeSemantics: true,
+        child: FractionalTranslation(
+          translation: Offset(
+            0,
+            cascadeItemSlideDy(progress.value, index, count),
+          ),
+          child: child,
+        ),
+      ),
+      child: child, // this widget's own `child` field.
+    );
+  }
 }

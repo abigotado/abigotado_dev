@@ -25,6 +25,10 @@
 /// continuous motion rather than three discrete steps.
 library;
 
+import 'dart:math' as math;
+
+import 'package:flutter/animation.dart';
+
 /// Total duration, in milliseconds, of the section-build effect.
 const int kSectionBuildMs = 800;
 
@@ -74,7 +78,11 @@ const double kBuildSlideDy = 0.06;
 /// Returns `0.0` for `t <= kChromeBeginFrac` and `1.0` for
 /// `t >= kChromeEndFrac` (clamped, so the chrome stays fully opaque for the
 /// rest of the build once its own window has closed).
-double chromeOpacity(double t) => throw UnimplementedError('green pass');
+double chromeOpacity(double t) {
+  final local = ((t - kChromeBeginFrac) / (kChromeEndFrac - kChromeBeginFrac))
+      .clamp(0.0, 1.0);
+  return Curves.easeOut.transform(local);
+}
 
 /// The number of heading characters shown at normalized build progress [t],
 /// for a heading whose full text is [length] characters long.
@@ -88,8 +96,14 @@ double chromeOpacity(double t) => throw UnimplementedError('green pass');
 /// `t >= kHeadingEndFrac`. [length] is assumed non-negative (a character
 /// count); the `ceil` means the very first character appears as soon as `t`
 /// moves past [kHeadingBeginFrac], rather than requiring a full local step.
-int headingCharsShown(double t, int length) =>
-    throw UnimplementedError('green pass');
+int headingCharsShown(double t, int length) {
+  final local =
+      ((t - kHeadingBeginFrac) / (kHeadingEndFrac - kHeadingBeginFrac)).clamp(
+        0.0,
+        1.0,
+      );
+  return (local * length).ceil();
+}
 
 /// Whether the typing-cursor glyph is visible at normalized build progress
 /// [t].
@@ -100,7 +114,8 @@ int headingCharsShown(double t, int length) =>
 /// heading text is fully shown (`headingCharsShown` reaches its `length`
 /// argument at `t == kHeadingEndFrac`), rather than blinking on after the
 /// heading is already complete.
-bool headingCursorVisible(double t) => throw UnimplementedError('green pass');
+bool headingCursorVisible(double t) =>
+    t >= kHeadingBeginFrac && t < kHeadingEndFrac;
 
 /// The `(begin, end)` progress interval — in the same `[0, 1]` domain as
 /// [chromeOpacity]'s `t` — during which cascade item [index] (of [count]
@@ -127,8 +142,14 @@ bool headingCursorVisible(double t) => throw UnimplementedError('green pass');
 /// there is no item to render, so the specific value returned is a
 /// don't-care — the contract is only that it is well-defined and never
 /// throws or divides by zero.
-({double begin, double end}) cascadeItemInterval(int index, int count) =>
-    throw UnimplementedError('green pass');
+({double begin, double end}) cascadeItemInterval(int index, int count) {
+  if (count <= 1) {
+    return (begin: kCascadeBeginFrac, end: kCascadeEndFrac);
+  }
+  const span = kCascadeEndFrac - kCascadeBeginFrac;
+  final step = math.min(kBuildCascadeStepFrac, span / (count - 1));
+  return (begin: kCascadeBeginFrac + index * step, end: kCascadeEndFrac);
+}
 
 /// The eased opacity of cascade item [index] (of [count] total items) at
 /// normalized build progress [t].
@@ -147,7 +168,7 @@ bool headingCursorVisible(double t) => throw UnimplementedError('green pass');
 ///
 /// Guarantees `t <= begin → 0.0` and `t >= end → 1.0` (endpoint exactness).
 double cascadeItemOpacity(double t, int index, int count) =>
-    throw UnimplementedError('green pass');
+    _cascadeLocalProgress(t, index, count);
 
 /// The eased vertical slide offset of cascade item [index] (of [count] total
 /// items) at normalized build progress [t], as a fraction of the item's own
@@ -161,4 +182,20 @@ double cascadeItemOpacity(double t, int index, int count) =>
 /// Guarantees `t <= begin → kBuildSlideDy` and `t >= end → 0.0` (endpoint
 /// exactness).
 double cascadeItemSlideDy(double t, int index, int count) =>
-    throw UnimplementedError('green pass');
+    kBuildSlideDy * (1 - _cascadeLocalProgress(t, index, count));
+
+/// The eased local progress `[0, 1]` of cascade item [index] (of [count])
+/// within its own [cascadeItemInterval], shared by [cascadeItemOpacity] and
+/// [cascadeItemSlideDy].
+///
+/// Guards the zero-width interval that a large [count] can produce (see
+/// [cascadeItemInterval]'s doc) by comparing `end <= begin` rather than
+/// `end == begin` — robust against floating-point rounding noise in the
+/// computed `begin`, never dividing by exactly zero.
+double _cascadeLocalProgress(double t, int index, int count) {
+  final interval = cascadeItemInterval(index, count);
+  final width = interval.end - interval.begin;
+  if (width <= 0) return t < interval.begin ? 0.0 : 1.0;
+  final local = ((t - interval.begin) / width).clamp(0.0, 1.0);
+  return Curves.easeOut.transform(local);
+}

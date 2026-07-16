@@ -1,4 +1,11 @@
+import 'dart:async';
+
+import 'package:abigotado_dev/src/app/state/scroll_spy_notifier.dart';
 import 'package:abigotado_dev/src/app/widget/editor_file.dart';
+import 'package:abigotado_dev/src/app/widget/reveal/section_build_scope.dart';
+import 'package:abigotado_dev/src/app/widget/reveal/section_build_timing.dart';
+import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
+import 'package:abigotado_dev/src/features/effects/state/effects_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,7 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// types itself out, then its content cascades in), mirroring the hero's
 /// planner → coder → reviewer conceit at the section level.
 ///
-/// ## Intended GREEN render
+/// ## Intended GREEN render (implemented in the green pass)
 ///
 /// ```dart
 /// // Mode is read PER BUILD — the RevealOnScroll / MergeCtaSection
@@ -43,6 +50,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///     animation: controller,
 ///     builder: (context, child) => Opacity(
 ///       opacity: chromeOpacity(controller.value),
+///       // Load-bearing: RenderOpacity excludes semantics at opacity 0
+///       // unless told otherwise — the same footgun `reveal_on_scroll.dart`
+///       // already hit. Without this, an unrevealed section would drop out
+///       // of the accessibility tree instead of merely gating its pointers.
+///       alwaysIncludeSemantics: true,
 ///       child: SectionBuildScope(progress: controller, child: child!),
 ///     ),
 ///     child: widget.child,
@@ -95,14 +107,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///
 /// ## THIS PASS
 ///
-/// `build` is an identity passthrough: `child` renders unchanged, in every
-/// mode, with no controller and no `SectionBuildScope` provided (so every
-/// `TypeOnHeading`/`BuildCascadeItem` beneath it stays on its static
-/// branch). This is required — not just permitted — during the contracts
-/// pass: `LandingPage` already wires this widget in for the metrics/
-/// pubspec/changelog/contacts sections, so its render must be indistinguishable
-/// from the `RevealOnScroll` it replaces until the red suite (against the
-/// "Intended GREEN render" above) drives the real implementation.
+/// [_RevealBuildState.build] is the full "Intended GREEN render" above
+/// (GREEN pass): mode is resolved per build, the controller is lazily
+/// created once in full mode and disposed on a flip to lite, and
+/// [_RevealBuildState._syncToRevealed] implements the four latch-edge cases
+/// documented above.
 class RevealBuild extends ConsumerStatefulWidget {
   /// Creates a section-build reveal wrapper for [child] keyed to [file].
   const RevealBuild({
@@ -121,10 +130,80 @@ class RevealBuild extends ConsumerStatefulWidget {
   ConsumerState<RevealBuild> createState() => _RevealBuildState();
 }
 
-class _RevealBuildState extends ConsumerState<RevealBuild> {
+class _RevealBuildState extends ConsumerState<RevealBuild>
+    with TickerProviderStateMixin {
+  // Not SingleTickerProviderStateMixin: a full → lite → full round trip
+  // disposes and later re-creates the controller, and Single... only ever
+  // permits vending one ticker for the life of the State — see
+  // `LivingBackground`, which hits the same constraint for the same reason.
+  AnimationController? _controller;
+
+  // `null` means "not yet synced to a revealed value" — true at boot and
+  // again immediately after a lite flip discards the controller. The first
+  // sync after either takes the "boot" branch below rather than an edge.
+  bool? _lastRevealed;
+
+  /// Reconciles [controller] to a [revealed] value read this build, per the
+  /// class doc's "Latch wiring" section.
+  void _syncToRevealed(bool revealed, AnimationController controller) {
+    final last = _lastRevealed;
+    _lastRevealed = revealed;
+    if (last == null) {
+      // Boot (or first full-mode build after a lite round trip): render
+      // already-settled with no replay, whichever way `revealed` sits.
+      controller.value = revealed ? 1 : 0;
+      return;
+    }
+    if (last == revealed) return; // Already latched — never replay.
+    if (revealed) {
+      // false → true: defer to a post-frame callback so the ticker never
+      // starts mid-frame on the scroll frame that latched `revealed`.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        unawaited(controller.forward(from: 0));
+      });
+    } else {
+      // true → false: hard jump, never reverse() — an already-built section
+      // must not visibly un-build itself out from under the user.
+      controller.value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // CONTRACTS pass — see the class doc's "THIS PASS" note.
-    return widget.child;
+    final mode = effectsModeOf(context, ref);
+    if (mode == EffectsMode.lite) {
+      _controller?.dispose();
+      _controller = null;
+      _lastRevealed = null;
+      return widget.child;
+    }
+
+    final controller = _controller ??= AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: kSectionBuildMs),
+    );
+
+    final revealed = ref.watch(sectionRevealedProvider(widget.file));
+    _syncToRevealed(revealed, controller);
+
+    return IgnorePointer(
+      ignoring: !revealed,
+      child: AnimatedBuilder(
+        animation: controller,
+        builder: (context, child) => Opacity(
+          opacity: chromeOpacity(controller.value),
+          alwaysIncludeSemantics: true,
+          child: SectionBuildScope(progress: controller, child: child!),
+        ),
+        child: widget.child,
+      ),
+    );
   }
 }
