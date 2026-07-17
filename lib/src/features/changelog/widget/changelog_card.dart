@@ -1,4 +1,5 @@
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
+import 'package:abigotado_dev/src/app/widget/reveal/build_cascade_item.dart';
 import 'package:abigotado_dev/src/app/widget/section_card.dart';
 import 'package:abigotado_dev/src/features/changelog/content/changelog_content.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
@@ -40,6 +41,15 @@ import 'package:flutter/widgets.dart';
 /// `AppColors.accentPurple` at 40 % opacity, 2 px wide, 18 px left padding,
 /// 8 px top/bottom padding.
 ///
+/// ## Section-build cascade
+///
+/// Each `_LogEntry` is wrapped in a `BuildCascadeItem` keyed by its position
+/// among `careerEntries`, so — while beneath an in-progress `RevealBuild` —
+/// the timeline entries fade/slide in one by one. Outside a build in
+/// progress (including this pass, where nothing provides a build scope yet)
+/// `BuildCascadeItem` is a no-op passthrough, so this card's render is
+/// unchanged.
+///
 /// ## Accessibility
 ///
 /// No `Semantics` wrapper is added here — the career timeline is readable
@@ -66,10 +76,15 @@ class ChangelogCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          for (final entry in careerEntries)
-            _LogEntry(
-              versionTag: '${entry.version}$_emDashSeparator${entry.org(l10n)}',
-              what: entry.what(l10n),
+          for (final (i, entry) in careerEntries.indexed)
+            BuildCascadeItem(
+              index: i,
+              count: careerEntries.length,
+              child: _LogEntry(
+                versionTag:
+                    '${entry.version}$_emDashSeparator${entry.org(l10n)}',
+                what: entry.what(l10n),
+              ),
             ),
         ],
       ),

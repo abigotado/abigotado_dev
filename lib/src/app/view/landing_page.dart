@@ -1,6 +1,7 @@
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
 import 'package:abigotado_dev/src/app/widget/content_width.dart';
 import 'package:abigotado_dev/src/app/widget/editor_file.dart';
+import 'package:abigotado_dev/src/app/widget/reveal/reveal_build.dart';
 import 'package:abigotado_dev/src/app/widget/reveal_on_scroll.dart';
 import 'package:abigotado_dev/src/features/changelog/widget/changelog_section.dart';
 import 'package:abigotado_dev/src/features/cta/widget/merge_cta_section.dart';
@@ -22,8 +23,9 @@ import 'package:flutter/material.dart';
 /// closes below everything.
 ///
 /// Each section is wrapped in a [SectionFlash] (the hot-reload "rebuild" wave,
-/// staggered by document `order`) outside its [RevealOnScroll] (so the flash
-/// tint is never dimmed by the reveal fade), and both sit inside the
+/// staggered by document `order`) outside its reveal wrapper (so the flash
+/// tint is never dimmed by the reveal fade) — [RevealOnScroll] for the hero,
+/// [RevealBuild] for every section below it — and both sit inside the
 /// [KeyedSubtree] whose key the scroll host measures.
 ///
 /// [ReadmeEntryChip] and [ReadmeInvitationCard] are deliberately OUTSIDE every
@@ -109,7 +111,7 @@ class LandingPage extends StatelessWidget {
           key: sectionKeys[EditorFile.metrics],
           child: const SectionFlash(
             order: 1,
-            child: RevealOnScroll(
+            child: RevealBuild(
               file: EditorFile.metrics,
               child: MetricsSection(),
             ),
@@ -119,7 +121,7 @@ class LandingPage extends StatelessWidget {
           key: sectionKeys[EditorFile.pubspec],
           child: const SectionFlash(
             order: 2,
-            child: RevealOnScroll(
+            child: RevealBuild(
               file: EditorFile.pubspec,
               child: PubspecSection(),
             ),
@@ -129,7 +131,7 @@ class LandingPage extends StatelessWidget {
           key: sectionKeys[EditorFile.changelog],
           child: const SectionFlash(
             order: 3,
-            child: RevealOnScroll(
+            child: RevealBuild(
               file: EditorFile.changelog,
               child: ChangelogSection(),
             ),
@@ -139,7 +141,7 @@ class LandingPage extends StatelessWidget {
           key: sectionKeys[EditorFile.contacts],
           child: const SectionFlash(
             order: 4,
-            child: RevealOnScroll(
+            child: RevealBuild(
               file: EditorFile.contacts,
               child: MergeCtaSection(),
             ),

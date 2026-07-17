@@ -1,5 +1,6 @@
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
 import 'package:abigotado_dev/src/app/widget/hover/hover_lift.dart';
+import 'package:abigotado_dev/src/app/widget/reveal/type_on_heading.dart';
 import 'package:flutter/widgets.dart';
 
 /// Shared chrome for the file-card sections (pubspec.yaml, CHANGELOG.md).
@@ -65,10 +66,10 @@ class SectionCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Flexible(
-                child: Text(
-                  title,
-                  overflow: TextOverflow.ellipsis,
+                child: TypeOnHeading(
+                  text: title,
                   style: _headerMono,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               Flexible(
