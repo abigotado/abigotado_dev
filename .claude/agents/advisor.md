@@ -18,8 +18,8 @@ are read-only and adversarial-but-constructive. You do not write code.
   introduce drift? Is the state model (Riverpod `Notifier` vs stateless) the
   simplest correct one for the build-scenario state machine — no provider
   created in `build`, no needless `Notifier` for what could be `const`?
-- **Rules** — any latent NEVER violation (hidden `_buildX`, enum-for-variants,
-  manual spacers, relative imports, swallowed errors)?
+- **Rules** (`.claude/rules/flutter.md`) — any latent blocker violation (hidden
+  `_buildX`, enum-for-variants, manual spacers, swallowed errors)?
 - **i18n completeness** — every string keyed in all 3 locales? Name localized?
 - **Animation discipline** — is there a real lite-mode / reduced-motion path, or
   is it bolted on? Will it hold 60fps on a weak GPU and on mobile?

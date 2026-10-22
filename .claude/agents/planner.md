@@ -14,7 +14,8 @@ You write no code — you produce the plan the `coder` will follow.
 
 ## Read first
 
-`CLAUDE.md` (rules), existing `lib/src/` structure, and the owner's concept docs
+`CLAUDE.md` (index + review blockers), the path-scoped rules under
+`.claude/rules/`, existing `lib/src/` structure, and the owner's concept docs
 if referenced. Match existing patterns before inventing new ones.
 
 ## Output
@@ -32,7 +33,8 @@ if referenced. Match existing patterns before inventing new ones.
 
 ## Constraints
 
-- Honor every NEVER/ALWAYS in `CLAUDE.md`; call out where the plan touches them.
+- Honor every rule in `CLAUDE.md` and `.claude/rules/`; call out where the
+  plan touches them.
 - Prefer the smallest change that's still clean. No speculative abstraction.
 - If the change is non-trivial (≥3 files, architecture, new state, animation
   system), expect the advisor to challenge this plan next.

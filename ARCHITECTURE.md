@@ -1,8 +1,9 @@
 # ARCHITECTURE — abigotado.dev
 
-Clear, enforceable rules for this codebase. `CLAUDE.md` is the source of the
-NEVER/ALWAYS list; this document fixes the *structure* so there's no ambiguity
-about where things go. The repo is public — the architecture is part of the
+Clear, enforceable rules for this codebase. `CLAUDE.md` indexes the rulebook
+(review blockers; the detailed rules are path-scoped under `.claude/rules/`);
+this document fixes the *structure* so there's no ambiguity about where things
+go. The repo is public — the architecture is part of the
 portfolio.
 
 ## 1. Layering: feature-first

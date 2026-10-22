@@ -3,8 +3,19 @@
 Personal landing of Nikita Kovalenko. **Flutter Web**, public repo. The code is
 itself a portfolio artifact: every line must be review-grade.
 
-Concept and product plan live with the owner's notes (iCloud `Documents/CV/landing/`:
-`CONCEPT.md`, `PLAN.md`, `mockup_v1.html`). This file governs *how the code is written*.
+This file is the always-loaded index: what the project is, the review blockers,
+the gate, the workflow. The detailed rulebook is path-scoped under
+[`.claude/rules/`](.claude/rules/) and loads with the files it governs;
+structure lives in [`ARCHITECTURE.md`](ARCHITECTURE.md). Concept and product
+plan live in the owner's notes, outside the repo.
+
+## Scope & layering
+
+The committed harness is self-contained: everything needed to contribute
+correctly is in this repo or enforced mechanically (analyzer, CI, the
+permission denials in `.claude/settings.json`). On the owner's machine a
+user-scope harness layers generic engineering rules on top; nothing here
+depends on it, and nothing from it is duplicated here.
 
 ## What this is
 
@@ -13,75 +24,54 @@ A landing page whose conceit is that a multi-agent pipeline builds it live
 Trilingual (ru/en/es), mobile-first, heavy on tasteful animation — always with a
 **lite mode** escape hatch.
 
-## Architecture
+## Architecture (full detail: ARCHITECTURE.md)
 
-- **Feature-first** under `lib/src/`. Each feature owns its `view/`, state, and
-  any local widgets. Shared cross-feature code lives in `lib/src/app/` (theme,
-  bootstrap) and `lib/src/core/` (utilities, locale resolution).
-- State: **Riverpod with codegen** (`@riverpod` + `build_runner`), minimal and
-  explicit. The build scenario is a small state machine (planning → coding →
-  reviewing → released) — model it with a `@riverpod` `Notifier` exposing an
-  immutable state, not ad-hoc setState scattered across widgets. Derived values
-  use `@riverpod` functions. Generated `*.g.dart` is **committed** so the repo
-  still clones and runs with `pub get` alone. No `riverpod_lint`/`custom_lint`.
-- State classes are immutable and extend `Equatable` (freezed is not used).
-- i18n: `flutter_localizations` + arb files (`ru`/`en`/`es`). The name is a
-  localized key (Никита Коваленко ↔ Nikita Kovalenko), not a hardcoded string.
-- Generated build_runner output (`*.g.dart`, `*.mocks.dart`) is **committed**;
-  l10n gen output stays git-ignored (Flutter regenerates it on build). Never
-  edit generated files by hand — regenerate via `build_runner`.
+- **Feature-first** under `lib/src/`: `app/` (shell, theme), `core/` (pure
+  logic, no UI), `features/<name>/{state,view,widget}`, `l10n/` (arb ru/en/es).
+- State: **Riverpod with codegen** — a `@riverpod` `Notifier` exposing an
+  immutable `Equatable` state per concern (the build scenario is a state
+  machine: planning → coding → reviewing → released); derived values are
+  `@riverpod` functions. Freezed is not used.
+- Generated `*.g.dart` is **committed** (the repo clones and runs with
+  `pub get` alone); l10n gen output is git-ignored. Generated files are never
+  edited by hand — regenerate via `build_runner`; `.claude/settings.json`
+  denies editing them outright.
+- i18n: every user-visible string is an arb key in all three locales — the
+  name included (Никита Коваленко ↔ Nikita Kovalenko).
 
-Full layering and conventions: see [`ARCHITECTURE.md`](ARCHITECTURE.md).
+## Rules
 
-## NEVER
+| Scope | File | Covers |
+|---|---|---|
+| `lib/**/*.dart` | [`.claude/rules/flutter.md`](.claude/rules/flutter.md) | widgets, state, errors, animation |
+| `lib/src/l10n/**` | [`.claude/rules/i18n.md`](.claude/rules/i18n.md) | arb discipline |
+| `test/**/*.dart` | [`.claude/rules/testing.md`](.claude/rules/testing.md) | tests, goldens |
 
-- `Widget _buildX()` helper methods — extract a Widget class instead. (Named
-  `Builder`-callbacks are allowed only when data params genuinely can't express it.)
-- Enums for widget factory variants — use a sealed base class + private factory
-  subclasses (single `build()`, abstract getters for primitives, `switch (this)`
-  for the widget-varying parts).
-- `DecoratedBox` + `Padding` separately — use `Container` when you need both.
-- Manual `SizedBox` spacers between children — use `Row/Column(spacing:)`.
-- `MediaQuery.of(context).size/padding` — use `MediaQuery.sizeOf/paddingOf`.
-- Editing generated files (`*.g.dart`, `*.mocks.dart`, l10n gen) by hand —
-  regenerate them with `build_runner` instead.
-- Relative imports — `package:abigotado_dev/...` everywhere (enforced by lint).
-- Nested ternaries — `switch` expression or `if-case`.
-- `catch (_)` / silent swallow — `catch (e, s)` and log; handle inside the
-  `Notifier` (state boundary), never let it reach the UI raw.
-- Hardcoded UI strings — every user-visible string is an arb key in all 3 locales.
-- An effect with no lite-mode fallback — animation must degrade gracefully.
+Review blockers — the short form; full statements in the rule files:
 
-## ALWAYS
+- `Widget _buildX()` helpers (extract a Widget class) and enum-driven widget
+  variants (sealed base + private factory subclasses).
+- Hardcoded UI strings — every string is an arb key in ru/en/es.
+- An effect without a lite-mode / `prefers-reduced-motion` fallback.
+- `--update-goldens` outside Linux CI — baselines come from `golden.yml` only.
+- Hand-edits to generated files.
 
-- `const` constructors and `final` fields wherever possible.
-- `switch` expressions over ternaries for conditional values; `if-case` for
-  pattern-matched control flow.
-- `Equatable` for state and model classes (freezed is not used).
-- `ConsumerWidget` / `Consumer` to read providers; never create providers
-  inside `build`. Watch in `build`, read in callbacks.
-- `dispose()` controllers, tickers, streams, subscriptions in StatefulWidgets.
-- Check `mounted` across async gaps before using `BuildContext`.
-- Respect `prefers-reduced-motion` and the manual effects toggle in every
-  animated widget.
-- Test boundaries, not internals. Write a test only if a real bug could break it.
+The analyzer (`very_good_analysis` + strict modes, `--fatal-infos`) carries the
+style floor — `const`/`final`, single quotes, `package:` imports — so neither
+this file nor the rules restate what already fails the build.
 
-## Testing
+## The gate
 
-- `test/` mirrors `lib/src/` by feature.
-- Golden tests for visual sections (the "golden screenshots pass golden tests"
-  conceit is real CI here). Widget tests for locale resolution and the build
-  scenario state machine. Notifier logic: unit-test with a `ProviderContainer`.
-- **Run before declaring done** (the strict gate):
-  ```
-  dart run build_runner build --delete-conflicting-outputs   # regen committed codegen
-  dart format --set-exit-if-changed .
-  flutter analyze --fatal-infos --fatal-warnings   # ANY lint fails the build
-  flutter test
-  ```
-  Analyzer must be 100% clean — there is no "info" tier here; everything is a
-  blocker. After changing any `@riverpod` provider, regenerate and commit the
-  `*.g.dart` so the tracked output never drifts.
+Run before declaring anything done — `/gate` runs it; CI (`ci.yml`) repeats it
+on every PR:
+
+```bash
+flutter gen-l10n                                           # git-ignored gen; a fresh checkout has none
+dart run build_runner build --delete-conflicting-outputs   # regen committed codegen
+dart format --set-exit-if-changed .
+flutter analyze --fatal-infos --fatal-warnings   # ANY lint fails the build
+flutter test   # golden-tagged tests skip locally by design (Linux CI verifies)
+```
 
 ## Agent workflow
 
@@ -104,10 +94,12 @@ Orchestration runs at the **main session level** (subagents can't dispatch
 subagents). The main session executes the chain the orchestrator playbook
 produces. Single-file mechanical fixes may skip the pipeline.
 
-## Verification & git
+## Git & publication
 
-- Verify locally before every commit: `dart run build_runner build --delete-conflicting-outputs && dart format --set-exit-if-changed . && flutter analyze --fatal-infos --fatal-warnings && flutter test`
-- **Local-first**: no remote, no push until the owner explicitly says so.
-- Commit messages are public and part of the showcase — write them well.
-- Before the first push: audit `git ls-files` by hand; the repo must contain
-  nothing but intended, showcase-worthy files.
+- Work lands via pull requests into `main` — `/ship` encodes the procedure.
+  Never push or merge `main` directly: every `main` push deploys production
+  (`cd.yml` → GitHub Pages).
+- Branches CI runs on: `feat/**`, `fix/**`, `chore/**`, `docs/**`.
+- Golden baselines regenerate only via the owner-triggered `generate` job in
+  `golden.yml` (runs on `main`, pushes a `chore/goldens-*` review branch).
+- Commit messages and PRs are public and part of the showcase — write them well.
