@@ -1,5 +1,6 @@
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
 import 'package:abigotado_dev/src/app/widget/contact_link_tile.dart';
+import 'package:abigotado_dev/src/app/widget/cv_link_tile.dart';
 import 'package:abigotado_dev/src/core/content/contact_links.dart';
 import 'package:abigotado_dev/src/core/content/localized_text.dart';
 import 'package:abigotado_dev/src/features/readme/content/education_content.dart';
@@ -537,7 +538,7 @@ class _ReadmeLanguages extends StatelessWidget {
 }
 
 /// The contacts section: [heading] followed by a [Wrap] of [ContactLinkTile]
-/// widgets built from [contactLinks].
+/// widgets built from [contactLinks], then the résumé [CvLinkTile].
 class _ReadmeContacts extends StatelessWidget {
   const _ReadmeContacts({required this.heading});
 
@@ -556,6 +557,7 @@ class _ReadmeContacts extends StatelessWidget {
           runSpacing: 8,
           children: [
             for (final link in contactLinks) ContactLinkTile(link: link),
+            const CvLinkTile(),
           ],
         ),
       ],

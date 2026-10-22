@@ -144,7 +144,7 @@
   "@w5": {
     "description": "Career v1.0 description line."
   },
-  "w6": "streams → UI responsiveness ×3–5 · AI agents for routine · architecture refactoring",
+  "w6": "team coordination & releases · full-stack: Flutter + Node.js/TS + Next.js · AI toolkit from ticket to PR · UI responsiveness ×3–5",
   "@w6": {
     "description": "Career v6.x description line."
   },
@@ -183,6 +183,10 @@
   "hotreload_hint": "Rebuilds the page sections without reloading",
   "@hotreload_hint": {
     "description": "Accessibility hint / tooltip for the hot-reload FAB describing what tapping it does."
+  },
+  "cv_pdf": "CV · PDF",
+  "@cv_pdf": {
+    "description": "Label of the contact chip that opens the résumé PDF for the active locale (es falls back to the English PDF, so its label says so)."
   },
 
   "rm_entry_chip": "README.md — the plain-language version",
@@ -241,11 +245,11 @@
   "@rm_collab_team": {
     "description": "README document — collaboration format: assembling and leading a team."
   },
-  "rm_about": "My core expertise is Flutter: 5+ years of cross-platform development, from architecture designed from scratch (DDD, Clean Architecture, feature-first) to shipping in the stores. Around the code, I build out the whole engineering process: Git flow, CI/CD, review, and testing with a 70–75% coverage bar. I mentor developers and run technical interviews. When needed I work full-stack: backend (Java, SQL), infrastructure (Docker, nginx, CI/CD), plus working knowledge of Go and C++.",
+  "rm_about": "My core expertise is Flutter: 5+ years of cross-platform development, from architecture designed from scratch (DDD, Clean Architecture, feature-first) to shipping in the stores. Around the code, I build out the whole engineering process: Git flow, CI/CD, review, and testing with a 70–75% coverage bar. I coordinate a project team's work: task breakdown, releases, keeping mobile and backend in sync. I mentor developers and run technical interviews. These days I work across the full stack: beyond mobile, Node.js/TypeScript and Java/Spring Boot on the backend, Next.js on the web, SQL, and infrastructure (Docker, nginx, CI/CD), plus working knowledge of Go and C++.",
   "@rm_about": {
     "description": "README document — the main 'about me' paragraph."
   },
-  "rm_ai": "I know how, and like, to build AI engineering into the workflow: multi-agent pipelines and scripts on Claude Code, Codex, opencode, and Cursor give a 2–3x speed-up — held to the same strict review as hand-written code. I stay deeply engaged with the AI space: tracking how models and tools evolve and carrying working practices into the team process.",
+  "rm_ai": "I know how, and like, to build AI engineering into the workflow: I set up agent harnesses, skills, and multi-agent pipelines for teams on Claude Code, Codex, opencode, and Cursor that take a task from ticket to reviewed PR, automated PR review included. They cut task time by 2–3x, and AI-written code is held to the same strict review as hand-written code. I also write open-source CLIs for coding agents. I stay deeply engaged with the AI space: tracking how models and tools evolve and carrying working practices into the team process.",
   "@rm_ai": {
     "description": "README document — the AI-first engineering paragraph."
   },
@@ -289,17 +293,21 @@
   "@rm_exp1_sum": {
     "description": "README experience entry 1 — one-sentence engagement summary."
   },
-  "rm_exp1_b1": "Reworked stream-heavy state management and made the app 3–5× faster and more responsive",
+  "rm_exp1_b1": "Coordinate the project team's day-to-day work without a formal lead title: split and route tasks, align mobile and backend changes, cut mobile releases",
   "@rm_exp1_b1": {
     "description": "README experience entry 1 — achievement bullet 1."
   },
-  "rm_exp1_b2": "Build custom AI-agent pipelines and scripts that speed up everyday development",
+  "rm_exp1_b2": "Built the team's AI development toolkit: agent skills that take a ticket to a reviewed PR (analysis, implementation with tests, simulator screenshots), automated PR review against company standards, a tracker CLI",
   "@rm_exp1_b2": {
     "description": "README experience entry 1 — achievement bullet 2."
   },
-  "rm_exp1_b3": "Maintain ~85% test coverage and regular code-quality checks across the team",
+  "rm_exp1_b3": "Ship features end to end: Flutter client, Node.js/TypeScript backend, Next.js web",
   "@rm_exp1_b3": {
     "description": "README experience entry 1 — achievement bullet 3."
+  },
+  "rm_exp1_b4": "Reworked stream-heavy state management and made the app ~3–5× faster and more responsive",
+  "@rm_exp1_b4": {
+    "description": "README experience entry 1 — achievement bullet 4."
   },
   "rm_exp2_org": "FinHarbor",
   "@rm_exp2_org": {
@@ -461,15 +469,15 @@
   "@rm_sk4_t": {
     "description": "README skills group 4 — heading."
   },
-  "rm_sk4_b": "Claude Code, Cursor, Codex, opencode, multi-agent dev pipelines, AI-assisted code review, custom automation agents & scripts.",
+  "rm_sk4_b": "Claude Code, Codex, Cursor, opencode, agent harnesses, multi-agent pipelines, agent skills & CLIs, automated PR review, prompt engineering.",
   "@rm_sk4_b": {
     "description": "README skills group 4 — AI-first tooling body line."
   },
-  "rm_sk5_t": "Backend & infrastructure (addition)",
+  "rm_sk5_t": "Backend, web & infrastructure (addition)",
   "@rm_sk5_t": {
     "description": "README skills group 5 — heading."
   },
-  "rm_sk5_b": "Java / Spring Boot, SQL (PostgreSQL, SQLite), REST API design, Docker, CI/CD, nginx; working knowledge of Kubernetes, Go, and C++.",
+  "rm_sk5_b": "Node.js / TypeScript (Fastify), Redis, Next.js / React, Java / Spring Boot, SQL (PostgreSQL, SQLite), REST API design, Docker, CI/CD, nginx / Apache (reverse proxy, WAF); working knowledge of Kubernetes, Go, and C++.",
   "@rm_sk5_b": {
     "description": "README skills group 5 — backend & infrastructure body line."
   },

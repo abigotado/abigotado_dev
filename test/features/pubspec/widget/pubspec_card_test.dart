@@ -361,6 +361,11 @@ void main() {
             contains('architecture DDD'),
             reason: 'acronym DDD must be humanized in the spoken skill list',
           );
+          expect(
+            node.label,
+            contains('fullstack node Next.js'),
+            reason: 'nextjs must be spoken as Next.js, not as one word',
+          );
 
           // Decorative code tokens (version constraints) stay out of the tree:
           // the aggregated label must NOT contain version syntax.

@@ -2,11 +2,11 @@ import 'package:flutter/foundation.dart';
 
 /// One contact entry for the CTA contacts panel.
 ///
-/// [label] is the visible brand string or address literal — not localized,
-/// because phone numbers, handles, and email addresses are invariant across
-/// locales.
+/// [label] is the visible brand string or address literal — the static
+/// entries are not localized, because handles and email addresses are
+/// invariant across locales.
 ///
-/// [url] is the launch target — a `mailto:`, `tel:`, or `https:` URI.
+/// [url] is the launch target — a `mailto:` or `https:` URI.
 ///
 /// **Not equatable by design:** contact links are static configuration, never
 /// compared at runtime. Edit `contactLinks` in `contact_links.dart` to update
@@ -21,9 +21,10 @@ class ContactLink {
   /// Creates a contact link entry.
   const ContactLink({required this.label, required this.url});
 
-  /// Visible label — brand name, number, or email literal. Never localized.
+  /// Visible label. Usually a brand name or email literal; an entry built at
+  /// runtime may pass a localized one.
   final String label;
 
-  /// Launch target: `mailto:`, `tel:`, or `https:` URI string.
+  /// Launch target: a `mailto:` or `https:` URI string.
   final String url;
 }

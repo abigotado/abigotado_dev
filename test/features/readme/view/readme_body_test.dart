@@ -1,5 +1,7 @@
 import 'package:abigotado_dev/src/app/theme/app_theme.dart';
 import 'package:abigotado_dev/src/app/widget/contact_link_tile.dart';
+import 'package:abigotado_dev/src/app/widget/cv_link_tile.dart';
+import 'package:abigotado_dev/src/core/content/contact_links.dart';
 import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
 import 'package:abigotado_dev/src/core/effects/effects_store.dart';
 import 'package:abigotado_dev/src/features/effects/state/effects_notifier.dart';
@@ -266,10 +268,16 @@ void main() {
 
     // -------------------------------------------------------------------------
     group('contacts', () {
-      testWidgets('exactly 5 ContactLinkTile widgets render', (tester) async {
+      testWidgets('every contact plus the résumé chip renders', (
+        tester,
+      ) async {
         await _pumpBody(tester, surface: const Size(1000, 5000));
 
-        expect(find.byType(ContactLinkTile), findsNWidgets(5));
+        expect(find.byType(CvLinkTile), findsOneWidget);
+        expect(
+          find.byType(ContactLinkTile),
+          findsNWidgets(contactLinks.length + 1),
+        );
       });
     });
 

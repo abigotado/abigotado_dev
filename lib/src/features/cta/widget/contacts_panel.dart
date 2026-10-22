@@ -1,5 +1,6 @@
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
 import 'package:abigotado_dev/src/app/widget/contact_link_tile.dart';
+import 'package:abigotado_dev/src/app/widget/cv_link_tile.dart';
 import 'package:abigotado_dev/src/core/content/contact_links.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -7,8 +8,9 @@ import 'package:flutter/material.dart';
 /// The revealed contacts panel shown after the merge button is tapped.
 ///
 /// Renders the `cta_heading` localized heading and a [Wrap] of
-/// [ContactLinkTile] widgets built from [contactLinks]. Wraps cleanly at 320 px
-/// (the narrowest mobile viewport we target).
+/// [ContactLinkTile] widgets built from [contactLinks], then the résumé
+/// [CvLinkTile]. Wraps cleanly at 320 px (the narrowest mobile viewport we
+/// target).
 class ContactsPanel extends StatelessWidget {
   /// Creates the contacts panel.
   const ContactsPanel({super.key});
@@ -35,6 +37,7 @@ class ContactsPanel extends StatelessWidget {
           alignment: WrapAlignment.center,
           children: [
             for (final link in contactLinks) ContactLinkTile(link: link),
+            const CvLinkTile(),
           ],
         ),
       ],
