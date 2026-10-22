@@ -363,7 +363,7 @@ void main() {
           );
           expect(
             node.label,
-            contains('fullstack node Next.js'),
+            contains('fullstack Node.js Next.js'),
             reason: 'nextjs must be spoken as Next.js, not as one word',
           );
 

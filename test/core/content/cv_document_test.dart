@@ -12,10 +12,12 @@ void main() {
   group('cvPdfUrl', () {
     test('ru gets the Russian résumé', () {
       expect(cvPdfUrl('ru'), equals(cvPdfRuUrl));
+      expect(Uri.parse(cvPdfRuUrl).path, endsWith('_ru.pdf'));
     });
 
     test('en gets the English résumé', () {
       expect(cvPdfUrl('en'), equals(cvPdfEnUrl));
+      expect(Uri.parse(cvPdfEnUrl).path, endsWith('_en.pdf'));
     });
 
     test('es, which has no résumé of its own, falls back to English', () {
