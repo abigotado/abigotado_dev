@@ -120,7 +120,7 @@
   "rm_sk4_t": "AI-first инструментарий",
   "rm_sk4_b": "Claude Code, Codex, Cursor, opencode, агентные харнессы, мультиагентные пайплайны, агентные скиллы и CLI, автоматическое ревью PR, prompt engineering.",
   "rm_sk5_t": "Бэкенд, веб и инфраструктура (дополнение)",
-  "rm_sk5_b": "Node.js / TypeScript (Fastify), Redis, Next.js / React, Java / Spring Boot, SQL (PostgreSQL, SQLite), проектирование REST API, Docker, CI/CD, nginx / Apache (reverse proxy, WAF); базово — Kubernetes, Go и C++.",
+  "rm_sk5_b": "Node.js / TypeScript (Fastify), Redis, Next.js / React, Java / Spring Boot, SQL (PostgreSQL, SQLite), проектирование REST API, Docker, CI/CD, nginx / Apache (reverse proxy, WAF); базово — AWS, Kubernetes, Go и C++.",
   "rm_edu1_t": "Магистр программной инженерии, НИЯУ МИФИ (ИИКС)",
   "rm_edu1_d": "средний балл 5.0 из 5.0, красный диплом",
   "rm_edu2_t": "Бакалавр экономики, МГИМО МИД России",

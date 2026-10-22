@@ -477,7 +477,7 @@
   "@rm_sk5_t": {
     "description": "README skills group 5 — heading."
   },
-  "rm_sk5_b": "Node.js / TypeScript (Fastify), Redis, Next.js / React, Java / Spring Boot, SQL (PostgreSQL, SQLite), REST API design, Docker, CI/CD, nginx / Apache (reverse proxy, WAF); working knowledge of Kubernetes, Go, and C++.",
+  "rm_sk5_b": "Node.js / TypeScript (Fastify), Redis, Next.js / React, Java / Spring Boot, SQL (PostgreSQL, SQLite), REST API design, Docker, CI/CD, nginx / Apache (reverse proxy, WAF); working knowledge of AWS, Kubernetes, Go, and C++.",
   "@rm_sk5_b": {
     "description": "README skills group 5 — backend & infrastructure body line."
   },

@@ -120,7 +120,7 @@
   "rm_sk4_t": "Herramientas AI-first",
   "rm_sk4_b": "Claude Code, Codex, Cursor, opencode, harnesses de agentes, pipelines multiagente, skills y CLI para agentes, revisión automática de PR, prompt engineering.",
   "rm_sk5_t": "Backend, web e infraestructura (adicional)",
-  "rm_sk5_b": "Node.js / TypeScript (Fastify), Redis, Next.js / React, Java / Spring Boot, SQL (PostgreSQL, SQLite), diseño de API REST, Docker, CI/CD, nginx / Apache (reverse proxy, WAF); conocimientos de base en Kubernetes, Go y C++.",
+  "rm_sk5_b": "Node.js / TypeScript (Fastify), Redis, Next.js / React, Java / Spring Boot, SQL (PostgreSQL, SQLite), diseño de API REST, Docker, CI/CD, nginx / Apache (reverse proxy, WAF); conocimientos de base en AWS, Kubernetes, Go y C++.",
   "rm_edu1_t": "Máster en Ingeniería de Software, Universidad Nuclear Nacional de Investigación MEPhI (IICS)",
   "rm_edu1_d": "promedio 5.0 sobre 5.0, diploma con honores",
   "rm_edu2_t": "Licenciatura en Economía, Universidad MGIMO",
