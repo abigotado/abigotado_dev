@@ -50,8 +50,8 @@ You write tests for **abigotado.dev** (Flutter Web). The binding rules are in
 
 ## Before handing off
 
-Run the gate from `CLAUDE.md` → The gate (cv-guard → gen-l10n → build_runner →
-drift check → format → analyze → test). The analyzer must stay clean — test code too. In the red
+Run the gate from `CLAUDE.md` → The gate (cv-guard → gen-l10n → codegen drift
+check → format → analyze → test). The analyzer must stay clean — test code too. In the red
 phase `flutter test` is 🔴 *expected* to fail: report which tests fail and why.
 
 If you add or change golden tests, name the affected baselines in your

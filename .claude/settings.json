@@ -3,11 +3,8 @@
   "permissions": {
     "deny": [
       "Edit(**/*.g.dart)",
-      "Write(**/*.g.dart)",
       "Edit(**/*.mocks.dart)",
-      "Write(**/*.mocks.dart)",
       "Edit(lib/src/l10n/gen/**)",
-      "Write(lib/src/l10n/gen/**)",
       "Read(./.env)",
       "Read(./.env.*)",
       "Read(**/*.pem)",

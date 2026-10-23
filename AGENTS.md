@@ -14,8 +14,8 @@ portfolio surface.
 
 Run the canonical gate — the one block in [`CLAUDE.md`](CLAUDE.md) → **The
 gate**, which `/gate` executes and CI repeats: CV phone guard → gen-l10n →
-build_runner → codegen drift check → format → analyze → test. Golden-tagged
-tests skip locally by design (Linux CI verifies them).
+codegen drift check (runs build_runner) → format → analyze → test.
+Golden-tagged tests skip locally by design (Linux CI verifies them).
 
 ## Git
 

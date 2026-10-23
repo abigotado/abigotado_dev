@@ -94,8 +94,9 @@ Rules:
 ## 7. The strict gate
 
 The canonical gate is the one block in `CLAUDE.md` → **The gate** — `/gate`
-executes it, CI repeats it: CV phone guard → gen-l10n → build_runner → codegen
-drift check → format → analyze → test. Nothing is "done" until it passes.
+executes it, CI repeats it: CV phone guard → gen-l10n → codegen drift check
+(runs build_runner) → format → analyze → test. Nothing is "done" until it
+passes.
 
 There is no "info" severity tier in practice: `--fatal-infos` makes every lint a
 build failure. Base ruleset is `very_good_analysis` with strict casts, inference,

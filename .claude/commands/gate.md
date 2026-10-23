@@ -1,5 +1,5 @@
 ---
-description: Run the strict quality gate (CV guard → gen-l10n → codegen → drift check → format → analyze → test)
+description: Run the strict quality gate (CV guard → gen-l10n → codegen drift → format → analyze → test)
 ---
 
 Run the project's strict gate, in order, stopping at the first failure:
@@ -9,13 +9,13 @@ Run the project's strict gate, in order, stopping at the first failure:
    (poppler); CI installs it, a local run needs it on PATH.
 2. `flutter gen-l10n` — the l10n gen output is git-ignored; a fresh checkout
    or worktree has none.
-3. `dart run build_runner build --delete-conflicting-outputs`
-4. `test -z "$(git status --porcelain -- '*.g.dart')"` — drift guard, same as
-   CI: the regenerated codegen must already be committed; a failure means
-   stage the build_runner output with its source.
-5. `dart format --output=none --set-exit-if-changed .`
-6. `flutter analyze --fatal-infos --fatal-warnings`
-7. `flutter test`
+3. `tool/check_codegen_drift.sh` — runs build_runner and fails if any
+   `*.g.dart` changed, naming the stale files: commit the regenerated output.
+   It compares content before and after, so it works in a dirty tree; CI's
+   porcelain drift guard (`ci.yml`) is the equivalent on a clean checkout.
+4. `dart format --output=none --set-exit-if-changed .`
+5. `flutter analyze --fatal-infos --fatal-warnings`
+6. `flutter test`
 
 Rules:
 
@@ -25,4 +25,4 @@ Rules:
   them. Never commit locally generated baselines — a local `--update-goldens`
   preview is throwaway, discarded before commit.
 
-Report the result of each step; the gate passes only when all seven are green.
+Report the result of each step; the gate passes only when all six are green.
