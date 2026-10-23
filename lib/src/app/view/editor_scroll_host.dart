@@ -117,6 +117,9 @@ class _EditorScrollHostState extends ConsumerState<EditorScrollHost> {
       },
       child: SingleChildScrollView(
         controller: _controller,
+        // The viewport's own clip would cut a hovered card's glow one gutter
+        // from its left edge; `EditorPane` clips at the pane bounds instead.
+        clipBehavior: Clip.none,
         child: LandingPage(sectionKeys: _sectionKeys),
       ),
     );

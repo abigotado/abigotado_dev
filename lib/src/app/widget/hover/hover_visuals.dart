@@ -1,5 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
 import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 /// Duration in milliseconds for the hover enter/exit transition.
@@ -20,87 +23,179 @@ const double kHoverGlowOpacity = 0.33;
 /// Approximately 3.5 degrees. The tilt is cursor-tracked: the angle on each
 /// axis scales with the pointer's distance from the card centre — zero at the
 /// centre, this value at the edge — so the card leans toward the cursor.
+/// Large cards lean less: see [kHoverMaxEdgeShift].
 const double kHoverMaxTiltRadians = 0.06;
 
 /// Scale factor applied together with the tilt while hovered in full mode.
+///
+/// Large cards scale less: see [kHoverMaxEdgeShift].
 const double kHoverTiltScale = 1.02;
 
-/// Returns the [BoxDecoration] to use for [rest] given the current hover and
-/// effects state.
+/// Perspective strength of the hover tilt: the `[3][2]` entry of the tilt
+/// matrix, i.e. the reciprocal of the eye's distance (≈ 1000 logical px).
+const double kHoverPerspective = 0.001;
+
+/// Upper bound, in logical pixels, on how far the hover moves any corner of a
+/// card on screen along either axis, tilt and lift scale combined.
 ///
-/// In [EffectsMode.full] **and** [hovered] the returned decoration is
-/// `rest.copyWith` with:
-/// - [Border.all] using [kHoverBorderColor] (replaces the muted resting
-///   border).
-/// - A single [BoxShadow] using [kHoverBorderColor] at [kHoverGlowOpacity] and
-///   [kHoverGlowBlur] (the accent glow).
+/// With a fixed angle the projected shift of a corner grows with the square of
+/// the card's size, and a fixed scale grows it linearly, so a tall file card
+/// would swing and swell by tens of pixels under the same hover that barely
+/// moves a metric card. [hoverTargetPose] splits this budget per card: the
+/// lift scale takes at most half, the perspective tilt the rest. Small cards
+/// keep the full [kHoverMaxTiltRadians] and [kHoverTiltScale]; large cards
+/// move proportionally less.
+const double kHoverMaxEdgeShift = 4;
+
+/// The animated hover state of one card.
 ///
-/// In [EffectsMode.lite] **or** `!hovered` [rest] is returned unchanged so the
-/// card is always static under reduced-motion.
-///
-/// **Contracts (green pass)**:
-/// - `full + hovered` → decoration differs from [rest]: border colour is
-///   [kHoverBorderColor] and `boxShadow` is non-null, non-empty.
-/// - `lite + hovered` → returns [rest] unchanged (same object identity).
-/// - `full + !hovered` → returns [rest] unchanged (same object identity).
-BoxDecoration hoverDecoration({
-  required bool hovered,
-  required EffectsMode mode,
-  required BoxDecoration rest,
-}) {
-  return switch ((mode, hovered)) {
-    (EffectsMode.full, true) => rest.copyWith(
-      border: Border.all(color: kHoverBorderColor),
-      boxShadow: [
-        BoxShadow(
-          color: kHoverBorderColor.withValues(alpha: kHoverGlowOpacity),
-          blurRadius: kHoverGlowBlur,
-        ),
-      ],
-    ),
-    _ => rest,
-  };
+/// `HoverLift` interpolates this value — never a [Matrix4] — and rebuilds the
+/// matrix and decoration from it on every frame. `Matrix4Tween` decomposes a
+/// matrix into translation/rotation/scale and recomposes it, which silently
+/// drops the perspective row, so tweening the matrix itself renders the card
+/// flat mid-animation and snaps it into perspective at the end.
+final class HoverPose extends Equatable {
+  /// Creates a hover pose.
+  const HoverPose({
+    required this.rotateX,
+    required this.rotateY,
+    required this.scale,
+    required this.lift,
+  });
+
+  /// Linearly interpolates every field between [a] and [b].
+  HoverPose.lerp(HoverPose a, HoverPose b, double t)
+    : rotateX = a.rotateX + (b.rotateX - a.rotateX) * t,
+      rotateY = a.rotateY + (b.rotateY - a.rotateY) * t,
+      scale = a.scale + (b.scale - a.scale) * t,
+      lift = a.lift + (b.lift - a.lift) * t;
+
+  /// The resting pose: no tilt, no scale, no lift.
+  static const HoverPose rest = HoverPose(
+    rotateX: 0,
+    rotateY: 0,
+    scale: 1,
+    lift: 0,
+  );
+
+  /// Rotation about the card's horizontal axis, in radians (already capped).
+  final double rotateX;
+
+  /// Rotation about the card's vertical axis, in radians (already capped).
+  final double rotateY;
+
+  /// Uniform scale of the card (already capped); `1` at rest.
+  final double scale;
+
+  /// Hover progress: `0` at rest, `1` fully hovered. Drives the border colour
+  /// and the glow.
+  final double lift;
+
+  @override
+  List<Object?> get props => [rotateX, rotateY, scale, lift];
 }
 
-/// Returns a [Matrix4] transform for the hover lift while hovered in full mode.
-///
-/// In [EffectsMode.full] **and** [hovered] the card is scaled by
-/// [kHoverTiltScale] under a perspective projection (entry [3][2] = 0.001) and
-/// tilted toward the cursor: [pointer] is the cursor position in the card's
-/// local coordinates and [size] its laid-out size, so the X/Y rotation on each
-/// axis grows with the pointer's distance from the centre, up to
-/// [kHoverMaxTiltRadians] at the edges. When [pointer] is `null` (the hover has
-/// just begun, before the first move) or [size] is empty the card is scaled but
-/// flat — the parallax kicks in on the first pointer move.
-///
-/// In [EffectsMode.lite] **or** `!hovered` [Matrix4.identity()] is returned so
-/// the card is painted untransformed (the tilt is a no-op).
+/// The pose a card of [size] animates toward for the current hover input.
 ///
 /// **Contracts**:
-/// - `full + hovered` → returned matrix is not identity (at minimum the scale).
-/// - `full + hovered`, pointer off-centre → tilt differs from the centred one.
-/// - `lite + hovered` → [Matrix4.identity()] (no transform).
-/// - `full + !hovered` → [Matrix4.identity()] (no transform).
-Matrix4 hoverTilt({
+/// - [EffectsMode.lite] or `!hovered` → [HoverPose.rest] (same instance).
+/// - `full + hovered` → `lift: 1`; an empty [size] gets the full
+///   [kHoverTiltScale] and no tilt.
+/// - the lift scale grows the longest side's half `L` by
+///   `min((kHoverTiltScale - 1) * L, kHoverMaxEdgeShift / 2)` px.
+/// - with a `null` [pointer] the card is lifted but flat.
+/// - with a [pointer] (card-local) the card leans toward the cursor: the
+///   pointer is normalised to `[-1, 1]` from the centre on each axis
+///   (clamped), `rotateX = ny * cap`, `rotateY = -nx * cap`. One `cap` serves
+///   both axes, `min(kHoverMaxTiltRadians, rest / (kHoverPerspective * L *
+///   (w + h) / 2))`, where `rest` is the budget the scale left: to first order
+///   the worst corner then moves at most [kHoverMaxEdgeShift] on either axis.
+///   The edge under the cursor recedes; the opposite edge comes toward the
+///   viewer.
+HoverPose hoverTargetPose({
   required bool hovered,
   required Offset? pointer,
   required Size size,
   required EffectsMode mode,
 }) {
-  if (mode != EffectsMode.full || !hovered) return Matrix4.identity();
-
-  final transform = Matrix4.identity()..setEntry(3, 2, 0.001);
-
-  if (pointer != null && size.width > 0 && size.height > 0) {
-    // Normalise the pointer to [-1, 1] from the card centre, clamped so an
-    // event landing on the very edge can't over-rotate past the max angle.
-    final nx = (((pointer.dx / size.width) - 0.5) * 2).clamp(-1.0, 1.0);
-    final ny = (((pointer.dy / size.height) - 0.5) * 2).clamp(-1.0, 1.0);
-    transform
-      ..rotateX(ny * kHoverMaxTiltRadians)
-      ..rotateY(-nx * kHoverMaxTiltRadians);
+  if (mode != EffectsMode.full || !hovered) return HoverPose.rest;
+  if (size.isEmpty) {
+    return const HoverPose(
+      rotateX: 0,
+      rotateY: 0,
+      scale: kHoverTiltScale,
+      lift: 1,
+    );
   }
+  final half = size.longestSide / 2;
+  final growth = math.min(
+    (kHoverTiltScale - 1) * half,
+    kHoverMaxEdgeShift / 2,
+  );
+  final scale = 1 + growth / half;
+  if (pointer == null) {
+    return HoverPose(rotateX: 0, rotateY: 0, scale: scale, lift: 1);
+  }
+  // A corner's depth is `x·θy + y·θx`; perspective shifts it on screen by its
+  // coordinate times that depth, so the worst corner moves `p·L·(w + h)/2·θ`.
+  final cap = math.min(
+    kHoverMaxTiltRadians,
+    (kHoverMaxEdgeShift - growth) /
+        (kHoverPerspective * half * (size.width + size.height) / 2),
+  );
+  final nx = (((pointer.dx / size.width) - 0.5) * 2).clamp(-1.0, 1.0);
+  final ny = (((pointer.dy / size.height) - 0.5) * 2).clamp(-1.0, 1.0);
+  return HoverPose(
+    rotateX: ny * cap,
+    rotateY: -nx * cap,
+    scale: scale,
+    lift: 1,
+  );
+}
 
-  return transform
-    ..scaleByDouble(kHoverTiltScale, kHoverTiltScale, kHoverTiltScale, 1);
+/// The card transform for [pose], applied about the card centre.
+///
+/// **Contracts**:
+/// - [HoverPose.rest] → [Matrix4.identity()], so a resting card's transform
+///   takes `RenderTransform`'s translation fast path and adds no layer.
+/// - otherwise `identity..setEntry(3, 2, kHoverPerspective)
+///   ..rotateX(pose.rotateX)..rotateY(pose.rotateY)` scaled uniformly by
+///   `pose.scale` — the perspective is part of every intermediate frame.
+Matrix4 hoverTransform(HoverPose pose) {
+  if (pose.rotateX == 0 && pose.rotateY == 0 && pose.scale == 1) {
+    return Matrix4.identity();
+  }
+  return Matrix4.identity()
+    ..setEntry(3, 2, kHoverPerspective)
+    ..rotateX(pose.rotateX)
+    ..rotateY(pose.rotateY)
+    ..scaleByDouble(pose.scale, pose.scale, pose.scale, 1);
+}
+
+/// The card decoration at hover progress [lift].
+///
+/// **Contracts**:
+/// - `lift <= 0` → [rest] (same instance).
+/// - otherwise [rest] with its border lerped toward [kHoverBorderColor] by
+///   [lift] and a single [BoxShadow] glow in [kHoverBorderColor] at
+///   `kHoverGlowOpacity * lift` alpha with [kHoverGlowBlur] blur, so the glow
+///   fades in rather than popping; colour and radius preserved.
+BoxDecoration hoverDecoration({
+  required double lift,
+  required BoxDecoration rest,
+}) {
+  if (lift <= 0) return rest;
+  return rest.copyWith(
+    border: BoxBorder.lerp(
+      rest.border,
+      Border.all(color: kHoverBorderColor),
+      lift,
+    ),
+    boxShadow: [
+      BoxShadow(
+        color: kHoverBorderColor.withValues(alpha: kHoverGlowOpacity * lift),
+        blurRadius: kHoverGlowBlur,
+      ),
+    ],
+  );
 }

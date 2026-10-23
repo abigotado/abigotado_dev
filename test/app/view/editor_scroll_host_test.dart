@@ -1,6 +1,8 @@
 import 'package:abigotado_dev/src/app/state/scroll_spy_notifier.dart';
+import 'package:abigotado_dev/src/app/theme/app_sizing.dart';
 import 'package:abigotado_dev/src/app/theme/app_theme.dart';
 import 'package:abigotado_dev/src/app/view/editor_scroll_host.dart';
+import 'package:abigotado_dev/src/app/view/editor_shell.dart';
 import 'package:abigotado_dev/src/app/view/scroll_spy_geometry.dart';
 import 'package:abigotado_dev/src/app/widget/editor_file.dart';
 import 'package:abigotado_dev/src/core/clock/scenario_clock.dart';
@@ -15,6 +17,7 @@ import 'package:abigotado_dev/src/features/effects/state/effects_notifier.dart';
 import 'package:abigotado_dev/src/features/hero/state/build_scenario_notifier.dart';
 import 'package:abigotado_dev/src/features/hero/view/terminal_hero.dart';
 import 'package:abigotado_dev/src/features/locale/state/locale_notifier.dart';
+import 'package:abigotado_dev/src/features/metrics/widget/metric_card.dart';
 import 'package:abigotado_dev/src/features/metrics/widget/metrics_section.dart';
 import 'package:abigotado_dev/src/features/pubspec/widget/pubspec_section.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
@@ -112,6 +115,9 @@ Future<ProviderContainer> _pumpHost(
   // EditorScrollHost — lets a test seed provider state pre-mount (e.g. a
   // pending ScrollRequest enqueued before the host exists).
   void Function(ProviderContainer container)? beforeMount,
+  // Mounts the host inside the real EditorShell (sidebar, pane gutter, status
+  // bar) instead of a bare Scaffold, for tests about the pane's geometry.
+  bool inShell = false,
 }) async {
   await tester.binding.setSurfaceSize(surfaceSize);
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -145,7 +151,10 @@ Future<ProviderContainer> _pumpHost(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: locale,
-            home: const Scaffold(body: EditorScrollHost()),
+            home: switch (inShell) {
+              true => const EditorShell(child: EditorScrollHost()),
+              false => const Scaffold(body: EditorScrollHost()),
+            },
           );
         },
       ),
@@ -759,6 +768,49 @@ void main() {
                 'the drained request must actually scroll PubspecSection '
                 'into the 800 px viewport, not just clear the flag',
           );
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    group('hover headroom', () {
+      testWidgets(
+        "nothing clips the cards' left side closer than both gutters, so a "
+        "hovered card's glow and lean are not cut beside the sidebar",
+        (tester) async {
+          // Regression: EditorPane's gutter sat outside the landing's scroll
+          // view, whose viewport clips — one contentGutter (24 px) left of
+          // every card. The hover glow (24 px blur) plus the lift overflowed
+          // it and was hard-clipped at the top-left of the card. The right
+          // side is bounded by the pane's own edge (the window edge below the
+          // README breakpoint) and keeps one gutter at narrow desktop widths.
+          await _pumpHost(tester, inShell: true);
+          await tester.pumpAndSettle();
+
+          final card = find.byType(MetricCard).first;
+          final cardLeft = tester.getRect(card).left;
+          final clippers = find.ancestor(
+            of: card,
+            matching: find.byWidgetPredicate(
+              (w) => switch (w) {
+                ClipRect(:final clipBehavior) ||
+                SingleChildScrollView(
+                  :final clipBehavior,
+                ) => clipBehavior != Clip.none,
+                _ => false,
+              },
+            ),
+          );
+
+          expect(clippers, findsWidgets, reason: 'the pane must still clip');
+          for (final clipper in clippers.evaluate()) {
+            expect(
+              cardLeft - tester.getRect(find.byWidget(clipper.widget)).left,
+              greaterThanOrEqualTo(2 * AppSizing.contentGutter),
+              reason:
+                  '${clipper.widget.runtimeType} clips too close to the card',
+            );
+          }
         },
       );
     });
