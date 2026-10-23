@@ -14,6 +14,7 @@ import 'package:abigotado_dev/src/features/effects/widget/effects_toggle.dart';
 import 'package:abigotado_dev/src/features/hero/state/build_scenario_notifier.dart';
 import 'package:abigotado_dev/src/features/hero/state/build_scenario_state.dart';
 import 'package:abigotado_dev/src/features/hero/widget/debug_release_banner.dart';
+import 'package:abigotado_dev/src/features/hero/widget/release_tag.dart';
 import 'package:abigotado_dev/src/features/locale/state/locale_notifier.dart';
 import 'package:abigotado_dev/src/features/locale/widget/locale_switcher.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
@@ -180,6 +181,33 @@ void main() {
           expect(find.byType(EditorStatusBar), findsOneWidget);
         },
       );
+
+      // Regression: the compact bar's Wrap shrink-wraps to its controls, so
+      // the bar rendered as a centred strip with the page showing either side.
+      for (final width in const [360.0, 750.0, 1280.0]) {
+        testWidgets('the status bar spans the full width at $width', (
+          tester,
+        ) async {
+          await _pumpShell(tester, surfaceSize: Size(width, 800));
+
+          final bar = tester.getRect(find.byType(EditorStatusBar));
+          expect(bar.left, 0);
+          expect(bar.width, width);
+        });
+      }
+
+      for (final width in const [360.0, 1280.0]) {
+        testWidgets('the release tag is centred on the controls at $width', (
+          tester,
+        ) async {
+          await _pumpShell(tester, surfaceSize: Size(width, 800));
+
+          expect(
+            tester.getCenter(find.byType(ReleaseTag)).dy,
+            closeTo(tester.getCenter(find.byType(LocaleSwitcher)).dy, 0.5),
+          );
+        });
+      }
     });
 
     group('status bar — no overflow at narrow phone widths (es locale)', () {
