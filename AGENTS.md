@@ -12,14 +12,10 @@ portfolio surface.
 
 ## Verify before done
 
-```bash
-tool/check_cv_pdfs.sh --self-test && tool/check_cv_pdfs.sh # CV phone guard, fail-closed (needs pdftotext)
-flutter gen-l10n                                           # git-ignored gen; a fresh checkout has none
-dart run build_runner build --delete-conflicting-outputs   # regen committed codegen
-dart format --set-exit-if-changed .
-flutter analyze --fatal-infos --fatal-warnings   # any lint fails the build
-flutter test   # golden-tagged tests skip locally (Linux CI verifies them)
-```
+Run the canonical gate — the one block in [`CLAUDE.md`](CLAUDE.md) → **The
+gate**, which `/gate` executes and CI repeats: CV phone guard → gen-l10n →
+build_runner → codegen drift check → format → analyze → test. Golden-tagged
+tests skip locally by design (Linux CI verifies them).
 
 ## Git
 

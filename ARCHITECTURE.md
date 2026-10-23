@@ -93,14 +93,9 @@ Rules:
 
 ## 7. The strict gate
 
-Nothing is "done" until all three pass — locally and in CI:
-
-```bash
-dart run build_runner build --delete-conflicting-outputs   # regen committed codegen
-dart format --set-exit-if-changed .
-flutter analyze --fatal-infos --fatal-warnings   # zero tolerance: any lint fails
-flutter test
-```
+The canonical gate is the one block in `CLAUDE.md` → **The gate** — `/gate`
+executes it, CI repeats it: CV phone guard → gen-l10n → build_runner → codegen
+drift check → format → analyze → test. Nothing is "done" until it passes.
 
 There is no "info" severity tier in practice: `--fatal-infos` makes every lint a
 build failure. Base ruleset is `very_good_analysis` with strict casts, inference,

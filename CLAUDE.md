@@ -70,7 +70,8 @@ on every PR:
 tool/check_cv_pdfs.sh --self-test && tool/check_cv_pdfs.sh # CV phone guard, fail-closed (needs pdftotext)
 flutter gen-l10n                                           # git-ignored gen; a fresh checkout has none
 dart run build_runner build --delete-conflicting-outputs   # regen committed codegen
-dart format --set-exit-if-changed .
+test -z "$(git status --porcelain -- '*.g.dart')"          # drift guard: regenerated codegen is committed
+dart format --output=none --set-exit-if-changed .
 flutter analyze --fatal-infos --fatal-warnings   # ANY lint fails the build
 flutter test   # golden-tagged tests skip locally by design (Linux CI verifies)
 ```

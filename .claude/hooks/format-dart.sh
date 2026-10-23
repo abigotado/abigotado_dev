@@ -6,8 +6,12 @@
 # machine without the Flutter toolchain must not turn every edit into noise —
 # the gate and CI still enforce formatting at the end.
 
-command -v dart >/dev/null 2>&1 || exit 0
 command -v python3 >/dev/null 2>&1 || exit 0
+
+# Use the dart bundled with the flutter on PATH: a standalone dart earlier on
+# PATH can be an older SDK whose formatter disagrees with the pinned one.
+flutter_bin=$(command -v flutter 2>/dev/null) && dart_bin="$(dirname "$flutter_bin")/dart"
+[ -x "${dart_bin:-}" ] || dart_bin=$(command -v dart 2>/dev/null) || exit 0
 
 file_path=$(python3 -c '
 import json, sys
@@ -19,5 +23,5 @@ except Exception:
 
 case "$file_path" in
   '' | *.g.dart | *.mocks.dart | */l10n/gen/*) exit 0 ;;
-  *.dart) dart format "$file_path" >/dev/null 2>&1 || exit 0 ;;
+  *.dart) "$dart_bin" format "$file_path" >/dev/null 2>&1 || exit 0 ;;
 esac

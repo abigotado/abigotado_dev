@@ -32,7 +32,8 @@ paths:
   `ref.read` in callbacks, side effects via `ref.listen`. Never create a
   provider inside `build`.
 - After changing any `@riverpod` provider: regenerate with `build_runner` and
-  commit the `*.g.dart` — the tracked output never drifts (CI guards this).
+  commit the `*.g.dart` — the gate's drift check and CI both fail on stale
+  output.
 
 ## Errors & lifecycle
 

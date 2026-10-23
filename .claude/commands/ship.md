@@ -4,7 +4,7 @@ description: Gate, commit, and open a PR into main (never merges)
 
 Ship the current change as a pull request:
 
-1. Run the full gate — the six steps in `/gate` — stopping on the first
+1. Run the full gate — the seven steps in `/gate` — stopping on the first
    failure.
 2. If build_runner regenerated any `*.g.dart`, include it in the commit.
 3. Work from a branch CI runs on — `feat/**`, `fix/**`, `chore/**`, `docs/**`;
