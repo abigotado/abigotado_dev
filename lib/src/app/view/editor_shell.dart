@@ -185,7 +185,7 @@ class _EditorTitleBar extends StatelessWidget {
 /// hot-reload "rebuild" flash it triggers is a pitch-only conceit that has no
 /// meaning over the README document.
 class _PaneWithFab extends ConsumerWidget {
-  const _PaneWithFab({required this.child, this.trailingGutter = 0});
+  const _PaneWithFab({required this.child, required this.trailingGutter});
 
   /// Gap between the FAB and the pane's bottom-right edges.
   static const double _fabMargin = 16;

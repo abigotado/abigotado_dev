@@ -12,8 +12,9 @@ import 'package:flutter/widgets.dart';
 /// edge (the landing's scroll view does not clip; see `EditorScrollHost`).
 /// [trailingGutter] gives the right side the same room. The pane does not pad
 /// it itself: a scroll view placed inside would then draw its scrollbar one
-/// gutter in from the pane edge. Scrollable content reads it through
-/// [EditorPaneGutter.trailingOf] and pads inside its scroll view instead.
+/// gutter in from the pane edge. Content that needs the room (the landing's
+/// scroll host) reads it through [EditorPaneGutter.trailingOf] and pads inside
+/// its own scroll view instead.
 class EditorPane extends StatelessWidget {
   /// Creates the editor pane wrapper.
   const EditorPane({required this.child, this.trailingGutter = 0, super.key});

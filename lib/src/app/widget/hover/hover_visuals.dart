@@ -107,11 +107,10 @@ final class HoverPose extends Equatable {
 /// - with a [pointer] (card-local) the card leans toward the cursor: the
 ///   pointer is normalised to `[-1, 1]` from the centre on each axis
 ///   (clamped), `rotateX = ny * cap`, `rotateY = -nx * cap`. One `cap` serves
-///   both axes, `min(kHoverMaxTiltRadians, rest / (kHoverPerspective * L *
-///   (w + h) / 2))`, where `rest` is the budget the scale left: to first order
-///   the worst corner then moves at most [kHoverMaxEdgeShift] on either axis.
-///   The edge under the cursor recedes; the opposite edge comes toward the
-///   viewer.
+///   both axes: the largest angle, up to [kHoverMaxTiltRadians], at which no
+///   projected corner moves more than [kHoverMaxEdgeShift] on either axis,
+///   scale included (see the derivation in the body). The edge under the
+///   cursor recedes; the opposite edge comes toward the viewer.
 HoverPose hoverTargetPose({
   required bool hovered,
   required Offset? pointer,
@@ -136,12 +135,19 @@ HoverPose hoverTargetPose({
   if (pointer == null) {
     return HoverPose(rotateX: 0, rotateY: 0, scale: scale, lift: 1);
   }
-  // A corner's depth is `x·θy + y·θx`; perspective shifts it on screen by its
-  // coordinate times that depth, so the worst corner moves `p·L·(w + h)/2·θ`.
+  // Strict bound for corner (±hx, ±hy), L = max(hx, hy), D = hx + hy, scale
+  // s and tilt θ on both axes: the corner's depth is at most s·D·θ, so its
+  // perspective divisor w ≥ 1 − p·s·D·θ; on screen it sits at most
+  // s·L·(1 + θ²)/w from the centre (θ² is rotateX·rotateY's cross term, and
+  // θ² ≤ θ·θmax). Keeping that within L + S bounds the corner coming toward
+  // the viewer; a receding corner moves less.
+  final reach = (size.width + size.height) / 2;
   final cap = math.min(
     kHoverMaxTiltRadians,
-    (kHoverMaxEdgeShift - growth) /
-        (kHoverPerspective * half * (size.width + size.height) / 2),
+    (half + kHoverMaxEdgeShift - scale * half) /
+        (scale *
+            (half * kHoverMaxTiltRadians +
+                (half + kHoverMaxEdgeShift) * kHoverPerspective * reach)),
   );
   final nx = (((pointer.dx / size.width) - 0.5) * 2).clamp(-1.0, 1.0);
   final ny = (((pointer.dy / size.height) - 0.5) * 2).clamp(-1.0, 1.0);

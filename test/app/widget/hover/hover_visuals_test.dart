@@ -33,7 +33,8 @@ HoverPose _hoveredAt(Offset pointer, Size size) => hoverTargetPose(
 );
 
 /// The largest on-screen shift, along either axis, of any corner of a [size]
-/// card under the full hover transform, with the pointer on each corner.
+/// card under the full hover transform, with the pointer on each corner, each
+/// edge midpoint and the centre.
 double _worstCornerShift(Size size) {
   final hx = size.width / 2;
   final hy = size.height / 2;
@@ -41,8 +42,12 @@ double _worstCornerShift(Size size) {
     for (final sx in [-1.0, 1.0])
       for (final sy in [-1.0, 1.0]) Offset(sx * hx, sy * hy),
   ];
+  final pointers = [
+    for (final sx in [-1.0, 0.0, 1.0])
+      for (final sy in [-1.0, 0.0, 1.0]) Offset(sx * hx, sy * hy),
+  ];
   var worst = 0.0;
-  for (final pointer in corners) {
+  for (final pointer in pointers) {
     final m = hoverTransform(_hoveredAt(pointer + Offset(hx, hy), size));
     for (final c in corners) {
       final shift = _project(m, c.dx, c.dy).projected - c;
@@ -126,13 +131,19 @@ void main() {
     group('the whole card moves at most kHoverMaxEdgeShift', () {
       // Wide-and-short, tall, and small cards: a cap derived from one axis'
       // extent alone lets a hovered corner drag the opposite one ~12 px.
-      const cards = [Size(950, 300), Size(950, 900), Size(300, 120)];
+      const cards = [
+        Size(950, 300),
+        Size(950, 900),
+        Size(1000, 1000),
+        Size(300, 120),
+        Size(200, 100),
+      ];
 
       for (final card in cards) {
-        test('$card: no corner moves further, pointer on any corner', () {
+        test('$card: no corner moves further, wherever the pointer is', () {
           expect(
             _worstCornerShift(card),
-            lessThanOrEqualTo(kHoverMaxEdgeShift + 0.1),
+            lessThanOrEqualTo(kHoverMaxEdgeShift + 1e-9),
           );
         });
       }
