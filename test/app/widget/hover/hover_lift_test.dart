@@ -32,17 +32,37 @@ final class _FakeEffectsStore implements EffectsStore {
   Future<void> clear() async {}
 }
 
+/// A child that counts how many times it is mounted, so a test can prove the
+/// card content survives the hover round trip without being rebuilt from
+/// scratch (a remount would replay the content's own reveal animations).
+class _MountCounter extends StatefulWidget {
+  const _MountCounter({required this.onMount});
+
+  final VoidCallback onMount;
+
+  @override
+  State<_MountCounter> createState() => _MountCounterState();
+}
+
+class _MountCounterState extends State<_MountCounter> {
+  @override
+  void initState() {
+    super.initState();
+    widget.onMount();
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox(width: 200, height: 80);
+}
+
 // ---------------------------------------------------------------------------
 // Shared rest decoration (same values MetricCard uses in production).
 // ---------------------------------------------------------------------------
 
-const _rest = BoxDecoration(
+final _rest = BoxDecoration(
   color: AppColors.surface,
-  border: Border.symmetric(
-    horizontal: BorderSide(color: AppColors.border),
-    vertical: BorderSide(color: AppColors.border),
-  ),
-  borderRadius: BorderRadius.all(Radius.circular(12)),
+  border: Border.all(color: AppColors.border),
+  borderRadius: const BorderRadius.all(Radius.circular(12)),
 );
 
 // ---------------------------------------------------------------------------
@@ -54,9 +74,9 @@ const _rest = BoxDecoration(
 Future<ProviderContainer> _pump(
   WidgetTester tester, {
   required EffectsMode storedMode,
-  Size surface = const Size(1280, 800),
+  Widget child = const SizedBox(width: 200, height: 80),
 }) async {
-  await tester.binding.setSurfaceSize(surface);
+  await tester.binding.setSurfaceSize(const Size(1280, 800));
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
   final container = ProviderContainer(
@@ -71,14 +91,14 @@ Future<ProviderContainer> _pump(
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
-      child: const MaterialApp(
+      child: MaterialApp(
         debugShowCheckedModeBanner: false,
         home: Scaffold(
           body: Center(
             child: HoverLift(
               restDecoration: _rest,
-              padding: EdgeInsets.all(16),
-              child: SizedBox(width: 200, height: 80),
+              padding: const EdgeInsets.all(16),
+              child: child,
             ),
           ),
         ),
@@ -90,26 +110,41 @@ Future<ProviderContainer> _pump(
 }
 
 // ---------------------------------------------------------------------------
-// Helpers: read the live AnimatedContainer from the tree.
+// Helpers: read what HoverLift actually renders this frame (not its targets).
 // ---------------------------------------------------------------------------
 
-AnimatedContainer _animatedContainer(WidgetTester tester) {
-  return tester.widget<AnimatedContainer>(
-    find.descendant(
-      of: find.byType(HoverLift),
-      matching: find.byType(AnimatedContainer),
-    ),
-  );
-}
+Finder _inHoverLift(Type type) =>
+    find.descendant(of: find.byType(HoverLift), matching: find.byType(type));
 
-BoxDecoration _decoration(WidgetTester tester) =>
-    _animatedContainer(tester).decoration! as BoxDecoration;
+List<Matrix4> _transforms(WidgetTester tester) => [
+  for (final t in tester.widgetList<Transform>(_inHoverLift(Transform)))
+    t.transform,
+];
 
-Matrix4 _transform(WidgetTester tester) =>
-    _animatedContainer(tester).transform ?? Matrix4.identity();
+/// Every transform under the card is the identity: the card sits at rest.
+bool _flat(WidgetTester tester) =>
+    _transforms(tester).every((m) => m == Matrix4.identity());
+
+/// Whether [m] projects with perspective (its bottom row is not 0,0,0,1).
+bool _hasPerspective(Matrix4 m) =>
+    m.entry(3, 0) != 0 ||
+    m.entry(3, 1) != 0 ||
+    m.entry(3, 2) != 0 ||
+    m.entry(3, 3) != 1;
+
+/// Whether [m] rotates the card at all (it is not a pure scale/translation).
+bool _rotates(Matrix4 m) => m.entry(0, 2) != 0 || m.entry(1, 2) != 0;
+
+List<DecoratedBox> _glowBoxes(WidgetTester tester) => [
+  for (final box in tester.widgetList<DecoratedBox>(_inHoverLift(DecoratedBox)))
+    if (box.decoration case BoxDecoration(
+      :final boxShadow?,
+    ) when boxShadow.isNotEmpty)
+      box,
+];
 
 // ---------------------------------------------------------------------------
-// Helper: simulate mouse entering the HoverLift center.
+// Helper: simulate the mouse entering the HoverLift centre.
 // ---------------------------------------------------------------------------
 
 Future<TestGesture> _hoverEnter(WidgetTester tester) async {
@@ -121,221 +156,185 @@ Future<TestGesture> _hoverEnter(WidgetTester tester) async {
   return gesture;
 }
 
+Offset _offCentre(WidgetTester tester) =>
+    tester.getCenter(find.byType(HoverLift)) + const Offset(80, 30);
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
 void main() {
   group('HoverLift', () {
-    group('full mode hover enter', () {
+    group('full mode', () {
+      testWidgets('hover enter → glows and lifts', (tester) async {
+        await _pump(tester, storedMode: EffectsMode.full);
+
+        await _hoverEnter(tester);
+        await tester.pumpAndSettle();
+
+        expect(_glowBoxes(tester), isNotEmpty);
+        expect(_flat(tester), isFalse, reason: 'the card must lift on hover');
+      });
+
+      testWidgets('tilt follows the pointer', (tester) async {
+        await _pump(tester, storedMode: EffectsMode.full);
+
+        final gesture = await _hoverEnter(tester);
+        await tester.pumpAndSettle();
+        final atCentre = _transforms(tester);
+
+        await gesture.moveTo(_offCentre(tester));
+        await tester.pumpAndSettle();
+
+        expect(_transforms(tester), isNot(equals(atCentre)));
+      });
+
       testWidgets(
-        'hover enter → decoration glows AND transform tilts',
+        'retargets mid-flight keep the perspective tilt and continuity',
         (tester) async {
-          // Surface is wide (1280 px) so effectsModeOf resolves to full.
-          // After moveTo the card center the MouseRegion fires onEnter.
-          //
-          // RED: the stub wires no onEnter callback → _hovered stays false →
-          // decoration == rest (no boxShadow) and transform == identity.
-          // The test fails because both assertions are violated by the stub.
-          await _pump(tester, storedMode: EffectsMode.full);
-
-          await _hoverEnter(tester);
-
-          expect(
-            _decoration(tester).boxShadow,
-            isNotNull,
-            reason:
-                'full mode: hover enter must add a glow boxShadow '
-                '(hoverDecoration applied)',
-          );
-          expect(
-            _transform(tester),
-            isNot(equals(Matrix4.identity())),
-            reason:
-                'full mode: hover enter must apply a non-identity tilt '
-                '(hoverTilt applied)',
-          );
-        },
-      );
-    });
-
-    group('full mode cursor tracking', () {
-      testWidgets(
-        'tilt follows the pointer: centre and off-centre transforms differ',
-        (tester) async {
-          await _pump(tester, storedMode: EffectsMode.full);
-
-          final gesture = await _hoverEnter(tester); // pointer at centre
-          final atCentre = _transform(tester);
-
-          // Move toward the bottom-right quadrant, staying over the card so
-          // onHover (not onExit) fires with a new local position.
-          await gesture.moveTo(
-            tester.getCenter(find.byType(HoverLift)) + const Offset(80, 30),
-          );
-          await tester.pump();
-          final offCentre = _transform(tester);
-
-          expect(
-            offCentre,
-            isNot(equals(atCentre)),
-            reason:
-                'full mode: the tilt must track the pointer — moving the '
-                'cursor off-centre must change the transform target',
-          );
-        },
-      );
-    });
-
-    group('full mode hover exit', () {
-      testWidgets(
-        'hover exit → rest decoration (no boxShadow) + identity transform',
-        (tester) async {
-          // Enter then leave; the card must return to rest.
-          //
-          // With the stub this trivially passes because hover never activates.
-          // Kept as a structural round-trip guard; it becomes meaningful after
-          // the green pass because a missing onExit would leave the card stuck.
+          // Regression: Matrix4Tween drops the perspective row for t < 1, so
+          // following the cursor rendered the card flat and snapped it into
+          // perspective only once the pointer had been still for kHoverAnimMs.
           await _pump(tester, storedMode: EffectsMode.full);
 
           final gesture = await _hoverEnter(tester);
+          await tester.pumpAndSettle();
 
-          // Move pointer far off the card.
-          await gesture.moveTo(Offset.zero);
+          await gesture.moveTo(_offCentre(tester));
           await tester.pump();
+          await tester.pump(const Duration(milliseconds: kHoverAnimMs ~/ 4));
+          final before = _transforms(tester).single;
 
-          expect(
-            _decoration(tester).boxShadow,
-            isNull,
-            reason: 'after hover exit boxShadow must be cleared (rest)',
-          );
-          expect(
-            _transform(tester),
-            equals(Matrix4.identity()),
-            reason: 'after hover exit transform must return to identity',
-          );
-        },
-      );
-    });
+          // Retarget again while the first tween is still running.
+          final centre = tester.getCenter(find.byType(HoverLift));
+          await gesture.moveTo(centre - const Offset(80, 30));
+          await tester.pump();
+          final after = _transforms(tester).single;
+          await tester.pump(const Duration(milliseconds: kHoverAnimMs ~/ 2));
+          final later = _transforms(tester).single;
 
-    group('AnimatedContainer duration', () {
-      testWidgets(
-        'full mode: AnimatedContainer.duration == kHoverAnimMs',
-        (tester) async {
-          // GREEN guard — the stub already gates duration from mode.
-          // Must stay green through the green pass.
-          await _pump(tester, storedMode: EffectsMode.full);
-
+          for (final m in [before, after, later]) {
+            expect(
+              _hasPerspective(m) && _rotates(m),
+              isTrue,
+              reason: 'every frame of a retarget must lean in perspective',
+            );
+          }
           expect(
-            _animatedContainer(tester).duration,
-            equals(const Duration(milliseconds: kHoverAnimMs)),
-            reason: 'full mode AnimatedContainer duration must be kHoverAnimMs',
+            (after.entry(0, 2) - before.entry(0, 2)).abs(),
+            lessThan((later.entry(0, 2) - before.entry(0, 2)).abs()),
+            reason:
+                'the retarget must continue from the current lean, not jump, '
+                'and keep moving toward the new target',
           );
         },
       );
+
+      testWidgets('hover exit eases the tilt out in perspective', (
+        tester,
+      ) async {
+        await _pump(tester, storedMode: EffectsMode.full);
+
+        final gesture = await _hoverEnter(tester);
+        await gesture.moveTo(_offCentre(tester));
+        await tester.pumpAndSettle();
+
+        await gesture.moveTo(Offset.zero);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: kHoverAnimMs ~/ 2));
+
+        expect(
+          _transforms(tester).any(_hasPerspective),
+          isTrue,
+          reason: 'the exit must ease back, not drop the perspective at once',
+        );
+      });
+
+      testWidgets('hover exit → rest: no glow, flat', (tester) async {
+        await _pump(tester, storedMode: EffectsMode.full);
+
+        final gesture = await _hoverEnter(tester);
+        await tester.pumpAndSettle();
+
+        await gesture.moveTo(Offset.zero);
+        await tester.pumpAndSettle();
+
+        expect(_glowBoxes(tester), isEmpty);
+        expect(_flat(tester), isTrue);
+      });
+
+      testWidgets('the card content is not remounted by a hover round trip', (
+        tester,
+      ) async {
+        var mounts = 0;
+        await _pump(
+          tester,
+          storedMode: EffectsMode.full,
+          child: _MountCounter(onMount: () => mounts++),
+        );
+
+        final gesture = await _hoverEnter(tester);
+        await gesture.moveTo(_offCentre(tester));
+        await tester.pumpAndSettle();
+        await gesture.moveTo(Offset.zero);
+        await tester.pumpAndSettle();
+
+        expect(mounts, 1);
+      });
     });
 
     group('lite mode', () {
-      testWidgets(
-        'lite: zero tickers + rest + identity even after simulated enter',
-        (tester) async {
-          // GREEN guard — stub: no callbacks are wired → lite behaviour is
-          // already correct. Keeps the contract locked through the green pass
-          // (a misguided green implementation that wires callbacks
-          // unconditionally would fail this).
-          await _pump(tester, storedMode: EffectsMode.lite);
+      testWidgets('no ticker, no glow, flat — even on hover', (tester) async {
+        await _pump(tester, storedMode: EffectsMode.lite);
 
-          await _hoverEnter(tester);
-          await tester.pumpAndSettle();
+        await _hoverEnter(tester);
 
-          expect(
-            tester.binding.transientCallbackCount,
-            equals(0),
-            reason:
-                'lite mode: no animation tickers must be running '
-                '(Duration.zero prevents implicit tick registration)',
-          );
-          expect(
-            _animatedContainer(tester).duration,
-            equals(Duration.zero),
-            reason: 'lite mode: AnimatedContainer duration must be zero',
-          );
-          expect(
-            _decoration(tester).boxShadow,
-            isNull,
-            reason: 'lite mode: boxShadow must remain null even on hover enter',
-          );
-          expect(
-            _transform(tester),
-            equals(Matrix4.identity()),
-            reason: 'lite mode: transform must remain identity even on hover',
-          );
-        },
-      );
+        expect(
+          tester.binding.transientCallbackCount,
+          0,
+          reason: 'lite mode must not run any animation ticker',
+        );
+        expect(_glowBoxes(tester), isEmpty);
+        expect(_flat(tester), isTrue);
+      });
     });
 
     group('stuck-state: full hover then flip to lite', () {
       testWidgets(
-        'full hover → flip to lite → rest+identity; '
-        'flip back to full with pointer away → still rest',
+        'flip to lite renders rest; leaving in lite and flipping back to '
+        'full leaves no phantom hover',
         (tester) async {
-          // Exercises the stuck-hover clear path described in HoverLift's
-          // docstring: when the mode flips to lite while hovered, a post-frame
-          // callback must reset _hovered so the card doesn't stay glowing.
-          //
-          // RED: the stub never sets _hovered so the "enter" in full mode is
-          // already inert. The test still pins the contract: after the green
-          // pass wires callbacks, a missing post-frame reset would leave
-          // _hovered=true when flipping to lite, and the decoration/transform
-          // would fail the rest check on the next full flip.
           final container = await _pump(tester, storedMode: EffectsMode.full);
 
-          // Step 1: enter hover in full mode
-          // (sets _hovered=true on green pass).
-          await _hoverEnter(tester);
+          final gesture = await _hoverEnter(tester);
+          await gesture.moveTo(_offCentre(tester));
+          await tester.pumpAndSettle();
 
-          // Step 2: flip to lite while still hovered.
           await container
               .read(effectsProvider.notifier)
               .setMode(EffectsMode.lite);
           await tester.pump(); // state rebuild
-          await tester.pump(); // post-frame callback fires
+          await tester.pump(); // post-frame reset fires
 
-          // In lite mode the card must always show rest regardless of _hovered.
-          expect(
-            _decoration(tester).boxShadow,
-            isNull,
-            reason:
-                'after flip to lite, boxShadow must be null '
-                '(lite mode never glows)',
-          );
-          expect(
-            _transform(tester),
-            equals(Matrix4.identity()),
-            reason:
-                'after flip to lite, transform must be identity '
-                '(lite mode never tilts)',
-          );
+          expect(_glowBoxes(tester), isEmpty);
+          expect(_flat(tester), isTrue);
 
-          // Step 3: flip back to full. Pointer is still at card center (we
-          // never moved the gesture away), but _hovered should have been reset
-          // to false by the post-frame callback. On green pass: the card must
-          // re-enter hover because the pointer is still over it and onEnter
-          // fires again — OR _hovered is reset and onEnter fires freshly.
-          // The contractual guarantee is that no phantom glow persists without
-          // an active mouse event.
+          // Leave while in lite: no onExit is wired, so only the post-frame
+          // reset can have cleared the hover.
+          await gesture.moveTo(Offset.zero);
+          await tester.pump();
+
           await container
               .read(effectsProvider.notifier)
               .setMode(EffectsMode.full);
-          await tester.pump();
-          await tester.pump();
+          await tester.pumpAndSettle();
 
-          // No crash is the minimum guarantee of this step.
           expect(
-            tester.takeException(),
-            isNull,
-            reason: 'toggling full→lite→full must not throw',
+            _glowBoxes(tester),
+            isEmpty,
+            reason: 'a hover cleared in lite must not come back in full',
           );
+          expect(_flat(tester), isTrue);
         },
       );
     });

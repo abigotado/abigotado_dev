@@ -5,6 +5,7 @@ import 'package:abigotado_dev/src/app/view/editor_sidebar.dart';
 import 'package:abigotado_dev/src/app/view/editor_status_bar.dart';
 import 'package:abigotado_dev/src/app/widget/background/living_background.dart';
 import 'package:abigotado_dev/src/app/widget/traffic_lights.dart';
+import 'package:abigotado_dev/src/features/effects/state/effects_notifier.dart';
 import 'package:abigotado_dev/src/features/hero/widget/debug_release_banner.dart';
 import 'package:abigotado_dev/src/features/hotreload/widget/hot_reload_fab.dart';
 import 'package:abigotado_dev/src/features/readme/state/presentation_notifier.dart';
@@ -24,7 +25,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///   _EditorTitleBar(),              // TrafficLights + title
 ///   Expanded(child: Row(children: [
 ///     EditorSidebar(),              // fixed 172 px file-explorer panel
-///     Expanded(child: EditorPane(child: child)),
+///     Expanded(child: EditorPane(trailingGutter: …, child: child)),
 ///     if (width >= AppSizing.readmePanelBreakpoint)
 ///       ReadmePreviewPanel(),       // fixed 380 px README preview, ≥1600px
 ///   ])),
@@ -43,7 +44,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// ```dart
 /// Column(children: [
 ///   _EditorTitleBar(compact: true),
-///   Expanded(child: EditorPane(child: child)),
+///   Expanded(child: EditorPane(trailingGutter: …, child: child)),
 ///   EditorStatusBar(compact: true),
 /// ])
 /// ```
@@ -68,6 +69,14 @@ class EditorShell extends StatelessWidget {
                 builder: (context, constraints) {
                   final isDesktop =
                       constraints.maxWidth >= AppSizing.editorBreakpoint;
+                  // Hover room on the right wherever full effects are the
+                  // default; compact phones resolve to lite (no glow) and
+                  // keep their width.
+                  final trailingGutter = switch (constraints.maxWidth >=
+                      kCompactWidth) {
+                    true => AppSizing.contentGutter,
+                    false => 0.0,
+                  };
 
                   if (isDesktop) {
                     return Column(
@@ -77,7 +86,12 @@ class EditorShell extends StatelessWidget {
                           child: Row(
                             children: [
                               const EditorSidebar(),
-                              Expanded(child: _PaneWithFab(child: child)),
+                              Expanded(
+                                child: _PaneWithFab(
+                                  trailingGutter: trailingGutter,
+                                  child: child,
+                                ),
+                              ),
                               if (constraints.maxWidth >=
                                   AppSizing.readmePanelBreakpoint)
                                 const ReadmePreviewPanel(),
@@ -91,7 +105,12 @@ class EditorShell extends StatelessWidget {
                     return Column(
                       children: [
                         const _EditorTitleBar(compact: true),
-                        Expanded(child: _PaneWithFab(child: child)),
+                        Expanded(
+                          child: _PaneWithFab(
+                            trailingGutter: trailingGutter,
+                            child: child,
+                          ),
+                        ),
                         const EditorStatusBar(compact: true),
                       ],
                     );
@@ -166,12 +185,15 @@ class _EditorTitleBar extends StatelessWidget {
 /// hot-reload "rebuild" flash it triggers is a pitch-only conceit that has no
 /// meaning over the README document.
 class _PaneWithFab extends ConsumerWidget {
-  const _PaneWithFab({required this.child});
+  const _PaneWithFab({required this.child, required this.trailingGutter});
 
   /// Gap between the FAB and the pane's bottom-right edges.
   static const double _fabMargin = 16;
 
   final Widget child;
+
+  /// Forwarded to [EditorPane.trailingGutter].
+  final double trailingGutter;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -179,7 +201,7 @@ class _PaneWithFab extends ConsumerWidget {
 
     return Stack(
       children: [
-        EditorPane(child: child),
+        EditorPane(trailingGutter: trailingGutter, child: child),
         if (!readmeOpen)
           const Positioned(
             right: _fabMargin,

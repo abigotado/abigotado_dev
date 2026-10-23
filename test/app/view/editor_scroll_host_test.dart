@@ -1,8 +1,11 @@
 import 'package:abigotado_dev/src/app/state/scroll_spy_notifier.dart';
+import 'package:abigotado_dev/src/app/theme/app_sizing.dart';
 import 'package:abigotado_dev/src/app/theme/app_theme.dart';
 import 'package:abigotado_dev/src/app/view/editor_scroll_host.dart';
+import 'package:abigotado_dev/src/app/view/editor_shell.dart';
 import 'package:abigotado_dev/src/app/view/scroll_spy_geometry.dart';
 import 'package:abigotado_dev/src/app/widget/editor_file.dart';
+import 'package:abigotado_dev/src/app/widget/hover/hover_lift.dart';
 import 'package:abigotado_dev/src/core/clock/scenario_clock.dart';
 import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
 import 'package:abigotado_dev/src/core/effects/effects_store.dart';
@@ -112,6 +115,9 @@ Future<ProviderContainer> _pumpHost(
   // EditorScrollHost — lets a test seed provider state pre-mount (e.g. a
   // pending ScrollRequest enqueued before the host exists).
   void Function(ProviderContainer container)? beforeMount,
+  // Mounts the host inside the real EditorShell (sidebar, pane gutter, status
+  // bar) instead of a bare Scaffold, for tests about the pane's geometry.
+  bool inShell = false,
 }) async {
   await tester.binding.setSurfaceSize(surfaceSize);
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -145,7 +151,10 @@ Future<ProviderContainer> _pumpHost(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: locale,
-            home: const Scaffold(body: EditorScrollHost()),
+            home: switch (inShell) {
+              true => const EditorShell(child: EditorScrollHost()),
+              false => const Scaffold(body: EditorScrollHost()),
+            },
           );
         },
       ),
@@ -761,6 +770,83 @@ void main() {
           );
         },
       );
+    });
+
+    // -------------------------------------------------------------------------
+    group('hover headroom', () {
+      // Regression: EditorPane's gutter sat outside the landing's scroll view,
+      // whose viewport clips — one contentGutter (24 px) left of every card.
+      // The hover glow (24 px blur) plus the lift overflowed it and was
+      // hard-clipped at the top-left of the card. On the right, below
+      // ContentWidth's max width the card sat one gutter from the pane edge
+      // (the window edge below the README breakpoint) and the glow was cut
+      // there too.
+      bool clips(Widget w) => switch (w) {
+        ClipRect(:final clipBehavior) ||
+        SingleChildScrollView(:final clipBehavior) => clipBehavior != Clip.none,
+        _ => false,
+      };
+
+      // Desktop with and without the README panel, the narrowest desktop, and
+      // the mobile layout above the compact width (full effects by default).
+      for (final surface in const [
+        Size(1600, 900),
+        Size(1280, 800),
+        Size(1100, 800),
+        Size(900, 800),
+        Size(750, 900),
+      ]) {
+        testWidgets(
+          'at ${surface.width.toInt()} px nothing clips a card closer than '
+          "both gutters, so a hovered card's glow and lean are never cut",
+          (tester) async {
+            await _pumpHost(tester, surfaceSize: surface, inShell: true);
+            await tester.pumpAndSettle();
+
+            final cards = find.byType(HoverLift);
+            expect(cards, findsWidgets);
+            for (final card in cards.evaluate()) {
+              final cardRect = tester.getRect(find.byWidget(card.widget));
+              final clippers = find.ancestor(
+                of: find.byWidget(card.widget),
+                matching: find.byWidgetPredicate(clips),
+              );
+
+              expect(clippers, findsWidgets, reason: 'the pane must clip');
+              for (final clipper in clippers.evaluate()) {
+                final clipRect = tester.getRect(find.byWidget(clipper.widget));
+                final type = clipper.widget.runtimeType;
+                expect(
+                  cardRect.left - clipRect.left,
+                  greaterThanOrEqualTo(2 * AppSizing.contentGutter),
+                  reason: '$type clips too close to the left of $cardRect',
+                );
+                expect(
+                  clipRect.right - cardRect.right,
+                  greaterThanOrEqualTo(2 * AppSizing.contentGutter),
+                  reason: '$type clips too close to the right of $cardRect',
+                );
+              }
+            }
+          },
+        );
+      }
+
+      testWidgets('a phone keeps its width: one gutter on the right', (
+        tester,
+      ) async {
+        // Compact phones resolve to lite (no glow), so a second gutter would
+        // only cost them content width.
+        await _pumpHost(
+          tester,
+          surfaceSize: const Size(390, 844),
+          inShell: true,
+        );
+        await tester.pumpAndSettle();
+
+        final card = tester.getRect(find.byType(HoverLift).first);
+        expect(390 - card.right, AppSizing.contentGutter);
+      });
     });
   });
 }
