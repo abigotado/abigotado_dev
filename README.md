@@ -3,7 +3,7 @@
 [![CI](https://github.com/abigotado/abigotado_dev/actions/workflows/ci.yml/badge.svg)](https://github.com/abigotado/abigotado_dev/actions/workflows/ci.yml)
 [![CD](https://github.com/abigotado/abigotado_dev/actions/workflows/cd.yml/badge.svg)](https://github.com/abigotado/abigotado_dev/actions/workflows/cd.yml)
 
-Personal site of **Nikita Kovalenko** — Senior Flutter engineer: architecture from scratch, building & leading the team, AI-first processes.
+Personal site of **Nikita Kovalenko** — team lead / Flutter engineer: architecture from scratch, building & leading the team, AI-first processes.
 
 The concept: **the page builds itself in front of you.** A multi-agent pipeline
 (`planner → coder → reviewer`) assembles the landing live — the same way this
