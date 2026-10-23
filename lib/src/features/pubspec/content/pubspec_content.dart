@@ -17,6 +17,7 @@ const List<PubspecDependency> pubspecDependencies = [
   PubspecDependency(package: 'mobile_security', version: '^prod'),
   PubspecDependency(package: 'ai_first_pipelines', version: '^evangelist'),
   PubspecDependency(package: 'team_leadership', version: '^2.0.0-lead'),
+  PubspecDependency(package: 'fullstack_node_nextjs', version: '^prod'),
   PubspecDependency(
     package: 'kotlin_swift',
     version: '^basic',

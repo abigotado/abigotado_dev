@@ -221,6 +221,12 @@ void main() {
             reason: 'lite: ContactsPanel with GitHub tile must be visible',
           );
 
+          expect(
+            find.text(l10n.cv_pdf),
+            findsOneWidget,
+            reason: 'lite: the résumé PDF chip must sit with the contacts',
+          );
+
           // Button label must switch to merged.
           expect(
             find.text('✓ merged'),

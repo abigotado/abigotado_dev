@@ -27,12 +27,16 @@ the same change.
     baselines and pushes them to a `chore/goldens-<run>` branch. Open a PR from
     it to review the rendered screenshots before merging.
   - **`verify`** — on push/PR: runs the goldens against committed baselines.
-    Self-skips (green) until baselines exist, so there's no chicken-and-egg.
+    Self-skips (green) while no baselines exist at all, so the first run has
+    no chicken-and-egg.
 
 ## Generating / updating baselines
 
-1. Push the section change (or the new golden test) to a branch and merge as
-   usual — `verify` skips until baselines exist.
+1. Push the section change (or the new golden test) to a branch. `verify`
+   skips only while the repo has no baselines at all; once they exist, a PR
+   that changes a section's rendering fails `verify` on the stale baselines.
+   That is expected, since `generate` runs only on `main`: say so in the PR
+   and merge once the other checks are green.
 2. On GitHub → **Actions → Golden → Run workflow** (on `main`). It pushes the
    baselines to a `chore/goldens-<run>` branch.
 3. Open a PR from that branch, eyeball the screenshots in the diff, and merge.

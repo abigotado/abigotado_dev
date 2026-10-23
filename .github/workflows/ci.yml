@@ -23,6 +23,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
+      # Runs first: it needs no Flutter and fails fast. See the script header.
+      - name: Résumé PDFs carry no phone numbers
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends poppler-utils >/dev/null
+          tool/check_cv_pdfs.sh --self-test
+          tool/check_cv_pdfs.sh
+
       # Pub-cache: one mechanism only — this SHA-pinned step, keyed on pubspec.lock.
       # flutter-action's pub-cache side is disabled via `pub-cache: "false"` below
       # to prevent a duplicate entry with a different (Flutter-version-based) key.
@@ -88,3 +96,4 @@ jobs:
       # on a local Mac (font anti-aliasing differs).
       - name: Test
         run: flutter test
+

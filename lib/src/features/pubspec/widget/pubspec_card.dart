@@ -202,5 +202,7 @@ String _spokenWord(String word) => switch (word) {
   'ai' => 'AI',
   'ddd' => 'DDD',
   'bloc' => 'BLoC',
+  'node' => 'Node.js',
+  'nextjs' => 'Next.js',
   _ => word,
 };

@@ -13,7 +13,7 @@ const List<ExperienceEntry> experienceEntries = [
     org: _org1,
     role: _role1,
     summary: _sum1,
-    achievements: [_exp1b1, _exp1b2, _exp1b3],
+    achievements: [_exp1b1, _exp1b2, _exp1b3, _exp1b4],
   ),
   ExperienceEntry(
     org: _org2,
@@ -57,6 +57,7 @@ String _sum1(AppLocalizations l) => l.rm_exp1_sum;
 String _exp1b1(AppLocalizations l) => l.rm_exp1_b1;
 String _exp1b2(AppLocalizations l) => l.rm_exp1_b2;
 String _exp1b3(AppLocalizations l) => l.rm_exp1_b3;
+String _exp1b4(AppLocalizations l) => l.rm_exp1_b4;
 
 // Entry 2 — FinHarbor.
 String _org2(AppLocalizations l) => l.rm_exp2_org;
