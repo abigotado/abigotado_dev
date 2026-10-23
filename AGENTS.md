@@ -1,51 +1,25 @@
 # AGENTS.md — abigotado.dev
 
-Guidance for Codex and other coding agents. The authoritative rules are in
-[`CLAUDE.md`](CLAUDE.md); this is the short version.
+Entry point for coding agents. The rulebook is [`CLAUDE.md`](CLAUDE.md)
+(index + review blockers), the path-scoped rules under
+[`.claude/rules/`](.claude/rules/) — [`flutter.md`](.claude/rules/flutter.md),
+[`i18n.md`](.claude/rules/i18n.md), [`testing.md`](.claude/rules/testing.md) —
+and [`ARCHITECTURE.md`](ARCHITECTURE.md) for structure. Read them before
+writing code; this file intentionally repeats nothing from them.
 
-## Project
-
-Flutter Web personal landing for Nikita Kovalenko. Public repo — code is a
-portfolio artifact. Concept: a multi-agent pipeline "builds" the page live.
-
-## Hard rules (summary — full list in CLAUDE.md)
-
-- Feature-first under `lib/src/`; `package:` imports only; strict
-  `very_good_analysis` (analyzer must be clean).
-- No `Widget _buildX()` helpers — extract Widget classes. Sealed-class factories
-  for widget variants, never enums.
-- `const`/`final` by default; `switch` expressions over ternaries; `Row/Column
-  (spacing:)` over manual `SizedBox`.
-- State: **Riverpod with codegen** (`@riverpod`; committed `*.g.dart`);
-  `Equatable` state classes. Errors caught inside the `Notifier` with
-  `catch (e, s)` + log; never `catch (_)`.
-- All user-visible strings are arb keys in ru/en/es. The name is localized too.
-- Every animation has a lite-mode / reduced-motion fallback.
-- Never edit generated files.
-
-## Pipeline (TDD)
-
-Non-trivial work is test-driven: `planner → advisor → coder (contracts/skeleton)
-→ test-writer (🔴 red) → coder (🟢 green) → reviewer → Codex second-opinion`.
-Tests are written against the stubbed contracts and must fail before the green
-pass; infra/config with no unit-testable logic (CI/CD YAML) skips the red→green
-loop. Full detail in `CLAUDE.md` → Agent workflow.
+Flutter Web personal landing; public repo — code, commits, and PRs are all
+portfolio surface.
 
 ## Verify before done
 
-```bash
-dart run build_runner build --delete-conflicting-outputs   # regen committed codegen
-dart format --set-exit-if-changed .
-flutter analyze --fatal-infos --fatal-warnings   # any lint fails the build
-flutter test                                      # widget + golden, all green
-```
+Run the canonical gate — the one block in [`CLAUDE.md`](CLAUDE.md) → **The
+gate**, which `/gate` executes and CI repeats: CV phone guard → gen-l10n →
+codegen drift check (runs build_runner) → format → analyze → test.
+Golden-tagged tests skip locally by design (Linux CI verifies them).
 
 ## Git
 
-Local-first. No remote or push until the owner explicitly approves. Commit
-messages are public — keep them meaningful.
-
-## Second-opinion
-
-Reviews get a Codex second-opinion pass. If Codex is unavailable, re-run the
-reviewer in adversarial mode rather than skipping.
+Work lands via pull requests into `main`; never push or merge `main` directly —
+a `main` push deploys production (`cd.yml`). Branch prefixes CI runs on:
+`feat/**`, `fix/**`, `chore/**`, `docs/**`. Golden baselines regenerate only
+via the owner-triggered `generate` job in `golden.yml`.

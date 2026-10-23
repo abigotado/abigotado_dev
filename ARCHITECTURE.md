@@ -1,8 +1,9 @@
 # ARCHITECTURE — abigotado.dev
 
-Clear, enforceable rules for this codebase. `CLAUDE.md` is the source of the
-NEVER/ALWAYS list; this document fixes the *structure* so there's no ambiguity
-about where things go. The repo is public — the architecture is part of the
+Clear, enforceable rules for this codebase. `CLAUDE.md` indexes the rulebook
+(review blockers; the detailed rules are path-scoped under `.claude/rules/`);
+this document fixes the *structure* so there's no ambiguity about where things
+go. The repo is public — the architecture is part of the
 portfolio.
 
 ## 1. Layering: feature-first
@@ -92,14 +93,10 @@ Rules:
 
 ## 7. The strict gate
 
-Nothing is "done" until all three pass — locally and in CI:
-
-```bash
-dart run build_runner build --delete-conflicting-outputs   # regen committed codegen
-dart format --set-exit-if-changed .
-flutter analyze --fatal-infos --fatal-warnings   # zero tolerance: any lint fails
-flutter test
-```
+The canonical gate is the one block in `CLAUDE.md` → **The gate** — `/gate`
+executes it, CI repeats it: CV phone guard → gen-l10n → codegen drift check
+(runs build_runner) → format → analyze → test. Nothing is "done" until it
+passes.
 
 There is no "info" severity tier in practice: `--fatal-infos` makes every lint a
 build failure. Base ruleset is `very_good_analysis` with strict casts, inference,

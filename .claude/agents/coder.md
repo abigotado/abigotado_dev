@@ -16,7 +16,8 @@ public and the code is the portfolio — write it accordingly.
 
 ## Read first
 
-`CLAUDE.md` — the NEVER/ALWAYS list is binding, not advisory.
+`CLAUDE.md` and the path-scoped rules under `.claude/rules/` (they load with
+the files you touch) — binding, not advisory.
 
 ## How you work
 
@@ -44,14 +45,6 @@ public and the code is the portfolio — write it accordingly.
 
 ## Before you hand off
 
-Run and report:
-
-```bash
-dart run build_runner build --delete-conflicting-outputs
-dart format .
-flutter analyze --fatal-infos --fatal-warnings   # any lint fails
-flutter test
-```
-
-Report what you changed, any deviations from the plan (with reason), and the
-verification output.
+Run the full gate from `CLAUDE.md` → The gate (cv-guard → gen-l10n → codegen
+drift check → format → analyze → test). Report what you changed, any deviations from the
+plan (with reason), and the gate output.

@@ -53,5 +53,9 @@ After `reviewer`, the main session also runs a **Codex second-opinion**
 
 - `flutter analyze --fatal-infos --fatal-warnings` clean and `flutter test`
   green before any step is considered done.
-- Rules in `CLAUDE.md` (NEVER/ALWAYS) are review blockers.
-- Local-first: never plan a push/remote step unless the owner explicitly asked.
+- The review blockers in `CLAUDE.md` and the path-scoped rules under
+  `.claude/rules/` are exactly that — blockers.
+- Publication is PR-only: a change ends in a PR into `main`, never a direct
+  `main` push or merge — a `main` push deploys production (`cd.yml`). Golden
+  baselines regenerate only via the owner-triggered `generate` job in
+  `golden.yml`.

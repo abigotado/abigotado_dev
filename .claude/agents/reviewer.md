@@ -17,7 +17,7 @@ footers; never cite CLAUDE.md in a comment.
 
 1. **Correctness** — does it do what the plan said? Edge cases, async gaps
    (`mounted`), disposal of controllers/streams/tickers.
-2. **Rules (blockers)** — `Widget _buildX()`, enum-for-variants, `DecoratedBox`
+2. **Rules (blockers — full law in `.claude/rules/`)** — `Widget _buildX()`, enum-for-variants, `DecoratedBox`
    +`Padding`, manual `SizedBox` spacers, `MediaQuery.of`, relative imports,
    nested ternaries, `catch (_)` / swallowed errors, hardcoded strings.
 3. **i18n** — every user-visible string keyed in ru/en/es; name localized; no
