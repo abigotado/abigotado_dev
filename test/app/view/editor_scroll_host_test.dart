@@ -5,6 +5,7 @@ import 'package:abigotado_dev/src/app/view/editor_scroll_host.dart';
 import 'package:abigotado_dev/src/app/view/editor_shell.dart';
 import 'package:abigotado_dev/src/app/view/scroll_spy_geometry.dart';
 import 'package:abigotado_dev/src/app/widget/editor_file.dart';
+import 'package:abigotado_dev/src/app/widget/hover/hover_lift.dart';
 import 'package:abigotado_dev/src/core/clock/scenario_clock.dart';
 import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
 import 'package:abigotado_dev/src/core/effects/effects_store.dart';
@@ -17,7 +18,6 @@ import 'package:abigotado_dev/src/features/effects/state/effects_notifier.dart';
 import 'package:abigotado_dev/src/features/hero/state/build_scenario_notifier.dart';
 import 'package:abigotado_dev/src/features/hero/view/terminal_hero.dart';
 import 'package:abigotado_dev/src/features/locale/state/locale_notifier.dart';
-import 'package:abigotado_dev/src/features/metrics/widget/metric_card.dart';
 import 'package:abigotado_dev/src/features/metrics/widget/metrics_section.dart';
 import 'package:abigotado_dev/src/features/pubspec/widget/pubspec_section.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
@@ -774,45 +774,79 @@ void main() {
 
     // -------------------------------------------------------------------------
     group('hover headroom', () {
-      testWidgets(
-        "nothing clips the cards' left side closer than both gutters, so a "
-        "hovered card's glow and lean are not cut beside the sidebar",
-        (tester) async {
-          // Regression: EditorPane's gutter sat outside the landing's scroll
-          // view, whose viewport clips — one contentGutter (24 px) left of
-          // every card. The hover glow (24 px blur) plus the lift overflowed
-          // it and was hard-clipped at the top-left of the card. The right
-          // side is bounded by the pane's own edge (the window edge below the
-          // README breakpoint) and keeps one gutter at narrow desktop widths.
-          await _pumpHost(tester, inShell: true);
-          await tester.pumpAndSettle();
+      // Regression: EditorPane's gutter sat outside the landing's scroll view,
+      // whose viewport clips — one contentGutter (24 px) left of every card.
+      // The hover glow (24 px blur) plus the lift overflowed it and was
+      // hard-clipped at the top-left of the card. On the right, below
+      // ContentWidth's max width the card sat one gutter from the pane edge
+      // (the window edge below the README breakpoint) and the glow was cut
+      // there too.
+      bool clips(Widget w) => switch (w) {
+        ClipRect(:final clipBehavior) ||
+        SingleChildScrollView(:final clipBehavior) => clipBehavior != Clip.none,
+        _ => false,
+      };
 
-          final card = find.byType(MetricCard).first;
-          final cardLeft = tester.getRect(card).left;
-          final clippers = find.ancestor(
-            of: card,
-            matching: find.byWidgetPredicate(
-              (w) => switch (w) {
-                ClipRect(:final clipBehavior) ||
-                SingleChildScrollView(
-                  :final clipBehavior,
-                ) => clipBehavior != Clip.none,
-                _ => false,
-              },
-            ),
-          );
+      // Desktop with and without the README panel, the narrowest desktop, and
+      // the mobile layout above the compact width (full effects by default).
+      for (final surface in const [
+        Size(1600, 900),
+        Size(1280, 800),
+        Size(1100, 800),
+        Size(900, 800),
+        Size(750, 900),
+      ]) {
+        testWidgets(
+          'at ${surface.width.toInt()} px nothing clips a card closer than '
+          "both gutters, so a hovered card's glow and lean are never cut",
+          (tester) async {
+            await _pumpHost(tester, surfaceSize: surface, inShell: true);
+            await tester.pumpAndSettle();
 
-          expect(clippers, findsWidgets, reason: 'the pane must still clip');
-          for (final clipper in clippers.evaluate()) {
-            expect(
-              cardLeft - tester.getRect(find.byWidget(clipper.widget)).left,
-              greaterThanOrEqualTo(2 * AppSizing.contentGutter),
-              reason:
-                  '${clipper.widget.runtimeType} clips too close to the card',
-            );
-          }
-        },
-      );
+            final cards = find.byType(HoverLift);
+            expect(cards, findsWidgets);
+            for (final card in cards.evaluate()) {
+              final cardRect = tester.getRect(find.byWidget(card.widget));
+              final clippers = find.ancestor(
+                of: find.byWidget(card.widget),
+                matching: find.byWidgetPredicate(clips),
+              );
+
+              expect(clippers, findsWidgets, reason: 'the pane must clip');
+              for (final clipper in clippers.evaluate()) {
+                final clipRect = tester.getRect(find.byWidget(clipper.widget));
+                final type = clipper.widget.runtimeType;
+                expect(
+                  cardRect.left - clipRect.left,
+                  greaterThanOrEqualTo(2 * AppSizing.contentGutter),
+                  reason: '$type clips too close to the left of $cardRect',
+                );
+                expect(
+                  clipRect.right - cardRect.right,
+                  greaterThanOrEqualTo(2 * AppSizing.contentGutter),
+                  reason: '$type clips too close to the right of $cardRect',
+                );
+              }
+            }
+          },
+        );
+      }
+
+      testWidgets('a phone keeps its width: one gutter on the right', (
+        tester,
+      ) async {
+        // Compact phones resolve to lite (no glow), so a second gutter would
+        // only cost them content width.
+        await _pumpHost(
+          tester,
+          surfaceSize: const Size(390, 844),
+          inShell: true,
+        );
+        await tester.pumpAndSettle();
+
+        final card = tester.getRect(find.byType(HoverLift).first);
+        expect(390 - card.right, AppSizing.contentGutter);
+      });
     });
   });
 }
