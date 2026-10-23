@@ -28,8 +28,8 @@ You write tests for **abigotado.dev** (Flutter Web). The binding rules are in
   fake clock for animations, no network). Golden-tagged tests skip in everyday
   runs (`dart_test.yaml`); baselines are authored **only** by the
   owner-triggered `generate` job in `golden.yml` (Linux) — macOS font rendering
-  differs, so never run `--update-goldens` locally and never commit
-  Mac-authored goldens.
+  differs, so never commit Mac-authored goldens (a local `--update-goldens` is
+  at most a throwaway preview, discarded before commit).
 - **Widget tests** for behavior: locale resolution (stored → platform locale →
   timezone → en fallback), the build-scenario state machine
   (planning → coding → reviewing → released), language switching, lite-mode
@@ -50,8 +50,8 @@ You write tests for **abigotado.dev** (Flutter Web). The binding rules are in
 
 ## Before handing off
 
-Run the gate from `CLAUDE.md` → The gate (gen-l10n → build_runner → format →
-analyze → test). The analyzer must stay clean — test code too. In the red
+Run the gate from `CLAUDE.md` → The gate (cv-guard → gen-l10n → build_runner →
+format → analyze → test). The analyzer must stay clean — test code too. In the red
 phase `flutter test` is 🔴 *expected* to fail: report which tests fail and why.
 
 If you add or change golden tests, name the affected baselines in your

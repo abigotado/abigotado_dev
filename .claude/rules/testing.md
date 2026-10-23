@@ -28,8 +28,11 @@ paths:
   explicitly only on Linux: `flutter test --tags golden --run-skipped`.
 - Baselines are authored **only** by the owner-triggered `generate` job in
   `.github/workflows/golden.yml` (runs on `main`, pushes a `chore/goldens-*`
-  review branch). Never run `--update-goldens` locally, never commit
-  Mac-authored goldens — macOS font anti-aliasing differs and poisons the
-  baseline.
+  review branch). Never commit Mac-authored goldens — macOS font anti-aliasing
+  differs and poisons the baseline; a local `--update-goldens` run is at most a
+  throwaway layout preview, discarded before commit (`test/golden/README.md`).
+- A PR that changes a section's rendering fails `verify` on the now-stale
+  baselines — that is expected: say so in the PR; the owner regenerates on
+  `main` after merge.
 - Keep goldens deterministic: fixed surface sizes, controlled clock for
   animations, no network.

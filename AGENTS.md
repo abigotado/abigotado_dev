@@ -13,6 +13,7 @@ portfolio surface.
 ## Verify before done
 
 ```bash
+tool/check_cv_pdfs.sh --self-test && tool/check_cv_pdfs.sh # CV phone guard, fail-closed (needs pdftotext)
 flutter gen-l10n                                           # git-ignored gen; a fresh checkout has none
 dart run build_runner build --delete-conflicting-outputs   # regen committed codegen
 dart format --set-exit-if-changed .

@@ -4,12 +4,15 @@ description: Run the strict quality gate (codegen → format → analyze → tes
 
 Run the project's strict gate, in order, stopping at the first failure:
 
-1. `flutter gen-l10n` — the l10n gen output is git-ignored; a fresh checkout
+1. `tool/check_cv_pdfs.sh --self-test && tool/check_cv_pdfs.sh` — fail-closed
+   phone guard for the public résumé PDFs in `web/cv/`. Needs `pdftotext`
+   (poppler); CI installs it, a local run needs it on PATH.
+2. `flutter gen-l10n` — the l10n gen output is git-ignored; a fresh checkout
    or worktree has none.
-2. `dart run build_runner build --delete-conflicting-outputs`
-3. `dart format --set-exit-if-changed .`
-4. `flutter analyze --fatal-infos --fatal-warnings`
-5. `flutter test`
+3. `dart run build_runner build --delete-conflicting-outputs`
+4. `dart format --set-exit-if-changed .`
+5. `flutter analyze --fatal-infos --fatal-warnings`
+6. `flutter test`
 
 Rules:
 
@@ -20,4 +23,4 @@ Rules:
 - If build_runner changed any `*.g.dart`, that regenerated output belongs in
   the same commit as its source.
 
-Report the result of each step; the gate passes only when all five are green.
+Report the result of each step; the gate passes only when all six are green.

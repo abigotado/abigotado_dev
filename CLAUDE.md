@@ -53,7 +53,8 @@ Review blockers — the short form; full statements in the rule files:
   variants (sealed base + private factory subclasses).
 - Hardcoded UI strings — every string is an arb key in ru/en/es.
 - An effect without a lite-mode / `prefers-reduced-motion` fallback.
-- `--update-goldens` outside Linux CI — baselines come from `golden.yml` only.
+- Committing locally generated goldens — baselines come from the Linux
+  `golden.yml` job only.
 - Hand-edits to generated files.
 
 The analyzer (`very_good_analysis` + strict modes, `--fatal-infos`) carries the
@@ -66,6 +67,7 @@ Run before declaring anything done — `/gate` runs it; CI (`ci.yml`) repeats it
 on every PR:
 
 ```bash
+tool/check_cv_pdfs.sh --self-test && tool/check_cv_pdfs.sh # CV phone guard, fail-closed (needs pdftotext)
 flutter gen-l10n                                           # git-ignored gen; a fresh checkout has none
 dart run build_runner build --delete-conflicting-outputs   # regen committed codegen
 dart format --set-exit-if-changed .

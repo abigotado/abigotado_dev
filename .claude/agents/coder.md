@@ -45,6 +45,6 @@ the files you touch) — binding, not advisory.
 
 ## Before you hand off
 
-Run the full gate from `CLAUDE.md` → The gate (gen-l10n → build_runner →
-format → analyze → test). Report what you changed, any deviations from the
+Run the full gate from `CLAUDE.md` → The gate (cv-guard → gen-l10n →
+build_runner → format → analyze → test). Report what you changed, any deviations from the
 plan (with reason), and the gate output.
