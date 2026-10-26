@@ -16,10 +16,28 @@
   <meta name="robots" content="index, follow">
 
   <link rel="canonical" href="https://abigotado.dev/">
-  <link rel="alternate" hreflang="en" href="https://abigotado.dev/">
-  <link rel="alternate" hreflang="ru" href="https://abigotado.dev/">
-  <link rel="alternate" hreflang="es" href="https://abigotado.dev/">
-  <link rel="alternate" hreflang="x-default" href="https://abigotado.dev/">
+
+  <!-- Structured data: ties the site to its owner in search results. sameAs
+       must mirror the https entries of contactLinks (contact_links.dart). -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Nikita Kovalenko",
+    "alternateName": "Никита Коваленко",
+    "url": "https://abigotado.dev/",
+    "image": "https://abigotado.dev/og-image.png",
+    "jobTitle": "Team Lead / Flutter Engineer",
+    "knowsAbout": ["Flutter", "Dart", "Mobile architecture", "Team leadership", "AI-first engineering", "Node.js", "TypeScript"],
+    "knowsLanguage": ["ru", "en", "es"],
+    "sameAs": [
+      "https://t.me/Abigotado",
+      "https://github.com/Abigotado",
+      "https://gitlab.com/Abigotado",
+      "https://www.linkedin.com/in/nik-koval-abigotado/"
+    ]
+  }
+  </script>
 
   <!-- Open Graph (link previews in messengers / social) -->
   <meta property="og:type" content="website">
