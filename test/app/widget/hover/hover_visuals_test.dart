@@ -202,7 +202,8 @@ void main() {
   group('hoverGlowBlurFor', () {
     double reach(double blur) =>
         kHoverGlowReachSigmas * Shadow.convertRadiusToSigma(blur) +
-        kHoverMaxEdgeShift;
+        kHoverMaxEdgeShift +
+        kHoverGlowDriftMargin;
 
     test('room for the full glow → kHoverGlowBlur', () {
       expect(hoverGlowBlurFor(48), kHoverGlowBlur);

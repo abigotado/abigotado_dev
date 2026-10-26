@@ -24,6 +24,13 @@ const double kHoverGlowOpacity = 0.33;
 /// over the page background, so the glow reads as fully faded there.
 const double kHoverGlowReachSigmas = 2.5;
 
+/// Extra room, in logical pixels, for the glow just outside the card.
+///
+/// [kHoverMaxEdgeShift] bounds the card's corners; glow pixels beyond them sit
+/// farther from the centre, so the lift scale and the tilt move them slightly
+/// more (under 0.5 px wherever the glow has to shrink).
+const double kHoverGlowDriftMargin = 1;
+
 /// Maximum perspective-tilt angle (radians) reached at a card's edges while
 /// hovered in full mode.
 ///
@@ -192,12 +199,14 @@ Matrix4 hoverTransform(HoverPose pose) {
 /// - the full [kHoverGlowBlur] whenever it fits.
 /// - otherwise the largest blur whose visible reach
 ///   (`kHoverGlowReachSigmas * sigma`, sigma per
-///   [Shadow.convertRadiusToSigma]) plus the card's own movement
-///   ([kHoverMaxEdgeShift]) stays within [room], so the glow fades out before
-///   the clip instead of being cut.
+///   [Shadow.convertRadiusToSigma]) plus the glow's own movement
+///   ([kHoverMaxEdgeShift] + [kHoverGlowDriftMargin]) stays within [room], so
+///   the glow fades out before the clip instead of being cut.
 /// - `0` (no visible glow) when [room] cannot hold even a minimal one.
 double hoverGlowBlurFor(double room) {
-  final sigma = (room - kHoverMaxEdgeShift) / kHoverGlowReachSigmas;
+  final sigma =
+      (room - kHoverMaxEdgeShift - kHoverGlowDriftMargin) /
+      kHoverGlowReachSigmas;
   // Inverse of Shadow.convertRadiusToSigma: sigma = 0.57735 * radius + 0.5.
   final blur = (sigma - 0.5) / 0.57735;
   return blur.clamp(0.0, kHoverGlowBlur);

@@ -852,7 +852,8 @@ void main() {
         tester,
       ) async {
         // Compact phones resolve to lite (no glow), so a second gutter would
-        // only cost them content width.
+        // only cost them content width; effects switched on by hand there get
+        // a fitted glow instead (tested below).
         await _pumpHost(
           tester,
           surfaceSize: const Size(390, 844),
@@ -863,6 +864,69 @@ void main() {
         final card = tester.getRect(find.byType(HoverLift).first);
         expect(390 - card.right, AppSizing.contentGutter);
       });
+
+      testWidgets(
+        'a window shrunk under a still pointer re-fits the hovered glow',
+        (tester) async {
+          // Regression: the glow was sized only on pointer events, so a card
+          // hovered at 700 px kept its full glow after the window narrowed to
+          // 500 px (and lost its second gutter) with the pointer still.
+          Future<void> resize(Size size) async {
+            await tester.binding.setSurfaceSize(size);
+            tester.view.physicalSize = size * tester.view.devicePixelRatio;
+            await tester.pump();
+          }
+
+          addTearDown(tester.view.resetPhysicalSize);
+          await _pumpHost(
+            tester,
+            effectsStore: const _ManualFullEffectsStore(),
+            surfaceSize: const Size(700, 900),
+            inShell: true,
+          );
+          await resize(const Size(700, 900));
+          await tester.pump(const Duration(seconds: 3));
+
+          final card = find
+              .descendant(
+                of: find.byType(PubspecSection),
+                matching: find.byType(HoverLift),
+              )
+              .first;
+          await tester.ensureVisible(card);
+          await tester.pump(const Duration(seconds: 3));
+          final gesture = await tester.createGesture(
+            kind: PointerDeviceKind.mouse,
+          );
+          await gesture.addPointer(location: Offset.zero);
+          addTearDown(gesture.removePointer);
+          await gesture.moveTo(
+            tester.getRect(card).topLeft + const Offset(60, 120),
+          );
+          await tester.pump();
+          await tester.pump(const Duration(seconds: 1));
+
+          await resize(const Size(500, 900));
+          await tester.pump(const Duration(seconds: 1));
+
+          final cardRect = tester.getRect(card);
+          final blurs = tester
+              .widgetList<Container>(
+                find.descendant(of: card, matching: find.byType(Container)),
+              )
+              .map((c) => c.decoration)
+              .whereType<BoxDecoration>()
+              .expand((d) => d.boxShadow ?? const <BoxShadow>[])
+              .map((shadow) => shadow.blurRadius);
+          expect(blurs, hasLength(1), reason: 'the card must still be hovered');
+          final reach =
+              kHoverGlowReachSigmas *
+                  Shadow.convertRadiusToSigma(blurs.single) +
+              kHoverMaxEdgeShift +
+              kHoverGlowDriftMargin;
+          expect(500 - cardRect.right, greaterThanOrEqualTo(reach - 1e-9));
+        },
+      );
 
       // Effects switched on by hand (or by default from 600 px): wherever the
       // layout leaves less room than the full glow needs, the hovered card's
@@ -889,7 +953,12 @@ void main() {
 
             // The pubspec card spans the content width, so it is the closest
             // to both pane edges.
-            final card = find.byType(HoverLift).at(3);
+            final card = find
+                .descendant(
+                  of: find.byType(PubspecSection),
+                  matching: find.byType(HoverLift),
+                )
+                .first;
             await tester.ensureVisible(card);
             await tester.pump(const Duration(seconds: 3));
             final cardRect = tester.getRect(card);
@@ -914,7 +983,13 @@ void main() {
             final reach =
                 kHoverGlowReachSigmas *
                     Shadow.convertRadiusToSigma(shadow.blurRadius) +
-                kHoverMaxEdgeShift;
+                kHoverMaxEdgeShift +
+                kHoverGlowDriftMargin;
+
+            // Where the layout leaves the room, the glow is not shrunk.
+            if (surface.width >= kCompactWidth) {
+              expect(shadow.blurRadius, kHoverGlowBlur);
+            }
 
             final clippers = find.ancestor(
               of: card,

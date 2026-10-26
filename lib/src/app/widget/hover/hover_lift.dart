@@ -101,12 +101,14 @@ final class _HoverLiftState extends ConsumerState<HoverLift> {
   /// The glow blur fitted to the room beside the card, measured on every
   /// hover event. Kept after exit so the glow fades out at the same size.
   double _glowBlur = kHoverGlowBlur;
+  bool _refitScheduled = false;
 
   @override
   Widget build(BuildContext context) {
     final mode = effectsModeOf(context, ref);
     _scheduleResetIfStuck(mode);
     final isFull = mode == EffectsMode.full;
+    if (isFull && _hovered) _scheduleGlowRefit();
     return MouseRegion(
       onEnter: isFull ? (event) => _trackPointer(event.localPosition) : null,
       onHover: isFull ? (event) => _trackPointer(event.localPosition) : null,
@@ -160,7 +162,7 @@ final class _HoverLiftState extends ConsumerState<HoverLift> {
   /// on the untransformed card box, which is what [hoverTargetPose] moves by
   /// at most [kHoverMaxEdgeShift].
   double _fittedGlowBlur() {
-    final bounds = HoverBounds.of(context);
+    final bounds = HoverBounds.maybeBoxOf(context);
     final box = context.findRenderObject();
     if (bounds == null || box is! RenderBox || !box.hasSize) {
       return kHoverGlowBlur;
@@ -168,6 +170,23 @@ final class _HoverLiftState extends ConsumerState<HoverLift> {
     final left = box.localToGlobal(Offset.zero, ancestor: bounds).dx;
     final right = bounds.size.width - left - box.size.width;
     return hoverGlowBlurFor(math.min(left, right));
+  }
+
+  /// Re-measures the glow room once the frame's layout is done, while hovered.
+  ///
+  /// A viewport resize rebuilds this widget (`effectsModeOf` watches
+  /// `MediaQuery.sizeOf`), so a card held under a still pointer re-fits its
+  /// glow when the window narrows, not only on the next pointer event. A
+  /// no-op unless the room actually changed the fitted blur.
+  void _scheduleGlowRefit() {
+    if (_refitScheduled) return;
+    _refitScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refitScheduled = false;
+      if (!mounted || !_hovered) return;
+      final blur = _fittedGlowBlur();
+      if (blur != _glowBlur) setState(() => _glowBlur = blur);
+    });
   }
 
   /// Clears the hover state on pointer exit so the card returns to rest and the

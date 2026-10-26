@@ -70,8 +70,9 @@ class EditorShell extends StatelessWidget {
                   final isDesktop =
                       constraints.maxWidth >= AppSizing.editorBreakpoint;
                   // Hover room on the right wherever full effects are the
-                  // default; compact phones resolve to lite (no glow) and
-                  // keep their width.
+                  // default; compact phones resolve to lite and keep their
+                  // width. Effects switched on by hand there get a glow fitted
+                  // to the one gutter instead (see HoverBounds).
                   final trailingGutter = switch (constraints.maxWidth >=
                       kCompactWidth) {
                     true => AppSizing.contentGutter,

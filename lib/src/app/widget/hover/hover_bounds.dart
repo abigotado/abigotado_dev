@@ -15,7 +15,7 @@ class HoverBounds extends InheritedWidget {
   /// The render box of the nearest [HoverBounds], or `null` outside one or
   /// before it has been laid out. Registers no dependency: callers measure on
   /// demand.
-  static RenderBox? of(BuildContext context) {
+  static RenderBox? maybeBoxOf(BuildContext context) {
     final box = context
         .getElementForInheritedWidgetOfExactType<HoverBounds>()
         ?.findRenderObject();
