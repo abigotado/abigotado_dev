@@ -30,6 +30,9 @@ class EditorStatusBar extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return Container(
+      // Full width in both layouts: the compact Wrap would otherwise
+      // shrink-wrap the bar to its controls.
+      width: double.infinity,
       decoration: const BoxDecoration(
         color: AppColors.surface,
         border: Border(top: BorderSide(color: AppColors.border)),
@@ -80,6 +83,7 @@ class _CompactBar extends StatelessWidget {
       spacing: 8,
       runSpacing: 6,
       alignment: WrapAlignment.end,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [ReleaseTag(), LocaleSwitcher(), EffectsToggle()],
     );
   }
