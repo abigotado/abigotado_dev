@@ -1,4 +1,5 @@
 import 'package:abigotado_dev/src/app/theme/app_sizing.dart';
+import 'package:abigotado_dev/src/app/widget/hover/hover_bounds.dart';
 import 'package:flutter/widgets.dart';
 
 /// The editor's main content pane.
@@ -10,6 +11,10 @@ import 'package:flutter/widgets.dart';
 /// left gutter, so a card's hover glow and lift may spill into that gutter
 /// instead of being cut one gutter from the card, at the inner scroll view's
 /// edge (the landing's scroll view does not clip; see `EditorScrollHost`).
+/// The clip is also the [HoverBounds] for the cards inside: wherever a layout
+/// leaves less room than the full glow needs (one gutter on a compact
+/// viewport), a hovered card shrinks its glow to fade out before the edge.
+///
 /// [trailingGutter] gives the right side the same room. The pane does not pad
 /// it itself: a scroll view placed inside would then draw its scrollbar one
 /// gutter in from the pane edge. Content that needs the room (the landing's
@@ -27,12 +32,14 @@ class EditorPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRect(
-      child: Align(
-        alignment: Alignment.topLeft,
-        child: Padding(
-          padding: const EdgeInsets.only(left: AppSizing.contentGutter),
-          child: EditorPaneGutter(trailing: trailingGutter, child: child),
+    return HoverBounds(
+      child: ClipRect(
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: Padding(
+            padding: const EdgeInsets.only(left: AppSizing.contentGutter),
+            child: EditorPaneGutter(trailing: trailingGutter, child: child),
+          ),
         ),
       ),
     );

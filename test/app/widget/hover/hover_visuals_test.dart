@@ -199,6 +199,29 @@ void main() {
     });
   });
 
+  group('hoverGlowBlurFor', () {
+    double reach(double blur) =>
+        kHoverGlowReachSigmas * Shadow.convertRadiusToSigma(blur) +
+        kHoverMaxEdgeShift;
+
+    test('room for the full glow → kHoverGlowBlur', () {
+      expect(hoverGlowBlurFor(48), kHoverGlowBlur);
+      expect(hoverGlowBlurFor(400), kHoverGlowBlur);
+    });
+
+    test('one 24 px gutter → a smaller glow that fades out inside it', () {
+      final blur = hoverGlowBlurFor(24);
+
+      expect(blur, inExclusiveRange(0, kHoverGlowBlur));
+      expect(reach(blur), closeTo(24, 1e-9));
+    });
+
+    test('no room for any glow → 0', () {
+      expect(hoverGlowBlurFor(kHoverMaxEdgeShift), 0);
+      expect(hoverGlowBlurFor(-10), 0);
+    });
+  });
+
   group('hoverDecoration', () {
     test('lift 0 → rest unchanged', () {
       expect(hoverDecoration(lift: 0, rest: _rest), same(_rest));
@@ -213,6 +236,16 @@ void main() {
       expect(shadow.blurRadius, kHoverGlowBlur);
       expect(result.color, _rest.color);
       expect(result.borderRadius, _rest.borderRadius);
+    });
+
+    test('glowBlur sets the glow blur', () {
+      final shadow = hoverDecoration(
+        lift: 1,
+        rest: _rest,
+        glowBlur: 9,
+      ).boxShadow!.single;
+
+      expect(shadow.blurRadius, 9);
     });
 
     test('lift 0.5 → half-strength glow (fades in, never pops)', () {

@@ -1,4 +1,5 @@
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
+import 'package:abigotado_dev/src/app/widget/hover/hover_bounds.dart';
 import 'package:abigotado_dev/src/app/widget/hover/hover_lift.dart';
 import 'package:abigotado_dev/src/app/widget/hover/hover_visuals.dart';
 import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
@@ -71,12 +72,16 @@ final _rest = BoxDecoration(
 // Returns the ProviderContainer so tests can call setMode on it.
 // ---------------------------------------------------------------------------
 
+Widget _centred(Widget card) => Center(child: card);
+
 Future<ProviderContainer> _pump(
   WidgetTester tester, {
   required EffectsMode storedMode,
   Widget child = const SizedBox(width: 200, height: 80),
+  Widget Function(Widget card) wrap = _centred,
+  Size surfaceSize = const Size(1280, 800),
 }) async {
-  await tester.binding.setSurfaceSize(const Size(1280, 800));
+  await tester.binding.setSurfaceSize(surfaceSize);
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
   final container = ProviderContainer(
@@ -94,8 +99,8 @@ Future<ProviderContainer> _pump(
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         home: Scaffold(
-          body: Center(
-            child: HoverLift(
+          body: wrap(
+            HoverLift(
               restDecoration: _rest,
               padding: const EdgeInsets.all(16),
               child: child,
@@ -142,6 +147,14 @@ List<DecoratedBox> _glowBoxes(WidgetTester tester) => [
     ) when boxShadow.isNotEmpty)
       box,
 ];
+
+/// The blur of the single glow the card paints this frame.
+double _glowBlur(WidgetTester tester) => switch (_glowBoxes(
+  tester,
+).single.decoration) {
+  BoxDecoration(:final boxShadow?) => boxShadow.single.blurRadius,
+  _ => throw StateError('no glow'),
+};
 
 // ---------------------------------------------------------------------------
 // Helper: simulate the mouse entering the HoverLift centre.
@@ -281,6 +294,48 @@ void main() {
 
         expect(mounts, 1);
       });
+    });
+
+    group('glow room', () {
+      testWidgets('the glow is full size outside any HoverBounds', (
+        tester,
+      ) async {
+        await _pump(tester, storedMode: EffectsMode.full);
+
+        await _hoverEnter(tester);
+        await tester.pumpAndSettle();
+
+        expect(_glowBlur(tester), kHoverGlowBlur);
+      });
+
+      testWidgets(
+        'next to a HoverBounds edge the glow shrinks to fade out before it',
+        (tester) async {
+          // The card sits 24 px from the bounds' right edge and 100 px from its
+          // left: the tighter side decides.
+          await _pump(
+            tester,
+            storedMode: EffectsMode.full,
+            wrap: (card) => HoverBounds(
+              child: ClipRect(
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 100),
+                    child: SizedBox(width: 432 - 100 - 24, child: card),
+                  ),
+                ),
+              ),
+            ),
+            surfaceSize: const Size(432, 400),
+          );
+
+          await _hoverEnter(tester);
+          await tester.pumpAndSettle();
+
+          expect(_glowBlur(tester), hoverGlowBlurFor(24));
+        },
+      );
     });
 
     group('lite mode', () {

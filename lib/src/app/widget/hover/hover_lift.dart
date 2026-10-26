@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:abigotado_dev/src/app/widget/hover/hover_bounds.dart';
 import 'package:abigotado_dev/src/app/widget/hover/hover_visuals.dart';
 import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
 import 'package:abigotado_dev/src/features/effects/state/effects_notifier.dart';
@@ -15,7 +18,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// 1. `onEnter` / `onHover` record the pointer position (and the card's size)
 ///    → the card scales up, leans toward the cursor via [hoverTargetPose], its
 ///    border turns to the accent and the glow fades in, smoothing toward each
-///    new target over [kHoverAnimMs] ms.
+///    new target over [kHoverAnimMs] ms. The glow is sized to the room between
+///    the card and the nearest [HoverBounds] edge beside it
+///    ([hoverGlowBlurFor]), so it always fades out before the clip.
 /// 2. `onExit` clears the hover and the pointer → everything eases to rest.
 /// 3. `_resetScheduled`: a post-frame callback that resets `_hovered` (and the
 ///    pointer) if the widget is still mounted after a mode flip to lite.  This
@@ -93,6 +98,10 @@ final class _HoverLiftState extends ConsumerState<HoverLift> {
   /// normalise the pointer offset from the centre.
   Size? _size;
 
+  /// The glow blur fitted to the room beside the card, measured on every
+  /// hover event. Kept after exit so the glow fades out at the same size.
+  double _glowBlur = kHoverGlowBlur;
+
   @override
   Widget build(BuildContext context) {
     final mode = effectsModeOf(context, ref);
@@ -122,6 +131,7 @@ final class _HoverLiftState extends ConsumerState<HoverLift> {
             decoration: hoverDecoration(
               lift: pose.lift,
               rest: widget.restDecoration,
+              glowBlur: _glowBlur,
             ),
             padding: widget.padding,
             child: child,
@@ -141,7 +151,23 @@ final class _HoverLiftState extends ConsumerState<HoverLift> {
       _hovered = true;
       _pointer = localPosition;
       _size = context.size;
+      _glowBlur = _fittedGlowBlur();
     });
+  }
+
+  /// The glow blur that fits between this card and the nearer left or right
+  /// edge of the enclosing [HoverBounds]; the full glow outside one. Measured
+  /// on the untransformed card box, which is what [hoverTargetPose] moves by
+  /// at most [kHoverMaxEdgeShift].
+  double _fittedGlowBlur() {
+    final bounds = HoverBounds.of(context);
+    final box = context.findRenderObject();
+    if (bounds == null || box is! RenderBox || !box.hasSize) {
+      return kHoverGlowBlur;
+    }
+    final left = box.localToGlobal(Offset.zero, ancestor: bounds).dx;
+    final right = bounds.size.width - left - box.size.width;
+    return hoverGlowBlurFor(math.min(left, right));
   }
 
   /// Clears the hover state on pointer exit so the card returns to rest and the

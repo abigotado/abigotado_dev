@@ -17,6 +17,13 @@ const double kHoverGlowBlur = 24;
 /// Opacity of the glow box-shadow added on hover.
 const double kHoverGlowOpacity = 0.33;
 
+/// How far the glow visibly reaches past the card edge, in glow sigmas.
+///
+/// Beyond 2.5σ a straight edge's blurred shadow is below 0.7% of its peak; at
+/// [kHoverGlowOpacity] in [kHoverBorderColor] that is under half an 8-bit step
+/// over the page background, so the glow reads as fully faded there.
+const double kHoverGlowReachSigmas = 2.5;
+
 /// Maximum perspective-tilt angle (radians) reached at a card's edges while
 /// hovered in full mode.
 ///
@@ -178,17 +185,36 @@ Matrix4 hoverTransform(HoverPose pose) {
     ..scaleByDouble(pose.scale, pose.scale, pose.scale, 1);
 }
 
+/// The glow blur radius for a card with [room] logical px between its edge and
+/// the nearest clip edge beside it.
+///
+/// **Contracts**:
+/// - the full [kHoverGlowBlur] whenever it fits.
+/// - otherwise the largest blur whose visible reach
+///   (`kHoverGlowReachSigmas * sigma`, sigma per
+///   [Shadow.convertRadiusToSigma]) plus the card's own movement
+///   ([kHoverMaxEdgeShift]) stays within [room], so the glow fades out before
+///   the clip instead of being cut.
+/// - `0` (no visible glow) when [room] cannot hold even a minimal one.
+double hoverGlowBlurFor(double room) {
+  final sigma = (room - kHoverMaxEdgeShift) / kHoverGlowReachSigmas;
+  // Inverse of Shadow.convertRadiusToSigma: sigma = 0.57735 * radius + 0.5.
+  final blur = (sigma - 0.5) / 0.57735;
+  return blur.clamp(0.0, kHoverGlowBlur);
+}
+
 /// The card decoration at hover progress [lift].
 ///
 /// **Contracts**:
 /// - `lift <= 0` → [rest] (same instance).
 /// - otherwise [rest] with its border lerped toward [kHoverBorderColor] by
 ///   [lift] and a single [BoxShadow] glow in [kHoverBorderColor] at
-///   `kHoverGlowOpacity * lift` alpha with [kHoverGlowBlur] blur, so the glow
-///   fades in rather than popping; colour and radius preserved.
+///   `kHoverGlowOpacity * lift` alpha with [glowBlur] blur, so the glow fades
+///   in rather than popping; colour and radius preserved.
 BoxDecoration hoverDecoration({
   required double lift,
   required BoxDecoration rest,
+  double glowBlur = kHoverGlowBlur,
 }) {
   if (lift <= 0) return rest;
   return rest.copyWith(
@@ -200,7 +226,7 @@ BoxDecoration hoverDecoration({
     boxShadow: [
       BoxShadow(
         color: kHoverBorderColor.withValues(alpha: kHoverGlowOpacity * lift),
-        blurRadius: kHoverGlowBlur,
+        blurRadius: glowBlur,
       ),
     ],
   );

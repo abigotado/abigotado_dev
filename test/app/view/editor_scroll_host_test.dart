@@ -6,6 +6,7 @@ import 'package:abigotado_dev/src/app/view/editor_shell.dart';
 import 'package:abigotado_dev/src/app/view/scroll_spy_geometry.dart';
 import 'package:abigotado_dev/src/app/widget/editor_file.dart';
 import 'package:abigotado_dev/src/app/widget/hover/hover_lift.dart';
+import 'package:abigotado_dev/src/app/widget/hover/hover_visuals.dart';
 import 'package:abigotado_dev/src/core/clock/scenario_clock.dart';
 import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
 import 'package:abigotado_dev/src/core/effects/effects_store.dart';
@@ -21,6 +22,7 @@ import 'package:abigotado_dev/src/features/locale/state/locale_notifier.dart';
 import 'package:abigotado_dev/src/features/metrics/widget/metrics_section.dart';
 import 'package:abigotado_dev/src/features/pubspec/widget/pubspec_section.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -52,6 +54,20 @@ final class _FullEffectsStore implements EffectsStore {
 
   @override
   EffectsMode? read() => null;
+
+  @override
+  Future<void> write(EffectsMode mode) async {}
+
+  @override
+  Future<void> clear() async {}
+}
+
+/// Effects switched on by hand: wins even on a compact viewport.
+final class _ManualFullEffectsStore implements EffectsStore {
+  const _ManualFullEffectsStore();
+
+  @override
+  EffectsMode? read() => EffectsMode.full;
 
   @override
   Future<void> write(EffectsMode mode) async {}
@@ -847,6 +863,80 @@ void main() {
         final card = tester.getRect(find.byType(HoverLift).first);
         expect(390 - card.right, AppSizing.contentGutter);
       });
+
+      // Effects switched on by hand (or by default from 600 px): wherever the
+      // layout leaves less room than the full glow needs, the hovered card's
+      // glow must shrink so its visible reach ends before every clip.
+      for (final (surface, store) in const [
+        (Size(390, 844), _ManualFullEffectsStore()),
+        (Size(500, 900), _ManualFullEffectsStore()),
+        (Size(599, 900), _ManualFullEffectsStore()),
+        (Size(750, 900), _FullEffectsStore()),
+        (Size(1100, 800), _FullEffectsStore()),
+        (Size(1280, 800), _FullEffectsStore()),
+      ]) {
+        testWidgets(
+          'at ${surface.width.toInt()} px with effects on, the hovered '
+          "card's glow fades out before every clip",
+          (tester) async {
+            await _pumpHost(
+              tester,
+              effectsStore: store,
+              surfaceSize: surface,
+              inShell: true,
+            );
+            await tester.pump(const Duration(seconds: 3));
+
+            // The pubspec card spans the content width, so it is the closest
+            // to both pane edges.
+            final card = find.byType(HoverLift).at(3);
+            await tester.ensureVisible(card);
+            await tester.pump(const Duration(seconds: 3));
+            final cardRect = tester.getRect(card);
+
+            final gesture = await tester.createGesture(
+              kind: PointerDeviceKind.mouse,
+            );
+            await gesture.addPointer(location: Offset.zero);
+            addTearDown(gesture.removePointer);
+            await gesture.moveTo(cardRect.centerRight - const Offset(8, 0));
+            await tester.pump();
+            await tester.pump(const Duration(seconds: 1));
+
+            final shadow = tester
+                .widgetList<Container>(
+                  find.descendant(of: card, matching: find.byType(Container)),
+                )
+                .map((c) => c.decoration)
+                .whereType<BoxDecoration>()
+                .expand((d) => d.boxShadow ?? const <BoxShadow>[])
+                .single;
+            final reach =
+                kHoverGlowReachSigmas *
+                    Shadow.convertRadiusToSigma(shadow.blurRadius) +
+                kHoverMaxEdgeShift;
+
+            final clippers = find.ancestor(
+              of: card,
+              matching: find.byWidgetPredicate(clips),
+            );
+            expect(clippers, findsWidgets);
+            for (final clipper in clippers.evaluate()) {
+              final clipRect = tester.getRect(find.byWidget(clipper.widget));
+              expect(
+                [
+                  cardRect.left - clipRect.left,
+                  clipRect.right - cardRect.right,
+                ],
+                everyElement(greaterThanOrEqualTo(reach - 1e-9)),
+                reason:
+                    'a ${shadow.blurRadius} px glow reaches ${reach.round()} '
+                    'px past $cardRect',
+              );
+            }
+          },
+        );
+      }
     });
   });
 }
