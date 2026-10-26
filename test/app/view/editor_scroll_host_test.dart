@@ -1,8 +1,12 @@
 import 'package:abigotado_dev/src/app/state/scroll_spy_notifier.dart';
+import 'package:abigotado_dev/src/app/theme/app_sizing.dart';
 import 'package:abigotado_dev/src/app/theme/app_theme.dart';
 import 'package:abigotado_dev/src/app/view/editor_scroll_host.dart';
+import 'package:abigotado_dev/src/app/view/editor_shell.dart';
 import 'package:abigotado_dev/src/app/view/scroll_spy_geometry.dart';
 import 'package:abigotado_dev/src/app/widget/editor_file.dart';
+import 'package:abigotado_dev/src/app/widget/hover/hover_lift.dart';
+import 'package:abigotado_dev/src/app/widget/hover/hover_visuals.dart';
 import 'package:abigotado_dev/src/core/clock/scenario_clock.dart';
 import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
 import 'package:abigotado_dev/src/core/effects/effects_store.dart';
@@ -18,6 +22,7 @@ import 'package:abigotado_dev/src/features/locale/state/locale_notifier.dart';
 import 'package:abigotado_dev/src/features/metrics/widget/metrics_section.dart';
 import 'package:abigotado_dev/src/features/pubspec/widget/pubspec_section.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -49,6 +54,20 @@ final class _FullEffectsStore implements EffectsStore {
 
   @override
   EffectsMode? read() => null;
+
+  @override
+  Future<void> write(EffectsMode mode) async {}
+
+  @override
+  Future<void> clear() async {}
+}
+
+/// Effects switched on by hand: wins even on a compact viewport.
+final class _ManualFullEffectsStore implements EffectsStore {
+  const _ManualFullEffectsStore();
+
+  @override
+  EffectsMode? read() => EffectsMode.full;
 
   @override
   Future<void> write(EffectsMode mode) async {}
@@ -112,6 +131,9 @@ Future<ProviderContainer> _pumpHost(
   // EditorScrollHost — lets a test seed provider state pre-mount (e.g. a
   // pending ScrollRequest enqueued before the host exists).
   void Function(ProviderContainer container)? beforeMount,
+  // Mounts the host inside the real EditorShell (sidebar, pane gutter, status
+  // bar) instead of a bare Scaffold, for tests about the pane's geometry.
+  bool inShell = false,
 }) async {
   await tester.binding.setSurfaceSize(surfaceSize);
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -145,7 +167,10 @@ Future<ProviderContainer> _pumpHost(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: locale,
-            home: const Scaffold(body: EditorScrollHost()),
+            home: switch (inShell) {
+              true => const EditorShell(child: EditorScrollHost()),
+              false => const Scaffold(body: EditorScrollHost()),
+            },
           );
         },
       ),
@@ -761,6 +786,232 @@ void main() {
           );
         },
       );
+    });
+
+    // -------------------------------------------------------------------------
+    group('hover headroom', () {
+      // Regression: EditorPane's gutter sat outside the landing's scroll view,
+      // whose viewport clips — one contentGutter (24 px) left of every card.
+      // The hover glow (24 px blur) plus the lift overflowed it and was
+      // hard-clipped at the top-left of the card. On the right, below
+      // ContentWidth's max width the card sat one gutter from the pane edge
+      // (the window edge below the README breakpoint) and the glow was cut
+      // there too.
+      bool clips(Widget w) => switch (w) {
+        ClipRect(:final clipBehavior) ||
+        SingleChildScrollView(:final clipBehavior) => clipBehavior != Clip.none,
+        _ => false,
+      };
+
+      // Desktop with and without the README panel, the narrowest desktop, and
+      // the mobile layout above the compact width (full effects by default).
+      for (final surface in const [
+        Size(1600, 900),
+        Size(1280, 800),
+        Size(1100, 800),
+        Size(900, 800),
+        Size(750, 900),
+      ]) {
+        testWidgets(
+          'at ${surface.width.toInt()} px nothing clips a card closer than '
+          "both gutters, so a hovered card's glow and lean are never cut",
+          (tester) async {
+            await _pumpHost(tester, surfaceSize: surface, inShell: true);
+            await tester.pumpAndSettle();
+
+            final cards = find.byType(HoverLift);
+            expect(cards, findsWidgets);
+            for (final card in cards.evaluate()) {
+              final cardRect = tester.getRect(find.byWidget(card.widget));
+              final clippers = find.ancestor(
+                of: find.byWidget(card.widget),
+                matching: find.byWidgetPredicate(clips),
+              );
+
+              expect(clippers, findsWidgets, reason: 'the pane must clip');
+              for (final clipper in clippers.evaluate()) {
+                final clipRect = tester.getRect(find.byWidget(clipper.widget));
+                final type = clipper.widget.runtimeType;
+                expect(
+                  cardRect.left - clipRect.left,
+                  greaterThanOrEqualTo(2 * AppSizing.contentGutter),
+                  reason: '$type clips too close to the left of $cardRect',
+                );
+                expect(
+                  clipRect.right - cardRect.right,
+                  greaterThanOrEqualTo(2 * AppSizing.contentGutter),
+                  reason: '$type clips too close to the right of $cardRect',
+                );
+              }
+            }
+          },
+        );
+      }
+
+      testWidgets('a phone keeps its width: one gutter on the right', (
+        tester,
+      ) async {
+        // Compact phones resolve to lite (no glow), so a second gutter would
+        // only cost them content width; effects switched on by hand there get
+        // a fitted glow instead (tested below).
+        await _pumpHost(
+          tester,
+          surfaceSize: const Size(390, 844),
+          inShell: true,
+        );
+        await tester.pumpAndSettle();
+
+        final card = tester.getRect(find.byType(HoverLift).first);
+        expect(390 - card.right, AppSizing.contentGutter);
+      });
+
+      testWidgets(
+        'a window shrunk under a still pointer re-fits the hovered glow',
+        (tester) async {
+          // Regression: the glow was sized only on pointer events, so a card
+          // hovered at 700 px kept its full glow after the window narrowed to
+          // 500 px (and lost its second gutter) with the pointer still.
+          Future<void> resize(Size size) async {
+            await tester.binding.setSurfaceSize(size);
+            tester.view.physicalSize = size * tester.view.devicePixelRatio;
+            await tester.pump();
+          }
+
+          addTearDown(tester.view.resetPhysicalSize);
+          await _pumpHost(
+            tester,
+            effectsStore: const _ManualFullEffectsStore(),
+            surfaceSize: const Size(700, 900),
+            inShell: true,
+          );
+          await resize(const Size(700, 900));
+          await tester.pump(const Duration(seconds: 3));
+
+          final card = find
+              .descendant(
+                of: find.byType(PubspecSection),
+                matching: find.byType(HoverLift),
+              )
+              .first;
+          await tester.ensureVisible(card);
+          await tester.pump(const Duration(seconds: 3));
+          final gesture = await tester.createGesture(
+            kind: PointerDeviceKind.mouse,
+          );
+          await gesture.addPointer(location: Offset.zero);
+          addTearDown(gesture.removePointer);
+          await gesture.moveTo(
+            tester.getRect(card).topLeft + const Offset(60, 120),
+          );
+          await tester.pump();
+          await tester.pump(const Duration(seconds: 1));
+
+          await resize(const Size(500, 900));
+          await tester.pump(const Duration(seconds: 1));
+
+          final cardRect = tester.getRect(card);
+          final blurs = tester
+              .widgetList<Container>(
+                find.descendant(of: card, matching: find.byType(Container)),
+              )
+              .map((c) => c.decoration)
+              .whereType<BoxDecoration>()
+              .expand((d) => d.boxShadow ?? const <BoxShadow>[])
+              .map((shadow) => shadow.blurRadius);
+          expect(blurs, hasLength(1), reason: 'the card must still be hovered');
+          final reach =
+              kHoverGlowReachSigmas *
+                  Shadow.convertRadiusToSigma(blurs.single) +
+              kHoverMaxEdgeShift +
+              kHoverGlowDriftMargin;
+          expect(500 - cardRect.right, greaterThanOrEqualTo(reach - 1e-9));
+        },
+      );
+
+      // Effects switched on by hand (or by default from 600 px): wherever the
+      // layout leaves less room than the full glow needs, the hovered card's
+      // glow must shrink so its visible reach ends before every clip.
+      for (final (surface, store) in const [
+        (Size(390, 844), _ManualFullEffectsStore()),
+        (Size(500, 900), _ManualFullEffectsStore()),
+        (Size(599, 900), _ManualFullEffectsStore()),
+        (Size(750, 900), _FullEffectsStore()),
+        (Size(1100, 800), _FullEffectsStore()),
+        (Size(1280, 800), _FullEffectsStore()),
+      ]) {
+        testWidgets(
+          'at ${surface.width.toInt()} px with effects on, the hovered '
+          "card's glow fades out before every clip",
+          (tester) async {
+            await _pumpHost(
+              tester,
+              effectsStore: store,
+              surfaceSize: surface,
+              inShell: true,
+            );
+            await tester.pump(const Duration(seconds: 3));
+
+            // The pubspec card spans the content width, so it is the closest
+            // to both pane edges.
+            final card = find
+                .descendant(
+                  of: find.byType(PubspecSection),
+                  matching: find.byType(HoverLift),
+                )
+                .first;
+            await tester.ensureVisible(card);
+            await tester.pump(const Duration(seconds: 3));
+            final cardRect = tester.getRect(card);
+
+            final gesture = await tester.createGesture(
+              kind: PointerDeviceKind.mouse,
+            );
+            await gesture.addPointer(location: Offset.zero);
+            addTearDown(gesture.removePointer);
+            await gesture.moveTo(cardRect.centerRight - const Offset(8, 0));
+            await tester.pump();
+            await tester.pump(const Duration(seconds: 1));
+
+            final shadow = tester
+                .widgetList<Container>(
+                  find.descendant(of: card, matching: find.byType(Container)),
+                )
+                .map((c) => c.decoration)
+                .whereType<BoxDecoration>()
+                .expand((d) => d.boxShadow ?? const <BoxShadow>[])
+                .single;
+            final reach =
+                kHoverGlowReachSigmas *
+                    Shadow.convertRadiusToSigma(shadow.blurRadius) +
+                kHoverMaxEdgeShift +
+                kHoverGlowDriftMargin;
+
+            // Where the layout leaves the room, the glow is not shrunk.
+            if (surface.width >= kCompactWidth) {
+              expect(shadow.blurRadius, kHoverGlowBlur);
+            }
+
+            final clippers = find.ancestor(
+              of: card,
+              matching: find.byWidgetPredicate(clips),
+            );
+            expect(clippers, findsWidgets);
+            for (final clipper in clippers.evaluate()) {
+              final clipRect = tester.getRect(find.byWidget(clipper.widget));
+              expect(
+                [
+                  cardRect.left - clipRect.left,
+                  clipRect.right - cardRect.right,
+                ],
+                everyElement(greaterThanOrEqualTo(reach - 1e-9)),
+                reason:
+                    'a ${shadow.blurRadius} px glow reaches ${reach.round()} '
+                    'px past $cardRect',
+              );
+            }
+          },
+        );
+      }
     });
   });
 }

@@ -97,7 +97,7 @@ void main() {
           );
 
           // --- HoverLift introduces no Semantics node of its own ---
-          // HoverLift is pure chrome (MouseRegion + AnimatedContainer). Adding
+          // HoverLift is pure chrome (MouseRegion + transforms + boxes). Adding
           // a Semantics node would either double-announce or obscure the parent
           // Semantics label.
           expect(

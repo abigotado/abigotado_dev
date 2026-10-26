@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
 import 'package:abigotado_dev/src/app/widget/hover/hover_visuals.dart';
 import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
@@ -7,201 +9,250 @@ import 'package:flutter_test/flutter_test.dart';
 // Representative resting decoration used across all tests in this file.
 //
 // Mirrors what MetricCard and SectionCard pass as restDecoration: a surface
-// background, a muted hairline border, and a 12 px radius. These fields must
-// survive round-trips through hoverDecoration unchanged when the mode is lite
-// or the card is not hovered.
-const _rest = BoxDecoration(
+// background, a muted hairline border, and a 12 px radius.
+final _rest = BoxDecoration(
   color: AppColors.surface,
-  border: Border.symmetric(
-    horizontal: BorderSide(color: AppColors.border),
-    vertical: BorderSide(color: AppColors.border),
-  ),
-  borderRadius: BorderRadius.all(Radius.circular(12)),
+  border: Border.all(color: AppColors.border),
+  borderRadius: const BorderRadius.all(Radius.circular(12)),
 );
 
-void main() {
-  group('hoverDecoration', () {
-    group('lite mode', () {
-      test('lite + hovered:true → returns rest unchanged', () {
-        // Key red test: proves lite mode never adds a glow regardless of the
-        // hovered flag. The stub throws UnimplementedError → test fails with
-        // that error instead of the expected equality.
-        expect(
-          hoverDecoration(
-            hovered: true,
-            mode: EffectsMode.lite,
-            rest: _rest,
-          ),
-          same(_rest),
-        );
-      });
+/// Projects the centre-relative point ([x], [y]) through [m] and returns the
+/// homogeneous `w` (> 1 means the point recedes) and the projected point.
+({double w, Offset projected}) _project(Matrix4 m, double x, double y) {
+  final w = m.entry(3, 0) * x + m.entry(3, 1) * y + m.entry(3, 3);
+  final px = m.entry(0, 0) * x + m.entry(0, 1) * y + m.entry(0, 3);
+  final py = m.entry(1, 0) * x + m.entry(1, 1) * y + m.entry(1, 3);
+  return (w: w, projected: Offset(px / w, py / w));
+}
 
-      test('lite + hovered:false → returns rest unchanged', () {
-        // Symmetry guard: lite with no hover must also return rest.
-        // Also fails with UnimplementedError in the red phase.
-        expect(
-          hoverDecoration(
-            hovered: false,
-            mode: EffectsMode.lite,
-            rest: _rest,
-          ),
-          same(_rest),
-        );
-      });
+HoverPose _hoveredAt(Offset pointer, Size size) => hoverTargetPose(
+  hovered: true,
+  pointer: pointer,
+  size: size,
+  mode: EffectsMode.full,
+);
+
+/// The largest on-screen shift, along either axis, of any corner of a [size]
+/// card under the full hover transform, with the pointer on each corner, each
+/// edge midpoint and the centre.
+double _worstCornerShift(Size size) {
+  final hx = size.width / 2;
+  final hy = size.height / 2;
+  final corners = [
+    for (final sx in [-1.0, 1.0])
+      for (final sy in [-1.0, 1.0]) Offset(sx * hx, sy * hy),
+  ];
+  final pointers = [
+    for (final sx in [-1.0, 0.0, 1.0])
+      for (final sy in [-1.0, 0.0, 1.0]) Offset(sx * hx, sy * hy),
+  ];
+  var worst = 0.0;
+  for (final pointer in pointers) {
+    final m = hoverTransform(_hoveredAt(pointer + Offset(hx, hy), size));
+    for (final c in corners) {
+      final shift = _project(m, c.dx, c.dy).projected - c;
+      worst = [worst, shift.dx.abs(), shift.dy.abs()].reduce(math.max);
+    }
+  }
+  return worst;
+}
+
+void main() {
+  group('hoverTargetPose', () {
+    const size = Size(200, 100);
+    const centre = Offset(100, 50);
+
+    test('lite + hovered → rest, even with a pointer', () {
+      expect(
+        hoverTargetPose(
+          hovered: true,
+          pointer: Offset.zero,
+          size: size,
+          mode: EffectsMode.lite,
+        ),
+        same(HoverPose.rest),
+      );
     });
 
-    group('full mode', () {
-      test('full + hovered:false → returns rest unchanged', () {
-        // Not hovered in full mode must also be a no-op.
-        // Fails with UnimplementedError in the red phase.
+    test('full + not hovered → rest', () {
+      expect(
+        hoverTargetPose(
+          hovered: false,
+          pointer: Offset.zero,
+          size: size,
+          mode: EffectsMode.full,
+        ),
+        same(HoverPose.rest),
+      );
+    });
+
+    test('full + hovered without a pointer → lifted but flat', () {
+      expect(
+        hoverTargetPose(
+          hovered: true,
+          pointer: null,
+          size: size,
+          mode: EffectsMode.full,
+        ),
+        const HoverPose(
+          rotateX: 0,
+          rotateY: 0,
+          scale: kHoverTiltScale,
+          lift: 1,
+        ),
+      );
+    });
+
+    test('full + hovered at the centre → lifted but flat', () {
+      expect(
+        _hoveredAt(centre, size),
+        const HoverPose(
+          rotateX: 0,
+          rotateY: 0,
+          scale: kHoverTiltScale,
+          lift: 1,
+        ),
+      );
+    });
+
+    test('a pointer past the edge clamps to the full tilt of a small card', () {
+      // 200×100 is small enough that neither axis is capped below the max.
+      expect(
+        _hoveredAt(const Offset(-50, 300), size),
+        const HoverPose(
+          rotateX: kHoverMaxTiltRadians,
+          rotateY: kHoverMaxTiltRadians,
+          scale: kHoverTiltScale,
+          lift: 1,
+        ),
+      );
+    });
+
+    group('the whole card moves at most kHoverMaxEdgeShift', () {
+      // Wide-and-short, tall, and small cards: a cap derived from one axis'
+      // extent alone lets a hovered corner drag the opposite one ~12 px.
+      const cards = [
+        Size(950, 300),
+        Size(950, 900),
+        Size(1000, 1000),
+        Size(300, 120),
+        Size(200, 100),
+      ];
+
+      for (final card in cards) {
+        test('$card: no corner moves further, wherever the pointer is', () {
+          expect(
+            _worstCornerShift(card),
+            lessThanOrEqualTo(kHoverMaxEdgeShift + 1e-9),
+          );
+        });
+      }
+
+      test('a large card spends the budget rather than freezing', () {
+        expect(_worstCornerShift(const Size(950, 900)), greaterThan(3.5));
         expect(
-          hoverDecoration(
-            hovered: false,
-            mode: EffectsMode.full,
-            rest: _rest,
-          ),
-          same(_rest),
+          _hoveredAt(Offset.zero, const Size(950, 900)).rotateX,
+          isNot(0),
         );
       });
 
-      test('full + hovered:true → glow decoration applied', () {
-        // The main behavior test for the green pass.
-        // Red phase: throws UnimplementedError.
-        // Green phase: result must have the accent glow.
-        final result = hoverDecoration(
-          hovered: true,
-          mode: EffectsMode.full,
-          rest: _rest,
-        );
+      test('the lift scale takes at most half of the budget', () {
+        final pose = _hoveredAt(const Offset(475, 150), const Size(950, 300));
 
-        // --- border: all sides use kHoverBorderColor ---
-        final border = result.border;
         expect(
-          border,
-          isNotNull,
-          reason: 'hovered decoration must have a border',
-        );
-        final topColor = (border! as Border).top.color;
-        expect(
-          topColor,
-          equals(kHoverBorderColor),
-          reason: 'border color must be kHoverBorderColor on hover',
-        );
-
-        // --- boxShadow: exactly one glow shadow ---
-        expect(
-          result.boxShadow,
-          isNotNull,
-          reason: 'hovered decoration must have a boxShadow',
-        );
-        expect(
-          result.boxShadow!.length,
-          equals(1),
-          reason: 'exactly one BoxShadow is added on hover',
-        );
-
-        // --- rest fields preserved: color and radius ---
-        expect(
-          result.color,
-          equals(_rest.color),
-          reason: 'hoverDecoration must preserve the rest background color',
-        );
-        expect(
-          result.borderRadius,
-          equals(_rest.borderRadius),
-          reason: 'hoverDecoration must preserve the rest border radius',
+          (pose.scale - 1) * 950 / 2,
+          closeTo(kHoverMaxEdgeShift / 2, 1e-9),
+          reason:
+              "a fixed 2% scale would push a 950 px card's edges out by "
+              '9.5 px each',
         );
       });
     });
   });
 
-  group('hoverTilt', () {
-    const size = Size(200, 100);
-    const centre = Offset(100, 50);
-
-    test('lite + hovered → identity even with a pointer', () {
-      // No 3-D transform is ever emitted in lite, regardless of the pointer.
-      expect(
-        hoverTilt(
-          hovered: true,
-          pointer: centre,
-          size: size,
-          mode: EffectsMode.lite,
-        ),
-        equals(Matrix4.identity()),
-      );
+  group('hoverTransform', () {
+    test('rest → identity (no layer at rest)', () {
+      expect(hoverTransform(HoverPose.rest), Matrix4.identity());
     });
 
-    test('full + not hovered → identity', () {
-      expect(
-        hoverTilt(
-          hovered: false,
-          pointer: centre,
-          size: size,
-          mode: EffectsMode.full,
-        ),
-        equals(Matrix4.identity()),
+    test('a tilted pose carries perspective', () {
+      final m = hoverTransform(
+        const HoverPose(rotateX: 0.03, rotateY: -0.03, scale: 1.01, lift: 1),
       );
+      expect(m.entry(3, 2), isNot(0));
     });
 
-    test('full + hovered + pointer at centre → non-identity (scale lift)', () {
-      // At the centre the tilt angle is zero, but the card still lifts: the
-      // perspective projection + uniform scale make the matrix non-identity.
-      expect(
-        hoverTilt(
-          hovered: true,
-          pointer: centre,
-          size: size,
-          mode: EffectsMode.full,
-        ),
-        isNot(equals(Matrix4.identity())),
-      );
+    group('the edge under the cursor recedes', () {
+      const size = Size(200, 100);
+
+      test('pointer on the right edge → right edge recedes', () {
+        final m = hoverTransform(_hoveredAt(const Offset(200, 50), size));
+        expect(_project(m, 100, 0).w, greaterThan(1));
+        expect(_project(m, -100, 0).w, lessThan(1));
+      });
+
+      test('pointer on the bottom edge → bottom edge recedes', () {
+        final m = hoverTransform(_hoveredAt(const Offset(100, 100), size));
+        expect(_project(m, 0, 50).w, greaterThan(1));
+        expect(_project(m, 0, -50).w, lessThan(1));
+      });
+    });
+  });
+
+  group('hoverGlowBlurFor', () {
+    double reach(double blur) =>
+        kHoverGlowReachSigmas * Shadow.convertRadiusToSigma(blur) +
+        kHoverMaxEdgeShift +
+        kHoverGlowDriftMargin;
+
+    test('room for the full glow → kHoverGlowBlur', () {
+      expect(hoverGlowBlurFor(48), kHoverGlowBlur);
+      expect(hoverGlowBlurFor(400), kHoverGlowBlur);
     });
 
-    test('full + hovered: off-centre tilt differs from centre (tracked)', () {
-      final centred = hoverTilt(
-        hovered: true,
-        pointer: centre,
-        size: size,
-        mode: EffectsMode.full,
-      );
-      final corner = hoverTilt(
-        hovered: true,
-        pointer: Offset.zero,
-        size: size,
-        mode: EffectsMode.full,
-      );
-      expect(
-        corner,
-        isNot(equals(centred)),
-        reason:
-            'the tilt must track the pointer — a corner hover and a centre '
-            'hover cannot produce the same matrix',
-      );
+    test('one 24 px gutter → a smaller glow that fades out inside it', () {
+      final blur = hoverGlowBlurFor(24);
+
+      expect(blur, inExclusiveRange(0, kHoverGlowBlur));
+      expect(reach(blur), closeTo(24, 1e-9));
     });
 
-    test('full + hovered: left and right pointers tilt oppositely', () {
-      const left = Offset(0, 50);
-      const right = Offset(200, 50);
-      expect(
-        hoverTilt(
-          hovered: true,
-          pointer: left,
-          size: size,
-          mode: EffectsMode.full,
-        ),
-        isNot(
-          equals(
-            hoverTilt(
-              hovered: true,
-              pointer: right,
-              size: size,
-              mode: EffectsMode.full,
-            ),
-          ),
-        ),
-        reason: 'horizontal pointer position must flip the Y-rotation',
-      );
+    test('no room for any glow → 0', () {
+      expect(hoverGlowBlurFor(kHoverMaxEdgeShift), 0);
+      expect(hoverGlowBlurFor(-10), 0);
+    });
+  });
+
+  group('hoverDecoration', () {
+    test('lift 0 → rest unchanged', () {
+      expect(hoverDecoration(lift: 0, rest: _rest), same(_rest));
+    });
+
+    test('lift 1 → accent border and full glow; colour/radius kept', () {
+      final result = hoverDecoration(lift: 1, rest: _rest);
+      final shadow = result.boxShadow!.single;
+
+      expect((result.border! as Border).top.color, kHoverBorderColor);
+      expect(shadow.color.a, closeTo(kHoverGlowOpacity, 1e-3));
+      expect(shadow.blurRadius, kHoverGlowBlur);
+      expect(result.color, _rest.color);
+      expect(result.borderRadius, _rest.borderRadius);
+    });
+
+    test('glowBlur sets the glow blur', () {
+      final shadow = hoverDecoration(
+        lift: 1,
+        rest: _rest,
+        glowBlur: 9,
+      ).boxShadow!.single;
+
+      expect(shadow.blurRadius, 9);
+    });
+
+    test('lift 0.5 → half-strength glow (fades in, never pops)', () {
+      final shadow = hoverDecoration(lift: 0.5, rest: _rest).boxShadow!.single;
+
+      expect(shadow.color.a, closeTo(kHoverGlowOpacity / 2, 1e-3));
     });
   });
 }
