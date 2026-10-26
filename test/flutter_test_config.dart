@@ -10,9 +10,10 @@ import 'package:flutter_test/flutter_test.dart';
 /// It loads the Flutter SDK's bundled **Roboto** so golden tests render real
 /// glyphs instead of the Ahem placeholder box font. The TTF ships inside the
 /// pinned SDK (`bin/cache/artifacts/material_fonts/Roboto-Regular.ttf`), so its
-/// bytes are identical on macOS-local and the CI Linux runner (both run Flutter
-/// 3.44.0) — the only cross-OS variance left is the rasterizer's anti-aliasing,
-/// which is exactly why golden baselines are authored on Linux CI only.
+/// bytes are identical on macOS-local and the CI Linux runner (both run the
+/// Flutter version pinned in `.fvmrc` and the workflows) — the only cross-OS
+/// variance left is the rasterizer's anti-aliasing, which is exactly why golden
+/// baselines are authored on Linux CI only.
 ///
 /// Loading a font is additive and side-effect-free for the ~387 non-golden
 /// tests (none assert on glyph pixels), so this hook is safe for the whole

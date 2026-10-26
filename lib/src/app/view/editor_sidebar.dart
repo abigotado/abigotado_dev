@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:abigotado_dev/src/app/state/scroll_spy_notifier.dart';
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
 import 'package:abigotado_dev/src/app/theme/app_sizing.dart';
@@ -84,7 +82,7 @@ class EditorSidebar extends ConsumerWidget {
                           // Navigator.maybePop resolves false with no side
                           // effect); pops the README's local history entry
                           // when it is open, in lockstep with showPitch.
-                          unawaited(Navigator.of(context).maybePop());
+                          Navigator.of(context).maybePop();
                           ref
                               .read(scrollSpyProvider.notifier)
                               .requestScrollTo(f);

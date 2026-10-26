@@ -14,7 +14,7 @@ paths:
   determinism (never read the real platform).
 - Accessibility assertions use `isSemantics` for flag-subset checks —
   `matchesSemantics`/`containsSemantics` compare more than the subset and
-  false-fail on Flutter 3.44.
+  false-fail (since Flutter 3.44).
 - Structure: `group('ClassName') > group('method/behavior') >
   test('condition → result')`. No "should" phrasing.
 - Pump with explicit surface sizes for layout stability; drive animations with

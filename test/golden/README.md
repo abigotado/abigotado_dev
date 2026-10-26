@@ -11,11 +11,12 @@ Windows render font anti-aliasing differently, so a baseline made anywhere but
 Linux will fail the CI `verify` job. **Never commit a baseline generated on a
 Mac.**
 
-The pinned SDK (Flutter `3.44.0`) is what makes this deterministic: its bundled
+The pinned SDK (Flutter `3.47.8`) is what makes this deterministic: its bundled
 Roboto (`test/flutter_test_config.dart` loads it) is byte-identical on every
 machine, so the only cross-OS variance left is the rasterizer — which the
-Linux-only rule absorbs. Bumping Flutter requires regenerating every baseline in
-the same change.
+Linux-only rule absorbs. A Flutter bump can shift pixels: if the bump PR's
+`verify` fails, regenerate every baseline on `main` right after it merges
+(steps 2–3 below).
 
 ## How goldens are wired
 

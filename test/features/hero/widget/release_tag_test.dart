@@ -186,9 +186,9 @@ void main() {
           expect(tester.binding.transientCallbackCount, equals(0));
 
           // Drive the notifier to released.
-          (container.read(buildScenarioProvider.notifier)
-                  as _FixedScenarioNotifier)
-              .release();
+          (container.read(
+            buildScenarioProvider.notifier,
+          ) as _FixedScenarioNotifier).release();
           await tester.pump();
 
           // After release: controller must have called forward() → ticker.

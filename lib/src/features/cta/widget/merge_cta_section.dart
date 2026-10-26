@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:abigotado_dev/src/app/widget/content_width.dart';
 import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
 import 'package:abigotado_dev/src/features/cta/widget/contacts_panel.dart';
@@ -42,17 +40,17 @@ class _MergeCtaSectionState extends ConsumerState<MergeCtaSection>
       case EffectsMode.lite:
         setState(() => _phase = MergePhase.merged);
       case EffectsMode.full:
-        final controller = _controller = AnimationController(
-          vsync: this,
-          duration: const Duration(milliseconds: 300),
-        );
-        controller.addStatusListener((status) {
-          if (status == AnimationStatus.completed && mounted) {
-            setState(() => _phase = MergePhase.merged);
-          }
-        });
+        final controller = _controller =
+            AnimationController(
+              vsync: this,
+              duration: const Duration(milliseconds: 300),
+            )..addStatusListener((status) {
+              if (status == AnimationStatus.completed && mounted) {
+                setState(() => _phase = MergePhase.merged);
+              }
+            });
         setState(() => _phase = MergePhase.merging);
-        unawaited(controller.forward());
+        controller.forward();
     }
   }
 

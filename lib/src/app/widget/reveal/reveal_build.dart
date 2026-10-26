@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:abigotado_dev/src/app/state/scroll_spy_notifier.dart';
 import 'package:abigotado_dev/src/app/widget/editor_file.dart';
 import 'package:abigotado_dev/src/app/widget/reveal/section_build_scope.dart';
@@ -160,7 +158,7 @@ class _RevealBuildState extends ConsumerState<RevealBuild>
       // starts mid-frame on the scroll frame that latched `revealed`.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        unawaited(controller.forward(from: 0));
+        controller.forward(from: 0);
       });
     } else {
       // true → false: hard jump, never reverse() — an already-built section
