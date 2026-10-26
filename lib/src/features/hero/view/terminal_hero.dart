@@ -70,8 +70,8 @@ class _TerminalHeroState extends ConsumerState<TerminalHero>
         duration: const Duration(milliseconds: 1100),
       );
       // TickerFutures complete only on stop/dispose — fire-and-forget.
-      unawaited(spinner.repeat());
-      unawaited(cursor.repeat(reverse: true));
+      spinner.repeat();
+      cursor.repeat(reverse: true);
     }
 
     // Kick the scenario off *after* this build/lifecycle settles. Both

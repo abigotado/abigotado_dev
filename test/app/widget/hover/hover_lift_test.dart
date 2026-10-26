@@ -142,9 +142,11 @@ bool _rotates(Matrix4 m) => m.entry(0, 2) != 0 || m.entry(1, 2) != 0;
 
 List<DecoratedBox> _glowBoxes(WidgetTester tester) => [
   for (final box in tester.widgetList<DecoratedBox>(_inHoverLift(DecoratedBox)))
-    if (box.decoration case BoxDecoration(
-      :final boxShadow?,
-    ) when boxShadow.isNotEmpty)
+    if (box.decoration
+        case BoxDecoration(
+          :final boxShadow?,
+        )
+        when boxShadow.isNotEmpty)
       box,
 ];
 

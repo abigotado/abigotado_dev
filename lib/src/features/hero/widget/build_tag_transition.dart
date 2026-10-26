@@ -1,5 +1,3 @@
-import 'dart:async' show unawaited;
-
 import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
 import 'package:abigotado_dev/src/features/effects/state/effects_notifier.dart';
 import 'package:abigotado_dev/src/features/hero/state/build_phase.dart';
@@ -75,7 +73,7 @@ class _BuildTagTransitionState extends ConsumerState<BuildTagTransition>
         final c = _controller;
         if (next == BuildPhase.released) {
           if (c != null && !c.isCompleted) {
-            unawaited(c.forward());
+            c.forward();
           } else if (c == null && _staticT != 1.0) {
             // Lite mode: phase jumped to released after mount — flip instantly.
             setState(() => _staticT = 1.0);

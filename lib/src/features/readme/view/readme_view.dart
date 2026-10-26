@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
 import 'package:abigotado_dev/src/app/theme/app_sizing.dart';
 import 'package:abigotado_dev/src/app/widget/content_width.dart';
@@ -49,14 +47,12 @@ class _ReadmeViewState extends ConsumerState<ReadmeView> {
     final ctx = _sectionKeys[anchor]?.currentContext;
     if (ctx == null) return;
 
-    unawaited(
-      Scrollable.ensureVisible(
-        ctx,
-        duration: mode == EffectsMode.lite
-            ? Duration.zero
-            : const Duration(milliseconds: 250),
-        curve: Curves.easeInOutCubic,
-      ),
+    Scrollable.ensureVisible(
+      ctx,
+      duration: mode == EffectsMode.lite
+          ? Duration.zero
+          : const Duration(milliseconds: 250),
+      curve: Curves.easeInOutCubic,
     );
   }
 

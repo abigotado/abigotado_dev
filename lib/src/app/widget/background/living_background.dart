@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
 import 'package:abigotado_dev/src/app/theme/app_sizing.dart';
 import 'package:abigotado_dev/src/app/widget/background/background_dot.dart';
@@ -133,7 +131,7 @@ class _LivingBackgroundState extends ConsumerState<LivingBackground>
             vsync: this,
             duration: const Duration(seconds: 8),
           );
-          unawaited(_controller!.repeat());
+          _controller!.repeat();
         } else {
           _controller!.dispose();
           _controller = null;
