@@ -25,7 +25,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///   _EditorTitleBar(),              // TrafficLights + title
 ///   Expanded(child: Row(children: [
 ///     EditorSidebar(),              // fixed 172 px file-explorer panel
-///     Expanded(child: EditorPane(trailingGutter: …, child: child)),
+///     Expanded(child: EditorPane(gutter: …, child: child)),
 ///     if (width >= AppSizing.readmePanelBreakpoint)
 ///       ReadmePreviewPanel(),       // fixed 380 px README preview, ≥1600px
 ///   ])),
@@ -44,7 +44,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// ```dart
 /// Column(children: [
 ///   _EditorTitleBar(compact: true),
-///   Expanded(child: EditorPane(trailingGutter: …, child: child)),
+///   Expanded(child: EditorPane(gutter: …, child: child)),
 ///   EditorStatusBar(compact: true),
 /// ])
 /// ```
@@ -69,11 +69,11 @@ class EditorShell extends StatelessWidget {
                 builder: (context, constraints) {
                   final isDesktop =
                       constraints.maxWidth >= AppSizing.editorBreakpoint;
-                  // Hover room on the right wherever full effects are the
+                  // Hover room on both sides wherever full effects are the
                   // default; compact phones resolve to lite and keep their
                   // width. Effects switched on by hand there get a glow fitted
                   // to the one gutter instead (see HoverBounds).
-                  final trailingGutter = switch (constraints.maxWidth >=
+                  final gutter = switch (constraints.maxWidth >=
                       kCompactWidth) {
                     true => AppSizing.contentGutter,
                     false => 0.0,
@@ -89,7 +89,7 @@ class EditorShell extends StatelessWidget {
                               const EditorSidebar(),
                               Expanded(
                                 child: _PaneWithFab(
-                                  trailingGutter: trailingGutter,
+                                  gutter: gutter,
                                   child: child,
                                 ),
                               ),
@@ -108,7 +108,7 @@ class EditorShell extends StatelessWidget {
                         const _EditorTitleBar(compact: true),
                         Expanded(
                           child: _PaneWithFab(
-                            trailingGutter: trailingGutter,
+                            gutter: gutter,
                             child: child,
                           ),
                         ),
@@ -186,15 +186,15 @@ class _EditorTitleBar extends StatelessWidget {
 /// hot-reload "rebuild" flash it triggers is a pitch-only conceit that has no
 /// meaning over the README document.
 class _PaneWithFab extends ConsumerWidget {
-  const _PaneWithFab({required this.child, required this.trailingGutter});
+  const _PaneWithFab({required this.child, required this.gutter});
 
   /// Gap between the FAB and the pane's bottom-right edges.
   static const double _fabMargin = 16;
 
   final Widget child;
 
-  /// Forwarded to [EditorPane.trailingGutter].
-  final double trailingGutter;
+  /// Forwarded to [EditorPane.gutter].
+  final double gutter;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -202,7 +202,7 @@ class _PaneWithFab extends ConsumerWidget {
 
     return Stack(
       children: [
-        EditorPane(trailingGutter: trailingGutter, child: child),
+        EditorPane(gutter: gutter, child: child),
         if (!readmeOpen)
           const Positioned(
             right: _fabMargin,

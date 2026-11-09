@@ -36,13 +36,17 @@ class ContactLinkTile extends ConsumerWidget {
             border: Border.all(color: AppColors.border),
             borderRadius: BorderRadius.circular(6),
           ),
-          alignment: Alignment.center,
-          child: Text(
-            link.label,
-            style: const TextStyle(
-              fontFamily: 'monospace',
-              fontSize: 13,
-              color: AppColors.accentTeal,
+          // Center(widthFactor: 1), not Container(alignment:): the latter
+          // expands to the Wrap's full run width, one tile per row.
+          child: Center(
+            widthFactor: 1,
+            child: Text(
+              link.label,
+              style: const TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 13,
+                color: AppColors.accentTeal,
+              ),
             ),
           ),
         ),

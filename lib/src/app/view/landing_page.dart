@@ -88,6 +88,7 @@ class LandingPage extends StatelessWidget {
                           l10n.name,
                           style: const TextStyle(
                             fontSize: 40,
+                            height: 1.15,
                             fontWeight: FontWeight.w600,
                             color: AppColors.textPrimary,
                           ),

@@ -1,3 +1,4 @@
+import 'package:abigotado_dev/src/app/theme/app_sizing.dart';
 import 'package:abigotado_dev/src/app/theme/app_theme.dart';
 import 'package:abigotado_dev/src/app/view/editor_scroll_host.dart';
 import 'package:abigotado_dev/src/app/view/editor_shell.dart';
@@ -12,6 +13,7 @@ import 'package:abigotado_dev/src/features/hero/state/build_scenario_notifier.da
 import 'package:abigotado_dev/src/features/hero/state/build_scenario_state.dart';
 import 'package:abigotado_dev/src/features/locale/state/locale_notifier.dart';
 import 'package:abigotado_dev/src/features/readme/state/presentation_notifier.dart';
+import 'package:abigotado_dev/src/features/readme/view/readme_body.dart';
 import 'package:abigotado_dev/src/features/readme/view/readme_navigation.dart';
 import 'package:abigotado_dev/src/features/readme/view/readme_view.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
@@ -134,6 +136,33 @@ Future<ProviderContainer> _pumpApp(
 }
 
 void main() {
+  group('ReadmeView geometry in the shell', () {
+    // Regression: the pane's gutter sat outside the toolbars, so their
+    // surface stopped short of the pane edge, and the document touched them.
+    testWidgets(
+      'toolbars reach the pane edge, the document keeps its gutters',
+      (
+        tester,
+      ) async {
+        await _pumpApp(tester);
+        final l10n = AppLocalizations.of(
+          tester.element(find.byType(EditorScrollHost)),
+        );
+
+        await tester.tap(find.text(l10n.rm_entry_chip));
+        await tester.pumpAndSettle();
+
+        final chip = tester.getRect(
+          find.widgetWithText(InkWell, l10n.rm_anchor_experience),
+        );
+        final body = tester.getRect(find.byType(ReadmeBody));
+        expect(chip.left, AppSizing.sidebarWidth + 12);
+        expect(body.left, AppSizing.sidebarWidth + 2 * AppSizing.contentGutter);
+        expect(body.top - chip.bottom, greaterThan(AppSizing.contentGutter));
+      },
+    );
+  });
+
   group('README browser-Back contract (A3)', () {
     testWidgets(
       '1. initial: readmeOpen false, Navigator.canPop false',

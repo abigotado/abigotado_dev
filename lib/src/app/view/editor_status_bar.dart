@@ -37,7 +37,7 @@ class EditorStatusBar extends StatelessWidget {
         color: AppColors.surface,
         border: Border(top: BorderSide(color: AppColors.border)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: compact ? const _CompactBar() : _DesktopBar(l10n: l10n),
     );
   }
@@ -82,7 +82,7 @@ class _CompactBar extends StatelessWidget {
     return const Wrap(
       spacing: 8,
       runSpacing: 6,
-      alignment: WrapAlignment.end,
+      alignment: WrapAlignment.spaceBetween,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [ReleaseTag(), LocaleSwitcher(), EffectsToggle()],
     );

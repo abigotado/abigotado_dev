@@ -196,6 +196,20 @@ void main() {
         });
       }
 
+      // Regression: the 44 px controls touched the bar's top and bottom edges.
+      for (final width in const [360.0, 1280.0]) {
+        testWidgets('the controls keep clear of the bar edges at $width', (
+          tester,
+        ) async {
+          await _pumpShell(tester, surfaceSize: Size(width, 800));
+
+          final bar = tester.getRect(find.byType(EditorStatusBar));
+          final controls = tester.getRect(find.byType(LocaleSwitcher));
+          expect(controls.top - bar.top, greaterThanOrEqualTo(6));
+          expect(bar.bottom - controls.bottom, greaterThanOrEqualTo(6));
+        });
+      }
+
       for (final width in const [360.0, 1280.0]) {
         testWidgets('the release tag is centred on the controls at $width', (
           tester,

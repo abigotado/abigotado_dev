@@ -27,6 +27,7 @@ Future<_RecordingUrlLauncher> _pumpTile(
   WidgetTester tester, {
   required ContactLink link,
   Size surface = const Size(800, 600),
+  bool inWrap = false,
 }) async {
   await tester.binding.setSurfaceSize(surface);
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -42,7 +43,10 @@ Future<_RecordingUrlLauncher> _pumpTile(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
-          body: Center(child: ContactLinkTile(link: link)),
+          body: switch (inWrap) {
+            true => Wrap(children: [ContactLinkTile(link: link)]),
+            false => Center(child: ContactLinkTile(link: link)),
+          },
         ),
       ),
     ),
@@ -107,6 +111,25 @@ void main() {
     // -----------------------------------------------------------------------
     // Tap target size — WCAG 2.5.5 minimum 44 × 44 dp.
     // -----------------------------------------------------------------------
+    group('layout', () {
+      // Regression: an aligned Container grew to the Wrap's full run width,
+      // stacking the contacts into one full-width row each.
+      testWidgets('inside a Wrap → tile shrink-wraps its label', (
+        tester,
+      ) async {
+        await _pumpTile(
+          tester,
+          link: const ContactLink(label: 'Email', url: 'mailto:a@b.c'),
+          inWrap: true,
+        );
+
+        expect(
+          tester.getSize(find.byType(ContactLinkTile)).width,
+          lessThan(400),
+        );
+      });
+    });
+
     group('tap target', () {
       testWidgets('rendered height is at least 44 px', (tester) async {
         const link = ContactLink(

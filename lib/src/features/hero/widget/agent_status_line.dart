@@ -55,6 +55,9 @@ sealed class AgentStatusLine extends StatelessWidget {
   /// The localized status text shown after the name.
   final String statusLabel;
 
+  /// Shared first-line height, so the glyph centres on the text beside it.
+  static const double _lineHeight = 18;
+
   /// Colour applied to the glyph and the status label for this variant.
   Color get glyphColor;
 
@@ -78,7 +81,11 @@ sealed class AgentStatusLine extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 10,
       children: [
-        SizedBox(width: 16, child: Center(child: glyph)),
+        SizedBox(
+          width: 16,
+          height: _lineHeight,
+          child: Center(child: glyph),
+        ),
         SizedBox(
           width: 72,
           child: Text(
@@ -86,6 +93,7 @@ sealed class AgentStatusLine extends StatelessWidget {
             style: const TextStyle(
               fontFamily: 'monospace',
               fontSize: 13,
+              height: _lineHeight / 13,
               color: AppColors.textMuted,
             ),
           ),
@@ -97,6 +105,7 @@ sealed class AgentStatusLine extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'monospace',
               fontSize: 13,
+              height: _lineHeight / 13,
               color: glyphColor,
             ),
           ),

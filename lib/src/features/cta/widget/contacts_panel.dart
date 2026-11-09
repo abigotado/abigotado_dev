@@ -21,10 +21,14 @@ class ContactsPanel extends StatelessWidget {
 
     return Column(
       mainAxisSize: MainAxisSize.min,
+      // Stretch so the shrink-wrapping Wrap centres under the full-width
+      // merge button instead of hugging the left edge.
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 12,
       children: [
         Text(
           l10n.cta_heading,
+          textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
