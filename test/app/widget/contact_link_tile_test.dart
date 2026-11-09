@@ -108,9 +108,6 @@ void main() {
       });
     });
 
-    // -----------------------------------------------------------------------
-    // Tap target size — WCAG 2.5.5 minimum 44 × 44 dp.
-    // -----------------------------------------------------------------------
     group('layout', () {
       // Regression: an aligned Container grew to the Wrap's full run width,
       // stacking the contacts into one full-width row each.
@@ -130,6 +127,9 @@ void main() {
       });
     });
 
+    // -----------------------------------------------------------------------
+    // Tap target size — WCAG 2.5.5 minimum 44 × 44 dp.
+    // -----------------------------------------------------------------------
     group('tap target', () {
       testWidgets('rendered height is at least 44 px', (tester) async {
         const link = ContactLink(

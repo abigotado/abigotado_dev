@@ -790,6 +790,29 @@ void main() {
     });
 
     // -------------------------------------------------------------------------
+    group('page inset', () {
+      // Regression: the first control sat flush against the title bar.
+      for (final width in const [390.0, 1280.0]) {
+        testWidgets('at $width the page opens one gutter below the pane top', (
+          tester,
+        ) async {
+          await _pumpHost(
+            tester,
+            surfaceSize: Size(width, 844),
+            inShell: true,
+          );
+          await tester.pumpAndSettle();
+
+          expect(
+            tester.getTopLeft(find.byType(ReadmeEntryChip)).dy -
+                tester.getTopLeft(find.byType(EditorScrollHost)).dy,
+            AppSizing.contentGutter,
+          );
+        });
+      }
+    });
+
+    // -------------------------------------------------------------------------
     group('hover headroom', () {
       // Regression: EditorPane's gutter sat outside the landing's scroll view,
       // whose viewport clips — one contentGutter (24 px) left of every card.
@@ -867,26 +890,6 @@ void main() {
         expect(card.left, AppSizing.contentGutter);
         expect(390 - card.right, AppSizing.contentGutter);
       });
-
-      // Regression: the first control sat flush against the title bar.
-      for (final width in const [390.0, 1280.0]) {
-        testWidgets('at $width the page opens one gutter below the pane top', (
-          tester,
-        ) async {
-          await _pumpHost(
-            tester,
-            surfaceSize: Size(width, 844),
-            inShell: true,
-          );
-          await tester.pumpAndSettle();
-
-          expect(
-            tester.getTopLeft(find.byType(ReadmeEntryChip)).dy -
-                tester.getTopLeft(find.byType(EditorScrollHost)).dy,
-            AppSizing.contentGutter,
-          );
-        });
-      }
 
       testWidgets(
         'a window shrunk under a still pointer re-fits the hovered glow',

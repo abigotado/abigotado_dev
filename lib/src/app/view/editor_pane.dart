@@ -6,13 +6,10 @@ import 'package:flutter/widgets.dart';
 /// Left-aligns its [child]. It does **not** cap width — each section self-caps
 /// via `ContentWidth`.
 ///
-/// The pane is the clip boundary for its content, so a card's hover glow and
-/// lift may spill into the gutters instead of being cut at the inner scroll
-/// view's edge (the landing's scroll view does not clip; see
-/// `EditorScrollHost`). The clip is also the [HoverBounds] for the cards
-/// inside: wherever a layout leaves less room than the full glow needs (one
-/// gutter on a compact viewport), a hovered card shrinks its glow to fade out
-/// before the edge.
+/// The pane is the clip boundary for its content and the [HoverBounds] for the
+/// cards inside: wherever a layout leaves less room than the full glow needs
+/// (one gutter on a compact viewport), a hovered card shrinks its glow to fade
+/// out before the edge.
 ///
 /// [gutter] is the horizontal room scrolling content keeps on both sides. The
 /// pane does not pad it itself: a toolbar inside must still reach the pane

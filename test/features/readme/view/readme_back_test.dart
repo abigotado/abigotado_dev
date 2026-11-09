@@ -94,8 +94,9 @@ class _RefProbe extends ConsumerWidget {
 Future<ProviderContainer> _pumpApp(
   WidgetTester tester, {
   ValueNotifier<WidgetRef?>? refNotifier,
+  Size surface = const Size(1280, 800),
 }) async {
-  await tester.binding.setSurfaceSize(const Size(1280, 800));
+  await tester.binding.setSurfaceSize(surface);
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
   final container = ProviderContainer(
@@ -139,28 +140,35 @@ void main() {
   group('ReadmeView geometry in the shell', () {
     // Regression: the pane's gutter sat outside the toolbars, so their
     // surface stopped short of the pane edge, and the document touched them.
-    testWidgets(
-      'toolbars reach the pane edge, the document keeps its gutters',
+    for (final (:width, :paneLeft, :bodyInset) in const [
+      (width: 390.0, paneLeft: 0.0, bodyInset: AppSizing.contentGutter),
       (
-        tester,
-      ) async {
-        await _pumpApp(tester);
-        final l10n = AppLocalizations.of(
-          tester.element(find.byType(EditorScrollHost)),
-        );
+        width: 1280.0,
+        paneLeft: AppSizing.sidebarWidth,
+        bodyInset: 2 * AppSizing.contentGutter,
+      ),
+    ]) {
+      testWidgets(
+        'at $width toolbars reach the pane edge, the document keeps gutters',
+        (tester) async {
+          await _pumpApp(tester, surface: Size(width, 800));
+          final l10n = AppLocalizations.of(
+            tester.element(find.byType(EditorScrollHost)),
+          );
 
-        await tester.tap(find.text(l10n.rm_entry_chip));
-        await tester.pumpAndSettle();
+          await tester.tap(find.text(l10n.rm_entry_chip));
+          await tester.pumpAndSettle();
 
-        final chip = tester.getRect(
-          find.widgetWithText(InkWell, l10n.rm_anchor_experience),
-        );
-        final body = tester.getRect(find.byType(ReadmeBody));
-        expect(chip.left, AppSizing.sidebarWidth + 12);
-        expect(body.left, AppSizing.sidebarWidth + 2 * AppSizing.contentGutter);
-        expect(body.top - chip.bottom, greaterThan(AppSizing.contentGutter));
-      },
-    );
+          final chip = tester.getRect(
+            find.widgetWithText(InkWell, l10n.rm_anchor_experience),
+          );
+          final body = tester.getRect(find.byType(ReadmeBody));
+          expect(chip.left, paneLeft + 12);
+          expect(body.left, paneLeft + bodyInset);
+          expect(body.top - chip.bottom, greaterThan(AppSizing.contentGutter));
+        },
+      );
+    }
   });
 
   group('README browser-Back contract (A3)', () {

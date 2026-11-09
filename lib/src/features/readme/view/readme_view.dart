@@ -64,8 +64,7 @@ class _ReadmeViewState extends ConsumerState<ReadmeView> {
 
     return Column(
       // Stretch, not the default centre: the tab and anchor-bar strips span
-      // the full pane width (their bottom borders read as toolbar rules) and
-      // the anchor chips left-align with the document below.
+      // the full pane width (their bottom borders read as toolbar rules).
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _ReadmeTab(

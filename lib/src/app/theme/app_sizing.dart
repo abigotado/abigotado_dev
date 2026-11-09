@@ -46,12 +46,12 @@ abstract final class AppSizing {
   /// Viewport width breakpoint in pixels above which the README preview
   /// panel is shown.
   ///
-  /// Must be at least [sidebarWidth] + [contentGutter] + [contentMaxWidth] +
-  /// [readmePanelWidth] (172 + 24 + 1000 + 380 = 1576 px) so the pitch's
-  /// content cards keep their full [contentMaxWidth] measure the moment the
-  /// panel appears — a narrower breakpoint would squeeze the card column
-  /// below 1000 px as soon as the panel claims its 380 px. 1600 clears that
-  /// 1576 px floor with headroom; a guard test pins this invariant.
+  /// Must be at least [sidebarWidth] + 2 × [contentGutter] +
+  /// [contentMaxWidth] + [readmePanelWidth] (172 + 48 + 1000 + 380 = 1600 px)
+  /// so the pitch's content cards keep their full [contentMaxWidth] measure
+  /// the moment the panel appears — a narrower breakpoint would squeeze the
+  /// card column below 1000 px as soon as the panel claims its 380 px. A guard
+  /// test pins this invariant.
   static const double readmePanelBreakpoint = 1600;
 
   /// Horizontal padding applied inside each content section in pixels.

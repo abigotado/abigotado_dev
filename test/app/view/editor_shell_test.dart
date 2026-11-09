@@ -196,6 +196,18 @@ void main() {
         });
       }
 
+      // The tag holds the left edge and the controls the right, wrapped or not.
+      for (final width in const [320.0, 390.0]) {
+        testWidgets('the compact bar pins both edges at $width', (
+          tester,
+        ) async {
+          await _pumpShell(tester, surfaceSize: Size(width, 800));
+
+          expect(tester.getTopLeft(find.byType(ReleaseTag)).dx, 12);
+          expect(tester.getTopRight(find.byType(EffectsToggle)).dx, width - 12);
+        });
+      }
+
       // Regression: the 44 px controls touched the bar's top and bottom edges.
       for (final width in const [360.0, 1280.0]) {
         testWidgets('the controls keep clear of the bar edges at $width', (
