@@ -196,12 +196,20 @@ void main() {
         });
       }
 
-      // The tag holds the left edge and the controls the right, wrapped or not.
-      for (final width in const [320.0, 390.0]) {
-        testWidgets('the compact bar pins both edges at $width', (
+      // The tag holds the left edge and the controls the right, wrapped or not:
+      // the Spanish toggle wraps to its own line at 320.
+      for (final (:width, :locale) in const [
+        (width: 320.0, locale: Locale('es')),
+        (width: 390.0, locale: Locale('en')),
+      ]) {
+        testWidgets('the compact bar pins both edges at $width ($locale)', (
           tester,
         ) async {
-          await _pumpShell(tester, surfaceSize: Size(width, 800));
+          await _pumpShell(
+            tester,
+            surfaceSize: Size(width, 800),
+            locale: locale,
+          );
 
           expect(tester.getTopLeft(find.byType(ReleaseTag)).dx, 12);
           expect(tester.getTopRight(find.byType(EffectsToggle)).dx, width - 12);
