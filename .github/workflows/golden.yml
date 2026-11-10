@@ -103,7 +103,10 @@ jobs:
           SRC: ${{ runner.temp }}/goldens
         run: |
           set -euo pipefail
-          if [[ -n "$(find "$SRC" -mindepth 1 ! -type d ! -type f)" ]]; then
+          # Plain assignment and redirect, so errexit sees a failing find.
+          irregular="$(find "$SRC" -mindepth 1 ! -type d ! -type f)"
+          find "$SRC" -type f -print0 > "$RUNNER_TEMP/baselines.list"
+          if [[ -n "$irregular" ]]; then
             echo "::error::Artifact holds non-regular files — refusing."
             exit 1
           fi
@@ -122,7 +125,7 @@ jobs:
             cp "$file" "$rel"
             chmod 0644 "$rel"
             count=$((count + 1))
-          done < <(find "$SRC" -type f -print0)
+          done < "$RUNNER_TEMP/baselines.list"
           if [[ "$count" -eq 0 ]]; then
             echo "::error::No baselines in the artifact — refusing."
             exit 1
