@@ -8,8 +8,8 @@ import 'package:flutter/material.dart';
 /// Shows the file's [EditorFile.icon] (muted, ~14 px), its
 /// [EditorFile.filename] in monospace, and the localized clarity decode-label
 /// under it in hint color at a smaller size. The label is stacked rather than
-/// beside the name: the fixed sidebar is too narrow for both on one line in
-/// every locale ("CHANGELOG.md" next to "carrera" truncated the filename).
+/// beside the name: the fixed sidebar is too narrow to fit both on one line
+/// in every locale ("CHANGELOG.md" next to "carrera" truncated the filename).
 ///
 /// [selected] tints the row with a subtle IDE-style active-file highlight and
 /// exposes `isSelected` via [Semantics] so assistive technology can report

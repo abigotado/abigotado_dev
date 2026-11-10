@@ -6,7 +6,7 @@ import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// The floating ⚡ "hot reload" action button.
+/// The floating lightning-bolt "hot reload" action button.
 ///
 /// A flat amber-bolt circle pinned to the bottom-right of the content pane —
 /// the Flutter hot-reload conceit. Tapping it calls `HotReloadNotifier.pulse`,
@@ -15,9 +15,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// The button is app chrome: it is always present and interactive in BOTH
 /// effects modes (only the resulting flash is gated to full mode). A desktop
 /// hover brightens its border to amber; the brighten is animated in full mode
-/// and instant in lite. The ⚡ glyph is decorative — the accessible affordance
-/// is the wrapping [Semantics] button carrying the localized label and hint,
-/// with `excludeSemantics: true` so the glyph is never announced on its own.
+/// and instant in lite. The bolt icon is decorative — the accessible
+/// affordance is the wrapping [Semantics] button carrying the localized label
+/// and hint, with `excludeSemantics: true` so the icon is never announced on
+/// its own.
 class HotReloadFab extends ConsumerStatefulWidget {
   /// Creates the hot-reload FAB.
   const HotReloadFab({super.key});

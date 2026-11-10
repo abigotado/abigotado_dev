@@ -17,6 +17,7 @@ import 'package:abigotado_dev/src/features/readme/view/readme_navigation.dart';
 import 'package:abigotado_dev/src/features/readme/widget/readme_sidebar_row.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -238,6 +239,56 @@ void main() {
 
           expect(find.text('README.md'), findsOneWidget);
           expect(find.text(l10n.file_readme), findsOneWidget);
+
+          final name = tester.getRect(find.text('README.md'));
+          final label = tester.getRect(find.text(l10n.file_readme));
+          expect(
+            label.top,
+            greaterThanOrEqualTo(name.bottom),
+            reason: 'the README row stacks its label like EditorFileRow',
+          );
+          expect(label.left, name.left);
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Filename width budget at the real sidebar width. The test font draws
+    // every glyph 1 em wide, so a truncation check would fail regardless;
+    // instead each filename's layout width is checked against the longest
+    // name at a monospace advance (~0.6 em, plus slack) in a real browser.
+    // -------------------------------------------------------------------------
+    group('filename width budget', () {
+      testWidgets(
+        'every filename gets room for its monospace width → no ellipsis',
+        (tester) async {
+          final container = ProviderContainer(
+            overrides: [
+              localeStoreProvider.overrideWithValue(const _FakeLocaleStore()),
+              platformReaderProvider.overrideWithValue(
+                const _FakePlatformLocaleReader(),
+              ),
+              effectsStoreProvider.overrideWithValue(
+                const _FakeEffectsStore(),
+              ),
+            ],
+          );
+          addTearDown(container.dispose);
+          await _pumpSidebar(tester, container);
+
+          for (final name in [
+            for (final f in EditorFile.values) f.filename,
+            'README.md',
+          ]) {
+            final paragraph = tester.renderObject<RenderParagraph>(
+              find.text(name),
+            );
+            expect(
+              paragraph.constraints.maxWidth,
+              greaterThanOrEqualTo(name.length * 13 * 0.65),
+              reason: '$name must fit the sidebar on one line',
+            );
+          }
         },
       );
     });
