@@ -13,16 +13,7 @@ import '../../../golden/golden_harness.dart';
 //
 // Baselines are generated on Linux CI only (see
 // .github/workflows/golden.yml) — macOS skips this tag via dart_test.yaml, so
-// no goldens are authored or verified locally in this pass.
-//
-// THIS PASS (red): `ReadmeBody.headerCrop()` still renders `SizedBox.shrink`
-// (zero size). Forcing this suite locally
-// (`flutter test --tags golden --run-skipped`) fails with "Invalid image
-// dimensions" — `toImage` cannot rasterize a zero-pixel layer — rather than a
-// pixel diff. That is the correct red for a golden of a not-yet-implemented
-// widget; the green pass's real header/collaboration/about tree gives the
-// scene non-zero size and lets `matchesGoldenFile` run for real (still
-// missing a baseline until Linux CI authors one — see the workflow above).
+// no goldens are authored or verified locally.
 void main() {
   group('ReadmeBody.headerCrop golden', () {
     testWidgets('en · desktop 1000', (tester) async {

@@ -103,7 +103,7 @@ jobs:
           SRC: ${{ runner.temp }}/goldens
         run: |
           set -euo pipefail
-          if find "$SRC" -mindepth 1 ! -type d ! -type f | grep -q .; then
+          if [[ -n "$(find "$SRC" -mindepth 1 ! -type d ! -type f)" ]]; then
             echo "::error::Artifact holds non-regular files — refusing."
             exit 1
           fi
@@ -128,14 +128,15 @@ jobs:
             exit 1
           fi
           git add -A
-          if git diff --cached --name-status \
-              | grep -vE '^[AM]\ttest/features/[^/]+/golden/goldens/[^/]+\.png$' \
-              | grep -q .; then
+          staged="$(git diff --cached --name-status)"
+          stray="$(awk -F '\t' '$1 !~ /^[AM]$/ || $2 !~ /^test\/features\/[^\/]+\/golden\/goldens\/[^\/]+\.png$/' <<<"$staged")"
+          if [[ -n "$stray" ]]; then
             echo "::error::Non-golden changes staged — refusing to commit baselines."
-            git diff --cached --name-status
+            echo "$stray"
             exit 1
           fi
-          if git diff --cached --raw | awk '{print $2}' | grep -vx 100644 | grep -q .; then
+          modes="$(git diff --cached --raw | awk '$2 != "100644"')"
+          if [[ -n "$modes" ]]; then
             echo "::error::Baselines must be plain files (mode 100644)."
             exit 1
           fi

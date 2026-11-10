@@ -72,7 +72,8 @@ git restore . && git clean -fd test/**/goldens               # discard them
 
 ## Notes
 
-- **Scope:** the three static sections (`metrics`, `pubspec`, `changelog`).
+- **Scope:** the static sections (`metrics`, `pubspec`, `changelog`) and the
+  README panel and header (`readme`).
   Animated sections (terminal-hero scenario, living background, hover,
   scroll-reveal) are deferred — they need fake-clock/ticker control for a stable
   frame and will be a later increment.
