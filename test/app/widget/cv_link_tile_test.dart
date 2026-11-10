@@ -44,7 +44,7 @@ void main() {
       final cases = {
         const Locale('ru'): cvPdfRuUrl,
         const Locale('en'): cvPdfEnUrl,
-        const Locale('es'): cvPdfEnUrl,
+        const Locale('es'): cvPdfEsUrl,
       };
 
       for (final MapEntry(key: locale, value: url) in cases.entries) {
@@ -65,19 +65,6 @@ void main() {
 
         final l10n = await AppLocalizations.delegate.load(const Locale('ru'));
         expect(find.text(l10n.cv_pdf), findsOneWidget);
-      });
-
-      testWidgets('es label flags the English-only PDF', (tester) async {
-        await _pumpTile(tester, locale: const Locale('es'));
-
-        final es = await AppLocalizations.delegate.load(const Locale('es'));
-        final en = await AppLocalizations.delegate.load(const Locale('en'));
-        expect(
-          es.cv_pdf,
-          isNot(equals(en.cv_pdf)),
-          reason: 'es serves the English PDF, so its label must say so',
-        );
-        expect(find.text(es.cv_pdf), findsOneWidget);
       });
     });
   });

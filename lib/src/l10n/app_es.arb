@@ -46,7 +46,7 @@
   "problems": "0 problemas",
   "hotreload_label": "Hot reload",
   "hotreload_hint": "Reconstruye las secciones de la página sin recargar",
-  "cv_pdf": "CV · PDF (en inglés)",
+  "cv_pdf": "CV · PDF",
 
   "rm_entry_chip": "README.md — la versión sin metáforas",
   "rm_invitation": "Para la historia completa y humana → README.md",
