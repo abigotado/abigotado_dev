@@ -93,6 +93,25 @@ void main() {
       );
     });
 
+    group('geometry — short last row', () {
+      testWidgets(
+        'surface 390×800 → two columns, the third card spans the full row',
+        (tester) async {
+          // Net available = 390 − 48 = 342 px → metricsColumnsFor → 2.
+          await _pumpSection(tester, surface: const Size(390, 800));
+
+          final cards = find.byType(MetricCard);
+          final first = tester.getRect(cards.at(0));
+          final second = tester.getRect(cards.at(1));
+          final third = tester.getRect(cards.at(2));
+
+          expect(first.top, second.top, reason: 'two cards share row one');
+          expect(third.left, first.left);
+          expect(third.right, second.right);
+        },
+      );
+    });
+
     group('geometry — multi-column on wide surface', () {
       testWidgets(
         'surface 1280×800 → all three cards on one row (3 cols)',

@@ -20,7 +20,7 @@ import 'package:flutter/widgets.dart';
 /// `AppSizing.contentGutter` (24 px) horizontal padding on each side. The
 /// column count is additionally capped at the card count so the three cards
 /// fill the row evenly rather than leaving an empty fourth column on a wide
-/// desktop.
+/// desktop, and a short last row shares the full width among its cards.
 ///
 /// The section is always visible — it has no Riverpod dependency and requires
 /// no provider gating.
@@ -79,7 +79,16 @@ class MetricsSection extends StatelessWidget {
           // instead of leaving an empty fourth column on a wide desktop.
           final columns = math.min(metricsColumnsFor(available), cards.length);
           const gap = 12.0;
-          final cardWidth = (available - gap * (columns - 1)) / columns;
+          // A short last row splits the full width among its cards, so no
+          // card sits alone beside an empty cell (2 + 1 on phones).
+          final lastRowStart = (cards.length - 1) ~/ columns * columns;
+          double widthFor(int index) {
+            final perRow = switch (index >= lastRowStart) {
+              true => cards.length - lastRowStart,
+              false => columns,
+            };
+            return (available - gap * (perRow - 1)) / perRow;
+          }
 
           return Wrap(
             spacing: gap,
@@ -90,7 +99,7 @@ class MetricsSection extends StatelessWidget {
                   index: i,
                   count: cards.length,
                   child: SizedBox(
-                    width: cardWidth,
+                    width: widthFor(i),
                     child: MetricCard(
                       value: card.value,
                       label: card.label,
