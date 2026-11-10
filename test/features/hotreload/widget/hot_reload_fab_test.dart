@@ -83,16 +83,23 @@ void main() {
   group('HotReloadFab', () {
     group('rendering', () {
       testWidgets(
-        'renders the ⚡ glyph (exactly one widget carrying the text)',
+        'renders the bolt from the bundled icon font, not the ⚡ emoji',
         (tester) async {
           await _pumpFab(tester, storedMode: EffectsMode.full);
 
           expect(
-            find.text('⚡'),
+            find.byIcon(Icons.bolt),
             findsOneWidget,
             reason:
-                'HotReloadFab must display the ⚡ lightning bolt glyph '
-                'as its visual affordance',
+                'HotReloadFab must display the lightning bolt as its '
+                'visual affordance',
+          );
+          expect(
+            find.text('⚡'),
+            findsNothing,
+            reason:
+                'the ⚡ emoji needs a lazily fetched web fallback font and '
+                'flashes a missing-glyph box on first load',
           );
         },
       );
@@ -259,14 +266,14 @@ void main() {
     group('both effects modes — FAB renders and fires pulse', () {
       for (final mode in EffectsMode.values) {
         testWidgets(
-          '${mode.name} mode: ⚡ renders and tap increments hotReloadProvider',
+          '${mode.name} mode: bolt renders, tap increments hotReloadProvider',
           (tester) async {
             final container = await _pumpFab(tester, storedMode: mode);
 
             expect(
-              find.text('⚡'),
+              find.byIcon(Icons.bolt),
               findsOneWidget,
-              reason: 'HotReloadFab must render ⚡ in ${mode.name} mode',
+              reason: 'HotReloadFab must render the bolt in ${mode.name} mode',
             );
 
             final before = container.read(hotReloadProvider);

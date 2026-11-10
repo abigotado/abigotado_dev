@@ -8,7 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// The floating ⚡ "hot reload" action button.
 ///
-/// A flat amber-glyph circle pinned to the bottom-right of the content pane —
+/// A flat amber-bolt circle pinned to the bottom-right of the content pane —
 /// the Flutter hot-reload conceit. Tapping it calls `HotReloadNotifier.pulse`,
 /// which triggers the section-flash wave in full mode.
 ///
@@ -69,13 +69,13 @@ class _HotReloadFabState extends ConsumerState<HotReloadFab> {
               shape: BoxShape.circle,
               border: Border.all(color: borderColor),
             ),
-            child: const Text(
-              '⚡',
-              style: TextStyle(
-                fontSize: 20,
-                height: 1,
-                color: AppColors.accentAmber,
-              ),
+            // An icon-font glyph, not the ⚡ emoji: the bundled icon font is
+            // loaded before the first frame, while web fetches emoji
+            // fallback fonts lazily and paints a missing-glyph box meanwhile.
+            child: const Icon(
+              Icons.bolt,
+              size: 24,
+              color: AppColors.accentAmber,
             ),
           ),
         ),
