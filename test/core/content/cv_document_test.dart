@@ -20,15 +20,20 @@ void main() {
       expect(Uri.parse(cvPdfEnUrl).path, endsWith('_en.pdf'));
     });
 
-    test('es, which has no résumé of its own, falls back to English', () {
-      expect(cvPdfUrl('es'), equals(cvPdfEnUrl));
+    test('es gets the Spanish résumé', () {
+      expect(cvPdfUrl('es'), equals(cvPdfEsUrl));
+      expect(Uri.parse(cvPdfEsUrl).path, endsWith('_es.pdf'));
+    });
+
+    test('an unsupported code falls back to English', () {
+      expect(cvPdfUrl('de'), equals(cvPdfEnUrl));
     });
   });
 
   group('published files', () {
     // A renamed or missing PDF would deploy a dead link: the URL path must
     // resolve to a real file under web/, which the build copies verbatim.
-    for (final url in [cvPdfEnUrl, cvPdfRuUrl]) {
+    for (final url in [cvPdfEnUrl, cvPdfRuUrl, cvPdfEsUrl]) {
       test('$url is served from web/', () {
         final uri = Uri.parse(url);
 

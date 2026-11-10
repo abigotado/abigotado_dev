@@ -63,9 +63,14 @@ self_test() {
 
 check_pdfs() {
   local -a pdfs=(web/cv/*.pdf)
-  local failed=0 pdf text
-  if ((${#pdfs[@]} < 2)); then
-    echo '::error::expected the en and ru résumé PDFs in web/cv/'
+  local failed=0 pdf text lang
+  for lang in en ru es; do
+    if [[ ! -f "web/cv/Nikita_Kovalenko_CV_$lang.pdf" ]]; then
+      echo "::error::missing the $lang résumé PDF in web/cv/"
+      failed=1
+    fi
+  done
+  if ((failed)); then
     return 1
   fi
   for pdf in "${pdfs[@]}"; do

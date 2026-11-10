@@ -186,7 +186,7 @@
   },
   "cv_pdf": "CV · PDF",
   "@cv_pdf": {
-    "description": "Label of the contact chip that opens the résumé PDF for the active locale (es falls back to the English PDF, so its label says so)."
+    "description": "Label of the contact chip that opens the résumé PDF in the active locale's language."
   },
 
   "rm_entry_chip": "README.md — the plain-language version",

@@ -12,9 +12,13 @@ const String cvPdfEnUrl = 'https://abigotado.dev/cv/Nikita_Kovalenko_CV_en.pdf';
 /// The Russian résumé PDF. See [cvPdfEnUrl].
 const String cvPdfRuUrl = 'https://abigotado.dev/cv/Nikita_Kovalenko_CV_ru.pdf';
 
-/// The résumé PDF for [languageCode]. A locale without its own résumé (es)
-/// gets the English one — its `cv_pdf` label says so.
+/// The Spanish résumé PDF. See [cvPdfEnUrl].
+const String cvPdfEsUrl = 'https://abigotado.dev/cv/Nikita_Kovalenko_CV_es.pdf';
+
+/// The résumé PDF for [languageCode]. Every supported locale has its own; an
+/// unknown code gets the English one, matching the app's fallback locale.
 String cvPdfUrl(String languageCode) => switch (languageCode) {
   'ru' => cvPdfRuUrl,
+  'es' => cvPdfEsUrl,
   _ => cvPdfEnUrl,
 };
