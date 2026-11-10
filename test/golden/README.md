@@ -24,9 +24,10 @@ Linux-only rule absorbs. A Flutter bump can shift pixels: if the bump PR's
   `dart_test.yaml`, so the everyday `flutter test` (local + the main CI gate)
   stays green and never touches pixels.
 - `.github/workflows/golden.yml`:
-  - **`generate`** — `workflow_dispatch`, owner-triggered: regenerates the Linux
-    baselines and pushes them to a `chore/goldens-<run>` branch. Open a PR from
-    it to review the rendered screenshots before merging.
+  - **`generate`** — `workflow_dispatch`, owner-triggered, on `main` or a
+    `fix/**` branch: regenerates the Linux baselines and pushes them to a
+    `chore/goldens-<run>` branch. Review the rendered screenshots before
+    merging.
   - **`verify`** — on push/PR: runs the goldens against committed baselines.
     Self-skips (green) while no baselines exist at all, so the first run has
     no chicken-and-egg.
@@ -36,12 +37,16 @@ Linux-only rule absorbs. A Flutter bump can shift pixels: if the bump PR's
 1. Push the section change (or the new golden test) to a branch. `verify`
    skips only while the repo has no baselines at all; once they exist, a PR
    that changes a section's rendering fails `verify` on the stale baselines.
-   That is expected, since `generate` runs only on `main`: say so in the PR
-   and merge once the other checks are green.
-2. On GitHub → **Actions → Golden → Run workflow** (on `main`). It pushes the
-   baselines to a `chore/goldens-<run>` branch.
-3. Open a PR from that branch, eyeball the screenshots in the diff, and merge.
-   The PR's own `verify` run proves they pass on a clean Linux checkout.
+   `generate` runs only on `main` and `fix/**`: from a `fix/**` branch, take
+   step 2 on that branch and fast-forward it onto the result; from any other
+   branch, say so in the PR and regenerate on `main` after merge.
+2. On GitHub → **Actions → Golden → Run workflow** (on `main` or the `fix/**`
+   branch). It pushes the baselines as one commit on top of that ref, to a
+   `chore/goldens-<run>` branch.
+3. From `main`, open a PR from that branch. From a `fix/**` branch, check the
+   commit holds only PNGs and fast-forward the fix branch onto it. Eyeball the
+   screenshots in the diff before merging; the PR's own `verify` run proves
+   they pass on a clean Linux checkout.
 
 After an intentional redesign, repeat steps 2–3 to refresh the baselines.
 

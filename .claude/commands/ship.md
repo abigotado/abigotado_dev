@@ -15,9 +15,10 @@ Ship the current change as a pull request:
    (title = commit subject; body = what / why / how it was verified) and
    `--assignee @me`.
 5. A PR that changes a section's rendering fails the golden `verify` check on
-   the now-stale baselines — expected: say so in the PR body
-   (`test/golden/README.md`); the owner regenerates baselines on `main` after
-   merge.
+   the now-stale baselines — expected (`test/golden/README.md`). On a `fix/**`
+   branch the owner runs `generate` on it and the branch fast-forwards onto the
+   baseline commit; otherwise say so in the PR body and the owner regenerates
+   on `main` after merge.
 6. Stop there. Never merge the PR and never push `main` directly — every
    `main` push deploys production (`cd.yml`).
 

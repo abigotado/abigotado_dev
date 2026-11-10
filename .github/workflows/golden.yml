@@ -23,8 +23,12 @@ permissions:
 jobs:
   generate:
     name: Generate baselines (Linux)
-    # Owner-initiated, default-branch only — never automatic, never off main.
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    # Owner-initiated only, never automatic. On `main` it refreshes baselines
+    # after a merge; on a `fix/**` branch it lets a PR that intentionally
+    # changes a section carry its new baselines and pass `verify` before merge.
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/fix/'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -83,7 +87,7 @@ jobs:
           git checkout -b "$BRANCH"
           git commit -m "chore(goldens): update Linux golden baselines"
           git push origin "$BRANCH"
-          echo "::notice::Baselines pushed to '$BRANCH'. Open a PR into main to review the rendered screenshots; its 'verify' run proves they pass on a clean checkout before you merge."
+          echo "::notice::Baselines pushed to '$BRANCH', one commit on top of the dispatched ref. From main, open a PR from it; from a fix branch, fast-forward that branch onto it. Either way the PR's 'verify' run proves they pass on a clean checkout before you merge."
 
   verify:
     name: Verify goldens (Linux)
