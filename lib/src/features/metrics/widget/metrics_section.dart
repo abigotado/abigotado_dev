@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:abigotado_dev/src/app/widget/content_width.dart';
 import 'package:abigotado_dev/src/app/widget/reveal/build_cascade_item.dart';
 import 'package:abigotado_dev/src/features/metrics/metrics_layout.dart';
@@ -74,24 +72,8 @@ class MetricsSection extends StatelessWidget {
     return ContentWidth(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final available = constraints.maxWidth;
-          // Cap columns at the card count so three cards fill the row evenly
-          // instead of leaving an empty fourth column on a wide desktop.
-          final columns = math.min(metricsColumnsFor(available), cards.length);
-          const gap = 12.0;
-          // A short last row splits the full width among its cards, so no
-          // card sits alone beside an empty cell (2 + 1 on phones).
-          final lastRowStart = (cards.length - 1) ~/ columns * columns;
-          double widthFor(int index) {
-            final perRow = switch (index >= lastRowStart) {
-              true => cards.length - lastRowStart,
-              false => columns,
-            };
-            return (available - gap * (perRow - 1)) / perRow;
-          }
-
           return Wrap(
-            spacing: gap,
+            spacing: metricsGap,
             runSpacing: 12,
             children: [
               for (final (i, card) in cards.indexed)
@@ -99,7 +81,11 @@ class MetricsSection extends StatelessWidget {
                   index: i,
                   count: cards.length,
                   child: SizedBox(
-                    width: widthFor(i),
+                    width: metricsCardWidth(
+                      index: i,
+                      count: cards.length,
+                      available: constraints.maxWidth,
+                    ),
                     child: MetricCard(
                       value: card.value,
                       label: card.label,
