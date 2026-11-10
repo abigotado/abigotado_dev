@@ -11,7 +11,7 @@ import '../../../golden/golden_harness.dart';
 // catch pixel regressions the structural widget tests can't see — the
 // header/collaboration/about layout, prose wrap, and reading-measure width.
 //
-// Baselines are generated on Linux CI post-merge (see
+// Baselines are generated on Linux CI only (see
 // .github/workflows/golden.yml) — macOS skips this tag via dart_test.yaml, so
 // no goldens are authored or verified locally in this pass.
 //

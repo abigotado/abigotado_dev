@@ -24,10 +24,11 @@ Linux-only rule absorbs. A Flutter bump can shift pixels: if the bump PR's
   `dart_test.yaml`, so the everyday `flutter test` (local + the main CI gate)
   stays green and never touches pixels.
 - `.github/workflows/golden.yml`:
-  - **`generate`** — `workflow_dispatch`, owner-triggered, on `main` or a
-    `fix/**` branch: regenerates the Linux baselines and pushes them to a
-    `chore/goldens-<run>` branch. Review the rendered screenshots before
-    merging.
+  - **`generate` → `publish`** — `workflow_dispatch`, owner-triggered, on
+    `main` or a `fix/**` branch. `generate` renders the Linux baselines with a
+    read-only token; `publish` runs none of the branch's code, accepts only
+    regular PNG files at golden paths (added or replaced, never removed) and
+    pushes them as one commit to a `chore/goldens-<run>-<attempt>` branch.
   - **`verify`** — on push/PR: runs the goldens against committed baselines.
     Self-skips (green) while no baselines exist at all, so the first run has
     no chicken-and-egg.
@@ -42,11 +43,19 @@ Linux-only rule absorbs. A Flutter bump can shift pixels: if the bump PR's
    branch, say so in the PR and regenerate on `main` after merge.
 2. On GitHub → **Actions → Golden → Run workflow** (on `main` or the `fix/**`
    branch). It pushes the baselines as one commit on top of that ref, to a
-   `chore/goldens-<run>` branch.
+   `chore/goldens-<run>-<attempt>` branch. Dispatch on a `fix/**` branch only
+   when all of these hold, since the run executes that branch's own workflow
+   file and dependencies:
+   - it is the owner's own branch, already reviewed, with no commits from
+     outside contributors;
+   - it has no unreviewed changes under `.github/` or to `pubspec.*`;
+   - it is rebased on current `main`, because `verify` renders the PR merged
+     into `main`, and baselines from a stale base can still fail.
 3. From `main`, open a PR from that branch. From a `fix/**` branch, check the
-   commit holds only PNGs and fast-forward the fix branch onto it. Eyeball the
-   screenshots in the diff before merging; the PR's own `verify` run proves
-   they pass on a clean Linux checkout.
+   commit holds only PNGs, fast-forward the fix branch onto it, push, and
+   delete the `chore/goldens-*` branch. Eyeball the screenshots in the diff
+   before merging; the PR's own `verify` run proves they pass on a clean Linux
+   checkout.
 
 After an intentional redesign, repeat steps 2–3 to refresh the baselines.
 
