@@ -68,13 +68,22 @@ class ReadmeSidebarRow extends ConsumerWidget {
                   color: selected ? AppColors.accentTeal : AppColors.textHint,
                 ),
                 Expanded(
-                  child: Text(
-                    'README.md',
-                    style: selected ? _rowMonoSelected : _rowMono,
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'README.md',
+                        style: selected ? _rowMonoSelected : _rowMono,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        l10n.file_readme,
+                        style: _labelStyle,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
-                Text(l10n.file_readme, style: _labelStyle),
               ],
             ),
           ),

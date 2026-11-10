@@ -103,5 +103,6 @@ produces. Single-file mechanical fixes may skip the pipeline.
   (`cd.yml` → GitHub Pages).
 - Branches CI runs on: `feat/**`, `fix/**`, `chore/**`, `docs/**`.
 - Golden baselines regenerate only via the owner-triggered `generate` job in
-  `golden.yml` (runs on `main`, pushes a `chore/goldens-*` review branch).
+  `golden.yml` (runs on `main` or a `fix/**` branch, pushes a
+  `chore/goldens-*` review branch).
 - Commit messages and PRs are public and part of the showcase — write them well.

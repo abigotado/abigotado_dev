@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:abigotado_dev/src/app/widget/content_width.dart';
 import 'package:abigotado_dev/src/app/widget/reveal/build_cascade_item.dart';
 import 'package:abigotado_dev/src/features/metrics/metrics_layout.dart';
@@ -20,7 +18,7 @@ import 'package:flutter/widgets.dart';
 /// `AppSizing.contentGutter` (24 px) horizontal padding on each side. The
 /// column count is additionally capped at the card count so the three cards
 /// fill the row evenly rather than leaving an empty fourth column on a wide
-/// desktop.
+/// desktop, and a short last row shares the full width among its cards.
 ///
 /// The section is always visible — it has no Riverpod dependency and requires
 /// no provider gating.
@@ -74,15 +72,8 @@ class MetricsSection extends StatelessWidget {
     return ContentWidth(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final available = constraints.maxWidth;
-          // Cap columns at the card count so three cards fill the row evenly
-          // instead of leaving an empty fourth column on a wide desktop.
-          final columns = math.min(metricsColumnsFor(available), cards.length);
-          const gap = 12.0;
-          final cardWidth = (available - gap * (columns - 1)) / columns;
-
           return Wrap(
-            spacing: gap,
+            spacing: metricsGap,
             runSpacing: 12,
             children: [
               for (final (i, card) in cards.indexed)
@@ -90,7 +81,11 @@ class MetricsSection extends StatelessWidget {
                   index: i,
                   count: cards.length,
                   child: SizedBox(
-                    width: cardWidth,
+                    width: metricsCardWidth(
+                      index: i,
+                      count: cards.length,
+                      available: constraints.maxWidth,
+                    ),
                     child: MetricCard(
                       value: card.value,
                       label: card.label,

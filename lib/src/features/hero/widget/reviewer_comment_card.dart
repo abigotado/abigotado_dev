@@ -45,6 +45,7 @@ class ReviewerCommentCard extends ConsumerWidget {
         children: [
           Row(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 8,
             children: [
               Text(

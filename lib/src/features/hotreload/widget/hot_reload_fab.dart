@@ -6,18 +6,19 @@ import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// The floating ⚡ "hot reload" action button.
+/// The floating lightning-bolt "hot reload" action button.
 ///
-/// A flat amber-glyph circle pinned to the bottom-right of the content pane —
+/// A flat amber-bolt circle pinned to the bottom-right of the content pane —
 /// the Flutter hot-reload conceit. Tapping it calls `HotReloadNotifier.pulse`,
 /// which triggers the section-flash wave in full mode.
 ///
 /// The button is app chrome: it is always present and interactive in BOTH
 /// effects modes (only the resulting flash is gated to full mode). A desktop
 /// hover brightens its border to amber; the brighten is animated in full mode
-/// and instant in lite. The ⚡ glyph is decorative — the accessible affordance
-/// is the wrapping [Semantics] button carrying the localized label and hint,
-/// with `excludeSemantics: true` so the glyph is never announced on its own.
+/// and instant in lite. The bolt icon is decorative — the accessible
+/// affordance is the wrapping [Semantics] button carrying the localized label
+/// and hint, with `excludeSemantics: true` so the icon is never announced on
+/// its own.
 class HotReloadFab extends ConsumerStatefulWidget {
   /// Creates the hot-reload FAB.
   const HotReloadFab({super.key});
@@ -69,13 +70,13 @@ class _HotReloadFabState extends ConsumerState<HotReloadFab> {
               shape: BoxShape.circle,
               border: Border.all(color: borderColor),
             ),
-            child: const Text(
-              '⚡',
-              style: TextStyle(
-                fontSize: 20,
-                height: 1,
-                color: AppColors.accentAmber,
-              ),
+            // An icon-font glyph, not the ⚡ emoji: the bundled icon font is
+            // loaded before the first frame, while web fetches emoji
+            // fallback fonts lazily and paints a missing-glyph box meanwhile.
+            child: const Icon(
+              Icons.bolt,
+              size: 24,
+              color: AppColors.accentAmber,
             ),
           ),
         ),

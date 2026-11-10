@@ -154,23 +154,23 @@
   },
   "file_hero": "intro",
   "@file_hero": {
-    "description": "Sidebar decode-label for hero.dart — clarity word shown next to the filename."
+    "description": "Sidebar decode-label for hero.dart — clarity word shown under the filename."
   },
   "file_metrics": "proof",
   "@file_metrics": {
-    "description": "Sidebar decode-label for metrics.json — clarity word shown next to the filename."
+    "description": "Sidebar decode-label for metrics.json — clarity word shown under the filename."
   },
   "file_pubspec": "skills",
   "@file_pubspec": {
-    "description": "Sidebar decode-label for pubspec.yaml — clarity word shown next to the filename."
+    "description": "Sidebar decode-label for pubspec.yaml — clarity word shown under the filename."
   },
   "file_changelog": "career",
   "@file_changelog": {
-    "description": "Sidebar decode-label for CHANGELOG.md — clarity word shown next to the filename."
+    "description": "Sidebar decode-label for CHANGELOG.md — clarity word shown under the filename."
   },
   "file_contacts": "reach me",
   "@file_contacts": {
-    "description": "Sidebar decode-label for contacts.dart — clarity word shown next to the filename."
+    "description": "Sidebar decode-label for contacts.dart — clarity word shown under the filename."
   },
   "problems": "0 problems",
   "@problems": {
@@ -207,7 +207,7 @@
   },
   "file_readme": "about me",
   "@file_readme": {
-    "description": "Sidebar decode-label for README.md — clarity word shown next to the filename."
+    "description": "Sidebar decode-label for README.md — clarity word shown under the filename."
   },
   "rm_anchor_experience": "Experience",
   "@rm_anchor_experience": {

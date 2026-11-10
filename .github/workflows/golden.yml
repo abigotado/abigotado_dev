@@ -2,8 +2,9 @@ name: Golden
 
 # Golden screenshots for the static sections. Baselines are authored ONLY on
 # Linux (macOS/Windows font anti-aliasing differs), so:
-#   • `generate` — owner-triggered (workflow_dispatch); regenerates the Linux
-#     baselines and pushes them to a review branch to open a PR from.
+#   • `generate` + `publish` — owner-triggered (workflow_dispatch) on `main`
+#     or a `fix/**` branch; regenerates the Linux baselines read-only, then
+#     validates and pushes them as one commit on a `chore/goldens-*` branch.
 #   • `verify`   — on push/PR; checks goldens against committed baselines, and
 #     self-skips (green) until baselines exist, so there is no chicken-and-egg.
 on:
@@ -23,15 +24,23 @@ permissions:
 jobs:
   generate:
     name: Generate baselines (Linux)
-    # Owner-initiated, default-branch only — never automatic, never off main.
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    # Owner-initiated only, never automatic. On `main` it refreshes baselines
+    # after a merge; on a `fix/**` branch it lets a PR that intentionally
+    # changes a section carry its new baselines and pass `verify` before merge.
+    # Read-only: the branch's dependencies, builders and tests run here, so
+    # this job never holds a token that can push.
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/fix/'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
-      contents: write # scoped to THIS job: push the baseline review branch
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
 
       - name: Cache pub packages
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -61,29 +70,95 @@ jobs:
       - name: Update goldens
         run: flutter test --tags golden --run-skipped --update-goldens
 
-      - name: Commit baselines to a review branch
+      # Stored relative to `test/features/`; `publish` re-validates every file.
+      - name: Upload baselines
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: goldens
+          path: test/features/*/golden/goldens/*.png
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Publish baselines
+    needs: generate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # scoped to THIS job, which runs none of the branch's code
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Download baselines
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: goldens
+          path: ${{ runner.temp }}/goldens
+
+      # Smuggle-guard: only regular PNG files at golden paths may land, and
+      # baselines can be added or replaced but never removed.
+      - name: Validate and stage baselines
+        env:
+          SRC: ${{ runner.temp }}/goldens
         run: |
-          git add -A
-          # Smuggle-guard: ONLY golden PNGs may be committed. Fail on anything
-          # else (codegen/l10n drift, stray files) so the baseline commit is pure.
-          if git diff --cached --name-only \
-              | grep -vE '^test/features/[^/]+/golden/goldens/[^/]+\.png$' \
-              | grep -q .; then
-            echo "::error::Non-golden changes staged — refusing to commit baselines."
-            git diff --cached --name-only
+          set -euo pipefail
+          # Plain assignment and redirect, so errexit sees a failing find.
+          irregular="$(find "$SRC" -mindepth 1 ! -type d ! -type f)"
+          find "$SRC" -type f -print0 > "$RUNNER_TEMP/baselines.list"
+          if [[ -n "$irregular" ]]; then
+            echo "::error::Artifact holds non-regular files — refusing."
             exit 1
           fi
+          count=0
+          while IFS= read -r -d '' file; do
+            rel="test/features/${file#"$SRC"/}"
+            if ! [[ "$rel" =~ ^test/features/[A-Za-z0-9_]+/golden/goldens/[A-Za-z0-9_.-]+\.png$ ]]; then
+              echo "::error::Unexpected artifact path: $rel"
+              exit 1
+            fi
+            if [[ "$(head -c 8 "$file" | od -An -tx1 | tr -d ' \n')" != 89504e470d0a1a0a ]]; then
+              echo "::error::Not a PNG: $rel"
+              exit 1
+            fi
+            mkdir -p "$(dirname "$rel")"
+            cp "$file" "$rel"
+            chmod 0644 "$rel"
+            count=$((count + 1))
+          done < "$RUNNER_TEMP/baselines.list"
+          if [[ "$count" -eq 0 ]]; then
+            echo "::error::No baselines in the artifact — refusing."
+            exit 1
+          fi
+          git add -A
+          staged="$(git diff --cached --name-status)"
+          stray="$(awk -F '\t' '$1 !~ /^[AM]$/ || $2 !~ /^test\/features\/[^\/]+\/golden\/goldens\/[^\/]+\.png$/' <<<"$staged")"
+          if [[ -n "$stray" ]]; then
+            echo "::error::Non-golden changes staged — refusing to commit baselines."
+            echo "$stray"
+            exit 1
+          fi
+          modes="$(git diff --cached --raw | awk '$2 != "100644"')"
+          if [[ -n "$modes" ]]; then
+            echo "::error::Baselines must be plain files (mode 100644)."
+            exit 1
+          fi
+
+      - name: Commit baselines to a review branch
+        env:
+          BRANCH: chore/goldens-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
           if git diff --cached --quiet; then
             echo "::notice::Goldens already up to date — nothing to commit."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          BRANCH="chore/goldens-${{ github.run_id }}"
           git checkout -b "$BRANCH"
           git commit -m "chore(goldens): update Linux golden baselines"
           git push origin "$BRANCH"
-          echo "::notice::Baselines pushed to '$BRANCH'. Open a PR into main to review the rendered screenshots; its 'verify' run proves they pass on a clean checkout before you merge."
+          echo "::notice::Baselines pushed to '$BRANCH', one commit on top of the dispatched ref. From main, open a PR from it; from a fix branch, fast-forward that branch onto it and delete '$BRANCH'. Either way the PR's 'verify' run proves they pass on a clean checkout before you merge."
 
   verify:
     name: Verify goldens (Linux)

@@ -54,4 +54,50 @@ void main() {
       });
     });
   });
+
+  group('metricsCardWidth', () {
+    group('short last row', () {
+      test(
+        '3 cards at 342 (2 cols) → 165, 165, then 342 for the lone card',
+        () {
+          expect(
+            [
+              for (var i = 0; i < 3; i++)
+                metricsCardWidth(index: i, count: 3, available: 342),
+            ],
+            equals([165, 165, 342]),
+          );
+        },
+      );
+
+      test('5 cards at 600 (3 cols) → last two share the row', () {
+        expect(
+          metricsCardWidth(index: 3, count: 5, available: 600),
+          equals((600 - metricsGap) / 2),
+        );
+      });
+    });
+
+    group('full rows', () {
+      test('3 cards at 952 (capped at 3 cols) → three even cards', () {
+        expect(
+          metricsCardWidth(index: 2, count: 3, available: 952),
+          equals((952 - 2 * metricsGap) / 3),
+        );
+      });
+
+      test('3 cards at 312 (1 col) → every card spans the row', () {
+        expect(metricsCardWidth(index: 0, count: 3, available: 312), 312);
+      });
+    });
+
+    group('invalid input', () {
+      test('no cards → RangeError, not a division by zero', () {
+        expect(
+          () => metricsCardWidth(index: 0, count: 0, available: 342),
+          throwsRangeError,
+        );
+      });
+    });
+  });
 }

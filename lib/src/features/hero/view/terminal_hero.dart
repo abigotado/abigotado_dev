@@ -115,8 +115,13 @@ class _TerminalHeroState extends ConsumerState<TerminalHero>
       // TerminalFrame's own ContentWidth — an outer horizontal padding here
       // would shift the frame's column relative to the content cards and
       // break the deliberate right-edge alignment between the terminal and
-      // the cards below it.
-      padding: const EdgeInsets.symmetric(vertical: 32),
+      // the cards below it. Phones keep the rhythm of the sections around it.
+      padding: EdgeInsets.symmetric(
+        vertical: switch (MediaQuery.sizeOf(context).width < kCompactWidth) {
+          true => 8,
+          false => 32,
+        },
+      ),
       child: TerminalFrame(
         // Controllers are non-null only in full mode; lite mode passes `null`
         // so the frame/timeline render their static fallbacks.

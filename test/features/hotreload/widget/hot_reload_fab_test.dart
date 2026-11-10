@@ -83,16 +83,23 @@ void main() {
   group('HotReloadFab', () {
     group('rendering', () {
       testWidgets(
-        'renders the ⚡ glyph (exactly one widget carrying the text)',
+        'renders the bolt from the bundled icon font, not the ⚡ emoji',
         (tester) async {
           await _pumpFab(tester, storedMode: EffectsMode.full);
 
           expect(
-            find.text('⚡'),
+            find.byIcon(Icons.bolt),
             findsOneWidget,
             reason:
-                'HotReloadFab must display the ⚡ lightning bolt glyph '
-                'as its visual affordance',
+                'HotReloadFab must display the lightning bolt as its '
+                'visual affordance',
+          );
+          expect(
+            find.text('⚡'),
+            findsNothing,
+            reason:
+                'the ⚡ emoji needs a lazily fetched web fallback font and '
+                'flashes a missing-glyph box on first load',
           );
         },
       );
@@ -226,29 +233,20 @@ void main() {
       );
 
       testWidgets(
-        'the ⚡ glyph is NOT separately announced — label excludes ⚡',
+        'the bolt is decorative → the button node has no child or extra label',
         (tester) async {
           final handle = tester.ensureSemantics();
 
           await _pumpFab(tester, storedMode: EffectsMode.full);
 
-          // The glyph must be wrapped in ExcludeSemantics so the screen reader
-          // only hears "Hot reload", not "⚡" followed by "Hot reload".
+          // The bolt must stay out of the tree, so a screen reader hears only
+          // "Hot reload" — neither a merged glyph label nor a child node.
+          final node = tester.getSemantics(find.byType(HotReloadFab));
+          expect(node.label, 'Hot reload');
           expect(
-            find.bySemanticsLabel('⚡'),
-            findsNothing,
-            reason:
-                'the ⚡ glyph is decorative — it must not appear as its '
-                'own semantics node',
-          );
-
-          final node = tester.getSemantics(find.bySemanticsLabel('Hot reload'));
-          expect(
-            node.label,
-            isNot(contains('⚡')),
-            reason:
-                'the accessible label must not contain ⚡ — '
-                'only "Hot reload" must be announced',
+            node.childrenCount,
+            0,
+            reason: 'the decorative bolt must not surface as its own node',
           );
 
           handle.dispose();
@@ -259,14 +257,14 @@ void main() {
     group('both effects modes — FAB renders and fires pulse', () {
       for (final mode in EffectsMode.values) {
         testWidgets(
-          '${mode.name} mode: ⚡ renders and tap increments hotReloadProvider',
+          '${mode.name} mode: bolt renders, tap increments hotReloadProvider',
           (tester) async {
             final container = await _pumpFab(tester, storedMode: mode);
 
             expect(
-              find.text('⚡'),
+              find.byIcon(Icons.bolt),
               findsOneWidget,
-              reason: 'HotReloadFab must render ⚡ in ${mode.name} mode',
+              reason: 'HotReloadFab must render the bolt in ${mode.name} mode',
             );
 
             final before = container.read(hotReloadProvider);

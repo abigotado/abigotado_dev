@@ -21,6 +21,7 @@ import 'package:abigotado_dev/src/features/hero/view/terminal_hero.dart';
 import 'package:abigotado_dev/src/features/locale/state/locale_notifier.dart';
 import 'package:abigotado_dev/src/features/metrics/widget/metrics_section.dart';
 import 'package:abigotado_dev/src/features/pubspec/widget/pubspec_section.dart';
+import 'package:abigotado_dev/src/features/readme/widget/readme_entry_chip.dart';
 import 'package:abigotado_dev/src/l10n/gen/app_localizations.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -789,6 +790,29 @@ void main() {
     });
 
     // -------------------------------------------------------------------------
+    group('page inset', () {
+      // Regression: the first control sat flush against the title bar.
+      for (final width in const [390.0, 1280.0]) {
+        testWidgets('at $width the page opens one gutter below the pane top', (
+          tester,
+        ) async {
+          await _pumpHost(
+            tester,
+            surfaceSize: Size(width, 844),
+            inShell: true,
+          );
+          await tester.pumpAndSettle();
+
+          expect(
+            tester.getTopLeft(find.byType(ReadmeEntryChip)).dy -
+                tester.getTopLeft(find.byType(EditorScrollHost)).dy,
+            AppSizing.contentGutter,
+          );
+        });
+      }
+    });
+
+    // -------------------------------------------------------------------------
     group('hover headroom', () {
       // Regression: EditorPane's gutter sat outside the landing's scroll view,
       // whose viewport clips — one contentGutter (24 px) left of every card.
@@ -848,7 +872,7 @@ void main() {
         );
       }
 
-      testWidgets('a phone keeps its width: one gutter on the right', (
+      testWidgets('a phone keeps its width: one gutter on each side', (
         tester,
       ) async {
         // Compact phones resolve to lite (no glow), so a second gutter would
@@ -861,7 +885,9 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        final card = tester.getRect(find.byType(HoverLift).first);
+        // The last card spans the column; the first is a metrics grid cell.
+        final card = tester.getRect(find.byType(HoverLift).last);
+        expect(card.left, AppSizing.contentGutter);
         expect(390 - card.right, AppSizing.contentGutter);
       });
 

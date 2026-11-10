@@ -14,13 +14,13 @@ void main() {
   group('AppSizing', () {
     group('readmePanelBreakpoint', () {
       test(
-        'clears sidebarWidth + contentGutter + contentMaxWidth + '
+        'clears sidebarWidth + 2×contentGutter + contentMaxWidth + '
         'readmePanelWidth — the content column keeps its full '
         'contentMaxWidth measure the instant the README panel appears',
         () {
           const floor =
               AppSizing.sidebarWidth +
-              AppSizing.contentGutter +
+              2 * AppSizing.contentGutter +
               AppSizing.contentMaxWidth +
               AppSizing.readmePanelWidth;
 
@@ -28,7 +28,7 @@ void main() {
             AppSizing.readmePanelBreakpoint,
             greaterThanOrEqualTo(floor),
             reason:
-                'a breakpoint narrower than sidebarWidth + contentGutter + '
+                'a breakpoint narrower than sidebarWidth + 2×contentGutter + '
                 'contentMaxWidth + readmePanelWidth ($floor px) would let '
                 'the README panel claim its readmePanelWidth px BEFORE the '
                 'content column has room for it — squeezing the pitch cards '

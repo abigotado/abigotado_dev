@@ -1,5 +1,6 @@
 import 'package:abigotado_dev/src/app/theme/app_colors.dart';
 import 'package:abigotado_dev/src/app/theme/app_sizing.dart';
+import 'package:abigotado_dev/src/app/view/editor_pane.dart';
 import 'package:abigotado_dev/src/app/widget/content_width.dart';
 import 'package:abigotado_dev/src/core/effects/effects_mode.dart';
 import 'package:abigotado_dev/src/features/effects/state/effects_notifier.dart';
@@ -63,8 +64,7 @@ class _ReadmeViewState extends ConsumerState<ReadmeView> {
 
     return Column(
       // Stretch, not the default centre: the tab and anchor-bar strips span
-      // the full pane width (their bottom borders read as toolbar rules) and
-      // the anchor chips left-align with the document below.
+      // the full pane width (their bottom borders read as toolbar rules).
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _ReadmeTab(
@@ -79,6 +79,10 @@ class _ReadmeViewState extends ConsumerState<ReadmeView> {
         Expanded(
           child: SingleChildScrollView(
             controller: _controller,
+            padding: EdgeInsets.symmetric(
+              horizontal: EditorPaneGutter.of(context),
+              vertical: AppSizing.contentGutter,
+            ),
             child: ContentWidth(
               maxWidth: AppSizing.readmeMaxWidth,
               child: ReadmeBody(sectionKeys: _sectionKeys),

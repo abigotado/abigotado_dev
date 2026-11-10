@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:abigotado_dev/src/app/state/scroll_spy_notifier.dart';
 import 'package:abigotado_dev/src/app/state/scroll_spy_state.dart';
+import 'package:abigotado_dev/src/app/theme/app_sizing.dart';
 import 'package:abigotado_dev/src/app/view/editor_pane.dart';
 import 'package:abigotado_dev/src/app/view/landing_page.dart';
 import 'package:abigotado_dev/src/app/view/reveal_geometry.dart';
@@ -118,12 +119,11 @@ class _EditorScrollHostState extends ConsumerState<EditorScrollHost> {
       },
       child: SingleChildScrollView(
         controller: _controller,
-        // The viewport's own clip would cut a hovered card's glow one gutter
-        // from its left edge; `EditorPane` clips at the pane bounds instead.
-        clipBehavior: Clip.none,
         child: Padding(
           // Inside the scroll view, so the scrollbar stays on the pane edge.
-          padding: EdgeInsets.only(right: EditorPaneGutter.trailingOf(context)),
+          padding: EdgeInsets.symmetric(
+            horizontal: EditorPaneGutter.of(context),
+          ).copyWith(top: AppSizing.contentGutter),
           child: LandingPage(sectionKeys: _sectionKeys),
         ),
       ),
