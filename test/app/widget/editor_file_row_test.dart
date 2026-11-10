@@ -100,5 +100,32 @@ void main() {
         },
       );
     });
+
+    // -------------------------------------------------------------------------
+    group('layout', () {
+      testWidgets(
+        'decode label sits under the filename → the name keeps the row width',
+        (tester) async {
+          await _pumpRow(
+            tester,
+            selected: false,
+            file: EditorFile.changelog,
+            locale: const Locale('es'),
+          );
+
+          final name = tester.getRect(find.text('CHANGELOG.md'));
+          final label = tester.getRect(find.text('carrera'));
+
+          expect(
+            label.top,
+            greaterThanOrEqualTo(name.bottom),
+            reason:
+                'a label beside the filename squeezed it into an ellipsis '
+                'in the fixed-width sidebar',
+          );
+          expect(label.left, name.left);
+        },
+      );
+    });
   });
 }

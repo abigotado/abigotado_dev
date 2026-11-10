@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 ///
 /// Shows the file's [EditorFile.icon] (muted, ~14 px), its
 /// [EditorFile.filename] in monospace, and the localized clarity decode-label
-/// right-aligned in hint color at a smaller size.
+/// under it in hint color at a smaller size. The label is stacked rather than
+/// beside the name: the fixed sidebar is too narrow for both on one line in
+/// every locale ("CHANGELOG.md" next to "carrera" truncated the filename).
 ///
 /// [selected] tints the row with a subtle IDE-style active-file highlight and
 /// exposes `isSelected` via [Semantics] so assistive technology can report
@@ -74,13 +76,22 @@ class EditorFileRow extends StatelessWidget {
                   color: selected ? AppColors.accentTeal : AppColors.textHint,
                 ),
                 Expanded(
-                  child: Text(
-                    file.filename,
-                    style: selected ? _rowMonoSelected : _rowMono,
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        file.filename,
+                        style: selected ? _rowMonoSelected : _rowMono,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        file.label(l10n),
+                        style: _labelStyle,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
-                Text(file.label(l10n), style: _labelStyle),
               ],
             ),
           ),
